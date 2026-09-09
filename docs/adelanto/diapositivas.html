@@ -164,18 +164,22 @@
     gap: clamp(8px, 1.6vh, 18px);
     font-size: clamp(1.05rem, 2.3vw, 1.7rem);
     line-height: 1.35;
-    max-width: 30ch;
+    max-width: 38ch;
   }
 
+  /* Sangría francesa con posicionamiento, no con grid: en un grid cada <em>,
+     <strong> o <span> del texto se vuelve su propia celda y salta de línea. */
   li {
-    display: grid;
-    grid-template-columns: 1.1em 1fr;
-    gap: 0.6em;
+    position: relative;
+    padding-left: 1.7em;
   }
 
   li::before {
     content: "—";
     color: var(--canopy);
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 
   ol.steps {
@@ -192,7 +196,7 @@
 
   ol.steps li {
     counter-increment: s;
-    grid-template-columns: 1.6em 1fr;
+    padding-left: 2em;
   }
 
   ol.steps li::before {
@@ -200,15 +204,11 @@
     font-family: var(--mono);
     font-size: 0.75em;
     color: var(--canopy);
-    padding-top: 0.25em;
+    top: 0.3em;
   }
 
   ol.steps li.key {
     font-weight: 600;
-  }
-
-  ol.steps li em {
-    white-space: nowrap;
   }
 
   em {
@@ -519,17 +519,17 @@
 
   <section class="slide" aria-label="Diapositiva 2">
     <p class="eyebrow">Qué es</p>
-    <h2>Ver el cultivo desde el aire y entender lo que se ve</h2>
+    <h2>Ver el cultivo desde el aire y convertir la imagen en datos</h2>
     <p class="flow">observar → caracterizar → detectar → predecir</p>
     <p class="note">
-      Partimos de problemas reales del campo araucano, no de una tecnología buscando dónde
-      aplicarse. La complejidad técnica crece al ritmo de la carrera.
+      Un dron sobrevuela la parcela. El software cuenta las plantas, mide cómo están y señala
+      dónde hay problemas.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 3">
-    <p class="eyebrow">Cómo avanza</p>
-    <h2>Una etapa a la vez, cada una apoyada en la anterior</h2>
+    <p class="eyebrow">Hacia dónde va</p>
+    <h2>Cinco etapas</h2>
     <table class="roadmap">
       <tbody>
         <tr class="now"><td>Etapa I</td><td>Conteo de árboles en una imagen</td><td>en curso</td></tr>
@@ -538,7 +538,7 @@
         <tr><td>Etapa IV</td><td>Series temporales y predicción</td><td>backlog</td></tr>
       </tbody>
     </table>
-    <p class="note">La tesis de grado no está fijada a propósito — surgirá de la línea que demuestre más relevancia y viabilidad.</p>
+    <p class="note">El arroz es el cultivo grande de Arauca. La Etapa III es la que más nos interesa.</p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 4">
@@ -546,9 +546,9 @@
     <h2>Etapa I — contar árboles en una foto aérea</h2>
     <p class="flow">imagen cenital &nbsp;→&nbsp; conteo + posición de cada copa</p>
     <ul>
-      <li>Es <strong>inventario</strong>, no reconocimiento de especie</li>
-      <li>Abordable porque las copas son casi idénticas y hay cientos</li>
-      <li>Alcance: una imagen · sin GPS · copas separadas</li>
+      <li>Un huerto tiene cientos de copas casi idénticas entre sí</li>
+      <li>Esa regularidad es la que hace que el conteo funcione</li>
+      <li>Por ahora: una imagen · sin GPS · copas separadas</li>
     </ul>
   </section>
 
@@ -575,18 +575,19 @@
     <h2>¿Qué es <span class="mono">DBSCAN</span>?</h2>
     <ul>
       <li><em>Density-Based Spatial Clustering of Applications with Noise</em></li>
-      <li>Ester, Kriegel, Sander &amp; Xu · 1996 · premio <em>Test of Time</em> (KDD 2014)</li>
-      <li>Cada mancha = un punto en <span class="mono">ℝ⁷</span></li>
-      <li>Región densa de puntos parecidos = los árboles · lo disperso = <strong>ruido</strong></li>
+      <li>1996 — Ester, Kriegel, Sander y Xu</li>
+      <li>Premio <em>Test of Time</em> de KDD, 2014</li>
+      <li>Cada mancha es un punto en <span class="mono">ℝ⁷</span></li>
+      <li>La región densa de puntos parecidos son los árboles; lo disperso es <strong>ruido</strong></li>
     </ul>
     <p class="note">
-      No supervisado: sin ejemplos etiquetados, sin entrenamiento. Base matemática: distancia
-      euclidiana + contar vecinos.
+      Corre directo sobre los datos, sin ejemplos etiquetados. Solo hace falta distancia
+      euclidiana y contar vecinos.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 7">
-    <p class="eyebrow">Por qué no una red neuronal</p>
+    <p class="eyebrow">La diferencia</p>
     <h2>DBSCAN frente a un modelo de Hugging Face</h2>
     <table class="cmp">
       <thead>
@@ -614,7 +615,7 @@
         </tr>
       </tbody>
     </table>
-    <p class="note">No es una limitación: es una decisión de diseño. El aprendizaje profundo entra en la Etapa III.</p>
+    <p class="note">El aprendizaje profundo lo vamos a necesitar en la Etapa III, para segmentar maleza píxel a píxel.</p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 8">
@@ -627,18 +628,16 @@
       <div><span class="v">1 → 110</span><span class="k">índice combo · imagen real</span></div>
     </div>
     <p class="note">
-      Falta: validación sobre una foto real de copas separadas — depende del primer vuelo del
-      dron.
+      Lo siguiente es probarlo sobre una foto real. Falta el primer vuelo del dron.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 9">
-    <p class="eyebrow">Cierre</p>
+    <p class="eyebrow">El objetivo</p>
     <p class="thesis-q">
-      No construimos primero la tesis y después el camino. Construimos el camino que permite
-      descubrir cuál debe ser la tesis.
+      Que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.
     </p>
-    <p class="byline">Gracias.</p>
+    <p class="byline">Vamos en la primera de cinco etapas.<br />Gracias.</p>
     <div class="links">
       <span>Código: repositorio público</span>
       <span>Adelanto completo: <a href="https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b">claude.ai/code/artifact/adb9ef22…</a></span>
