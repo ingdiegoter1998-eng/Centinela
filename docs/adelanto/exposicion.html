@@ -1,0 +1,1008 @@
+<title>Exposición · Proyecto Centinela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --paper: #f4f2ea;
+    --paper-2: #eceadd;
+    --screen: #edf0e6;
+    --ink: #1b211a;
+    --ink-2: #565c4c;
+    --line: #d5d3c2;
+    --canopy: #3f6f3c;
+    --canopy-deep: #2c4f2b;
+    --soil: #a9743e;
+    --detect: #2f7fc4;
+
+    --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --body: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+    --measure: 66ch;
+    --wide: 1060px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #10140f;
+      --paper-2: #171d16;
+      --screen: #1b231a;
+      --ink: #e7ebe0;
+      --ink-2: #9aa38f;
+      --line: #2c3429;
+      --canopy: #74ac6c;
+      --canopy-deep: #9ccf92;
+      --soil: #cf9a5f;
+      --detect: #6fb2e6;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #10140f;
+    --paper-2: #171d16;
+    --screen: #1b231a;
+    --ink: #e7ebe0;
+    --ink-2: #9aa38f;
+    --line: #2c3429;
+    --canopy: #74ac6c;
+    --canopy-deep: #9ccf92;
+    --soil: #cf9a5f;
+    --detect: #6fb2e6;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 18px;
+    line-height: 1.62;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      font-size: 16.5px;
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    line-height: 1.14;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--canopy);
+    text-underline-offset: 3px;
+  }
+
+  code,
+  .mono {
+    font-family: var(--mono);
+    font-size: 0.85em;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: var(--wide);
+    margin-inline: auto;
+    padding-inline: clamp(20px, 5vw, 56px);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--canopy);
+    margin: 0 0 16px;
+  }
+
+  /* ── header ─────────────────────────────────────── */
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: clamp(48px, 9vw, 88px) 0 clamp(32px, 5vw, 52px);
+  }
+
+  header h1 {
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    letter-spacing: -0.02em;
+  }
+
+  header .thesis {
+    margin-top: 20px;
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+    color: var(--ink-2);
+    max-width: 44ch;
+  }
+
+  .meta {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .meta span {
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 5px 10px;
+    color: var(--ink-2);
+  }
+
+  /* ── generic section ────────────────────────────── */
+
+  section {
+    padding: clamp(40px, 6vw, 68px) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sec-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--soil);
+    margin-bottom: 22px;
+  }
+
+  /* ── timing table ───────────────────────────────── */
+
+  .timing {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92em;
+    max-width: var(--measure);
+  }
+
+  .timing th,
+  .timing td {
+    text-align: left;
+    padding: 9px 16px 9px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+  }
+
+  .timing th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .timing td:first-child,
+  .timing td:last-child {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .timing td:first-child {
+    color: var(--soil);
+  }
+
+  /* ── slides ─────────────────────────────────────── */
+
+  .slide {
+    padding: clamp(36px, 5vw, 56px) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .slide:last-of-type {
+    border-bottom: none;
+  }
+
+  .slide__head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .slide__n {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--canopy);
+    letter-spacing: 0.08em;
+  }
+
+  .slide__time {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .slide h2 {
+    font-size: clamp(1.5rem, 3.6vw, 2.1rem);
+  }
+
+  /* what appears on the projected slide */
+  .screen {
+    background: var(--screen);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: clamp(20px, 3vw, 30px);
+    margin-bottom: 22px;
+  }
+
+  .screen__label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 14px;
+  }
+
+  .screen h3 {
+    font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+    margin-bottom: 12px;
+  }
+
+  .screen ul {
+    margin: 0;
+    padding-left: 1.1em;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .screen li::marker {
+    color: var(--canopy);
+  }
+
+  .screen .flow {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    color: var(--canopy-deep);
+    margin-bottom: 10px;
+  }
+
+  .screen img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-top: 14px;
+    background: var(--paper);
+  }
+
+  .screen table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88em;
+  }
+
+  .screen table th,
+  .screen table td {
+    text-align: left;
+    padding: 8px 14px 8px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  .screen table th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+  }
+
+  .metrics div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metrics .v {
+    font-family: var(--display);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metrics .k {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  /* the spoken script */
+  .script {
+    border-left: 2px solid var(--canopy);
+    padding-left: 20px;
+    max-width: var(--measure);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .script__label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--canopy);
+  }
+
+  .script p {
+    font-size: 1.02em;
+  }
+
+  .script em {
+    font-style: italic;
+    color: var(--canopy-deep);
+  }
+
+  .cue {
+    font-family: var(--mono);
+    font-size: 0.8em;
+    color: var(--soil);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── glossary ───────────────────────────────────── */
+
+  .gloss {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: var(--wide);
+  }
+
+  .gloss > div {
+    background: var(--paper);
+    padding: 15px 20px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 6px 24px;
+    align-items: baseline;
+  }
+
+  .gloss dt {
+    font-family: var(--mono);
+    font-size: 0.82em;
+    color: var(--canopy-deep);
+    font-weight: 500;
+  }
+
+  .gloss dd {
+    margin: 0;
+    font-size: 0.95em;
+    color: var(--ink);
+  }
+
+  .gloss .en {
+    color: var(--ink-2);
+    font-style: italic;
+  }
+
+  @media (max-width: 620px) {
+    .gloss > div {
+      grid-template-columns: 1fr;
+      gap: 3px;
+    }
+  }
+
+  /* ── Q&A + checklist ────────────────────────────── */
+
+  .qa {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    max-width: var(--measure);
+  }
+
+  .qa dt {
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .qa dd {
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  ul.check {
+    max-width: var(--measure);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  ul.check li {
+    display: grid;
+    grid-template-columns: 1.4em 1fr;
+    gap: 10px;
+  }
+
+  ul.check li::before {
+    content: "☐";
+    color: var(--canopy);
+    font-size: 1.1em;
+  }
+
+  footer {
+    padding: clamp(36px, 6vw, 56px) 0 44px;
+  }
+
+  footer p {
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+
+  footer .big {
+    font-family: var(--display);
+    font-size: clamp(1.15rem, 2.8vw, 1.5rem);
+    color: var(--ink);
+    max-width: 40ch;
+    margin-bottom: 14px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--detect);
+    outline-offset: 2px;
+  }
+</style>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Guion de exposición · ≈ 7 minutos · para compañeros de clase</p>
+    <h1>Proyecto Centinela</h1>
+    <p class="thesis">
+      Contar árboles en una imagen aérea con visión por computador y agrupamiento no
+      supervisado — y por qué esa es la decisión correcta para primer semestre.
+    </p>
+    <div class="meta">
+      <span>7 diapositivas</span>
+      <span>≈ 950 palabras habladas</span>
+      <span>registro académico</span>
+      <span>glosario incluido</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <p class="sec-title">Estructura y tiempos</p>
+      <table class="timing">
+        <thead>
+          <tr><th>#</th><th>Diapositiva</th><th>Dur.</th><th>Acum.</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>El proyecto</td><td>0:40</td><td>0:40</td></tr>
+          <tr><td>2</td><td>La hoja de ruta</td><td>0:45</td><td>1:25</td></tr>
+          <tr><td>3</td><td>Etapa I — el problema</td><td>0:50</td><td>2:15</td></tr>
+          <tr><td>4</td><td>El método (el <em>pipeline</em>)</td><td>1:05</td><td>3:20</td></tr>
+          <tr><td>5</td><td>¿Qué es DBSCAN?</td><td>1:10</td><td>4:30</td></tr>
+          <tr><td>6</td><td>DBSCAN frente a modelos de Hugging Face</td><td>1:10</td><td>5:40</td></tr>
+          <tr><td>7</td><td>Resultados y cierre</td><td>1:00</td><td>6:40</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px; color: var(--ink-2); font-size: 0.9em; max-width: 60ch">
+        Margen de ~20 s para transiciones. Si el tiempo aprieta, la diapositiva 2 se puede
+        abreviar a dos frases.
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap">
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D1</span>
+        <h2>El proyecto</h2>
+        <span class="slide__time">0:00 – 0:40</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <h3>Proyecto Centinela</h3>
+        <ul>
+          <li>Agricultura de precisión para Saravena, Arauca</li>
+          <li>Dron · visión por computador · análisis de datos</li>
+          <li>Estudiantes de Ingeniería en Inteligencia Artificial — UIS Saravena</li>
+          <li><em>La técnica crece al ritmo de la carrera</em></li>
+        </ul>
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          Buenos días. Presentamos <em>Proyecto Centinela</em>: una plataforma de agricultura
+          de precisión para los cultivos de Saravena y del resto de Arauca. La idea central es
+          fácil de enunciar —observar los cultivos desde el aire con un dron y convertir esas
+          imágenes en información concreta: cuántas plantas hay, cómo están, qué las amenaza—.
+        </p>
+        <p>
+          El proyecto no parte de una tecnología buscando dónde aplicarse, sino de problemas
+          reales del campo araucano. Y se construye por etapas: la complejidad técnica de cada
+          etapa crece al mismo ritmo que nuestros conocimientos en la carrera.
+        </p>
+      </div>
+    </article>
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D2</span>
+        <h2>La hoja de ruta</h2>
+        <span class="slide__time">0:40 – 1:25</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <p class="flow">observar → caracterizar → detectar → predecir</p>
+        <table>
+          <tr><th>Fase</th><th>Qué resuelve</th><th>Estado</th></tr>
+          <tr><td>I · Conteo</td><td>Contar árboles en una imagen</td><td>en curso</td></tr>
+          <tr><td>II · Caracterización</td><td>Medir vigor y cobertura</td><td>backlog</td></tr>
+          <tr><td>III · Maleza en arroz</td><td>Mapa de infestación</td><td>próximo hito (~12 meses)</td></tr>
+          <tr><td>IV · Series temporales</td><td>Anticipar la evolución</td><td>backlog</td></tr>
+        </table>
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          El proyecto avanza en cuatro capacidades acumulativas: observar, caracterizar,
+          detectar y, eventualmente, predecir. Cada etapa resuelve un problema autocontenido y
+          deja código y método que la siguiente reutiliza.
+        </p>
+        <p>
+          Hoy estamos en la Etapa I, el conteo. La Etapa III —detección de maleza en arroz— es
+          el hito grande a mediano plazo, porque el arroz es un cultivo central en Arauca. Una
+          decisión deliberada: no fijamos de antemano cuál etapa será la tesis de grado. La
+          tesis surgirá de la línea que, tras experimentar, demuestre mayor relevancia y
+          viabilidad.
+        </p>
+      </div>
+    </article>
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D3</span>
+        <h2>Etapa I — el problema</h2>
+        <span class="slide__time">1:25 – 2:15</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <p class="flow">una imagen aérea cenital &nbsp;→&nbsp; conteo + posición de cada copa</p>
+        <ul>
+          <li>Es un problema de <strong>inventario</strong>, no de reconocimiento de especie</li>
+          <li>Abordable porque: copas muy parecidas entre sí + hay cientos</li>
+          <li>Alcance acotado: una imagen · sin GPS · copas separadas con suelo visible</li>
+        </ul>
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          La Etapa I resuelve un problema de inventario. Entra una fotografía aérea tomada en
+          vista cenital —la cámara apuntando directamente hacia abajo— de una parcela de
+          cítricos. Sale el número de árboles y la posición de cada copa dentro de la imagen.
+          No nos interesa <em>qué</em> especie es cada planta, sino <em>cuántas</em> copas hay
+          y <em>dónde</em>.
+        </p>
+        <p>
+          El problema es abordable por una razón concreta: en una plantación uniforme, todas
+          las copas se parecen mucho entre sí y hay cientos de ellas. Esa regularidad es la que
+          vamos a explotar. Por ahora el alcance está acotado: una sola imagen, sin GPS, y
+          copas separadas con suelo visible entre ellas.
+        </p>
+      </div>
+    </article>
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D4</span>
+        <h2>El método</h2>
+        <span class="slide__time">2:15 – 3:20</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <h3>Visión por computador clásica — sin modelos entrenados</h3>
+        <ol style="margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px">
+          <li>Separar vegetación del suelo (más verde <em>y</em> más oscura)</li>
+          <li>Limpiar y separar copas pegadas (<em>watershed</em>)</li>
+          <li>Describir cada mancha: área, color, forma</li>
+          <li><strong>Agrupar por similitud — DBSCAN</strong></li>
+          <li>Contar</li>
+        </ol>
+        <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y clusters de DBSCAN con 80 árboles." />
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          El método es visión por computador clásica, sin ningún modelo entrenado. Son cinco
+          pasos. <span class="cue">[señalar la figura]</span>
+        </p>
+        <p>
+          Primero, separamos la vegetación del suelo: la copa es más verde y más oscura que el
+          suelo seco, y combinamos ambas señales en un solo índice. Segundo, limpiamos esa
+          máscara y separamos las copas que se tocan con un algoritmo llamado <em>watershed</em>,
+          que funciona como inundar un relieve desde los valles hasta que las aguas se
+          encuentran. Tercero, describimos cada mancha por su área, su color y su forma.
+        </p>
+        <p>
+          Cuarto —y este es el corazón del método— agrupamos esas manchas por similitud con un
+          algoritmo llamado DBSCAN. Y quinto, contamos. En la figura: la imagen original, el
+          índice de vegetación, la separación de copas, y el resultado final sobre un huerto de
+          prueba de ochenta árboles.
+        </p>
+      </div>
+    </article>
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D5</span>
+        <h2>¿Qué es DBSCAN?</h2>
+        <span class="slide__time">3:20 – 4:30</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <h3><span class="mono">DBSCAN</span></h3>
+        <ul>
+          <li><em>Density-Based Spatial Clustering of Applications with Noise</em></li>
+          <li>Ester, Kriegel, Sander &amp; Xu — 1996 · premio <em>Test of Time</em>, KDD 2014</li>
+          <li>Cada mancha = un punto en ℝ⁷ (sus 7 descriptores)</li>
+          <li>Busca la <strong>región densa</strong> de puntos parecidos = los árboles</li>
+          <li>Lo disperso y aislado = <strong>ruido</strong> → se descarta</li>
+        </ul>
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          DBSCAN es la sigla de <em>Density-Based Spatial Clustering of Applications with
+          Noise</em>: agrupamiento espacial basado en densidad, tolerante al ruido. Lo
+          propusieron cuatro investigadores en 1996, y en 2014 recibió el premio <em>Test of
+          Time</em> de la conferencia KDD, que reconoce los trabajos cuyo impacto perdura.
+        </p>
+        <p>
+          ¿Qué hace? Representamos cada mancha de la imagen como un punto en un espacio de
+          siete dimensiones —sus siete descriptores—. DBSCAN busca en ese espacio la región
+          <em>densa</em>: el grupo grande de puntos muy parecidos entre sí. Ese grupo son los
+          árboles del cultivo. Todo lo que queda disperso y aislado —sombras, maleza, suelo—
+          lo etiqueta como <em>ruido</em> y lo descarta.
+        </p>
+        <p>
+          Nunca le decimos al programa qué aspecto tiene una copa; la uniformidad del cultivo
+          hace el trabajo. Y es un método <em>no supervisado</em>: no necesita ejemplos
+          etiquetados a mano y no hay fase de entrenamiento. Su base matemática es la distancia
+          euclidiana —la norma que vemos en Álgebra Lineal— y contar vecinos.
+        </p>
+      </div>
+    </article>
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D6</span>
+        <h2>DBSCAN frente a modelos de Hugging Face</h2>
+        <span class="slide__time">4:30 – 5:40</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <table>
+          <tr>
+            <th></th>
+            <th>Modelo entrenado (Hugging Face)</th>
+            <th>Algoritmo (DBSCAN)</th>
+          </tr>
+          <tr>
+            <td>Qué es</td>
+            <td>red neuronal con millones de parámetros ya ajustados</td>
+            <td>un procedimiento, no un objeto entrenado</td>
+          </tr>
+          <tr>
+            <td>Necesita</td>
+            <td>datos etiquetados, GPU, reajuste con ejemplos propios</td>
+            <td>solo los datos; ni etiquetas ni entrenamiento</td>
+          </tr>
+          <tr>
+            <td>Su matemática</td>
+            <td>cálculo multivariable (gradientes) — aún no la vemos</td>
+            <td>distancia euclidiana + contar — primer semestre</td>
+          </tr>
+        </table>
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          Nos preguntaron por qué no usamos un modelo de <em>Hugging Face</em>. Hugging Face es
+          una plataforma donde se comparten modelos ya entrenados, en su mayoría redes
+          neuronales profundas. Usar uno significa descargar una función con millones de
+          parámetros ya ajustados, que aprendió de grandes conjuntos de imágenes etiquetadas.
+          Para nuestro problema, además, habría que reajustarlo etiquetando a mano cientos de
+          copas. Y entender <em>cómo</em> aprende esa red exige cálculo de varias variables
+          —gradientes, retropropagación— que todavía no vemos.
+        </p>
+        <p>
+          DBSCAN es otra cosa: es un algoritmo, no un modelo. No se entrena, no se descarga, no
+          necesita etiquetas. Corre directamente sobre nuestros datos y su matemática cabe en
+          el primer semestre.
+        </p>
+        <p>
+          Que hayamos elegido DBSCAN no es una limitación: es una decisión de diseño. El
+          principio del proyecto es que la tecnología está subordinada al problema. El
+          aprendizaje profundo entra en la Etapa III, cuando el problema —segmentar maleza
+          píxel a píxel— y la cantidad de datos etiquetados lo justifiquen.
+        </p>
+      </div>
+    </article>
+
+    <article class="slide">
+      <div class="slide__head">
+        <span class="slide__n">D7</span>
+        <h2>Resultados y cierre</h2>
+        <span class="slide__time">5:40 – 6:40</span>
+      </div>
+      <div class="screen">
+        <p class="screen__label">En pantalla</p>
+        <div class="metrics">
+          <div><span class="v">1.00</span><span class="k">F1 · sintético</span></div>
+          <div><span class="v">0 %</span><span class="k">error de conteo</span></div>
+          <div><span class="v">19 / 19</span><span class="k">pruebas</span></div>
+          <div><span class="v">1 → 110</span><span class="k">índice combo (imagen real)</span></div>
+        </div>
+        <ul style="margin-top: 16px">
+          <li>Falta: validación sobre foto real de copas separadas (depende del vuelo del dron)</li>
+          <li>Código en repositorio público + página de adelanto</li>
+        </ul>
+      </div>
+      <div class="script">
+        <p class="script__label">Guion</p>
+        <p>
+          Resultados. Sobre un huerto sintético, con respuesta conocida, el sistema acierta los
+          ochenta árboles: precisión y exhaustividad de uno, error de conteo cero, y diecinueve
+          pruebas automáticas en verde. El aporte técnico de esta etapa fue un índice de
+          vegetación robusto que llamamos <em>combo</em>: pasó de una a ciento diez detecciones
+          en una imagen real difícil.
+        </p>
+        <p>
+          Lo que falta para cerrar la etapa es la validación sobre una fotografía real de copas
+          separadas, que depende del primer vuelo del dron. Somos honestos con eso.
+        </p>
+        <p>
+          Cierro con la frase que guía el proyecto: no construimos primero la tesis y después
+          el camino; construimos el camino que nos permite descubrir cuál debe ser la tesis.
+          El código está en un repositorio público y dejamos el enlace al adelanto completo.
+          Gracias. <span class="cue">[dejar la última diapositiva en pantalla para preguntas]</span>
+        </p>
+      </div>
+    </article>
+
+  </div>
+
+  <section>
+    <div class="wrap">
+      <p class="sec-title">Glosario — términos en inglés y técnicos</p>
+      <div class="gloss">
+        <div>
+          <dt>DBSCAN</dt>
+          <dd><span class="en">Density-Based Spatial Clustering of Applications with Noise.</span>
+            Algoritmo de agrupamiento por densidad que además identifica puntos aislados como ruido.</dd>
+        </div>
+        <div>
+          <dt>clustering</dt>
+          <dd>Agrupamiento. Dividir un conjunto de datos en grupos de elementos parecidos,
+            sin decirle de antemano cuáles son los grupos.</dd>
+        </div>
+        <div>
+          <dt>no supervisado</dt>
+          <dd><span class="en">unsupervised.</span> El método encuentra estructura en los datos
+            sin ejemplos etiquetados por una persona. DBSCAN es no supervisado.</dd>
+        </div>
+        <div>
+          <dt>supervisado</dt>
+          <dd><span class="en">supervised.</span> El método aprende a partir de ejemplos
+            etiquetados ("esto sí es un árbol, esto no"). Las redes tipo YOLO son supervisadas.</dd>
+        </div>
+        <div>
+          <dt>Hugging Face</dt>
+          <dd>Plataforma en línea donde investigadores y empresas publican modelos de
+            inteligencia artificial ya entrenados para que otros los descarguen y usen.</dd>
+        </div>
+        <div>
+          <dt>deep learning</dt>
+          <dd>Aprendizaje profundo. Rama del aprendizaje automático basada en redes neuronales
+            con muchas capas. Requiere muchos datos, GPU y matemática avanzada para su entrenamiento.</dd>
+        </div>
+        <div>
+          <dt>red neuronal</dt>
+          <dd><span class="en">neural network.</span> Función matemática con muchos parámetros
+            ajustables, organizada en capas, que se "afina" sobre datos.</dd>
+        </div>
+        <div>
+          <dt>parámetro</dt>
+          <dd>Cada número interno que un modelo ajusta durante el entrenamiento. Una red moderna
+            tiene millones.</dd>
+        </div>
+        <div>
+          <dt>retropropagación</dt>
+          <dd><span class="en">backpropagation.</span> El procedimiento con que una red neuronal
+            ajusta sus parámetros. Usa cálculo de varias variables.</dd>
+        </div>
+        <div>
+          <dt>fine-tuning</dt>
+          <dd>Reajuste. Tomar un modelo ya entrenado y adaptarlo a un problema propio con un
+            conjunto pequeño de ejemplos etiquetados.</dd>
+        </div>
+        <div>
+          <dt>pipeline</dt>
+          <dd>Cadena de procesamiento. La secuencia de pasos por la que pasa la imagen, de la
+            entrada al resultado.</dd>
+        </div>
+        <div>
+          <dt>watershed</dt>
+          <dd><span class="en">"cuenca hidrográfica".</span> Algoritmo de segmentación que trata
+            la imagen como un relieve y la "inunda" desde los mínimos para trazar fronteras.</dd>
+        </div>
+        <div>
+          <dt>índice de vegetación</dt>
+          <dd>Fórmula sobre los canales de color que da, por píxel, un valor de "cuánta
+            vegetación hay". Usamos uno llamado <span class="mono">combo</span>.</dd>
+        </div>
+        <div>
+          <dt>ExG</dt>
+          <dd><span class="en">Excess Green, "exceso de verde".</span> Índice de vegetación
+            clásico: <span class="mono">2·verde − rojo − azul</span> sobre canales normalizados.</dd>
+        </div>
+        <div>
+          <dt>descriptor</dt>
+          <dd><span class="en">feature.</span> Un número que resume una propiedad de una mancha
+            (su área, su color medio, su circularidad…).</dd>
+        </div>
+        <div>
+          <dt>espacio de características</dt>
+          <dd><span class="en">feature space.</span> El espacio ℝⁿ donde cada objeto es un punto
+            cuyas coordenadas son sus descriptores. Aquí, ℝ⁷.</dd>
+        </div>
+        <div>
+          <dt>ruido</dt>
+          <dd><span class="en">noise.</span> En DBSCAN, los puntos que no pertenecen a ninguna
+            región densa. Aquí: sombras, maleza, suelo.</dd>
+        </div>
+        <div>
+          <dt>cenital / nadir</dt>
+          <dd>Vista desde arriba con la cámara perpendicular al suelo.</dd>
+        </div>
+        <div>
+          <dt>UAV</dt>
+          <dd><span class="en">Unmanned Aerial Vehicle.</span> Vehículo aéreo no tripulado; dron.</dd>
+        </div>
+        <div>
+          <dt>ground truth</dt>
+          <dd>Verdad de terreno. La respuesta correcta de referencia —aquí, el conteo hecho a
+            mano— contra la que se mide el sistema.</dd>
+        </div>
+        <div>
+          <dt>precision / recall</dt>
+          <dd>Precisión: de lo que el sistema marcó como árbol, qué fracción lo era.
+            Exhaustividad (<span class="en">recall</span>): de los árboles reales, qué fracción
+            encontró.</dd>
+        </div>
+        <div>
+          <dt>F1</dt>
+          <dd>Media armónica de precisión y exhaustividad. Un solo número entre 0 y 1; 1 es
+            perfecto.</dd>
+        </div>
+        <div>
+          <dt>KDD</dt>
+          <dd><span class="en">Knowledge Discovery and Data Mining.</span> La conferencia
+            científica de referencia en minería de datos.</dd>
+        </div>
+        <div>
+          <dt>scikit-learn</dt>
+          <dd>Biblioteca de Python para aprendizaje automático. De ahí tomamos la implementación
+            de DBSCAN.</dd>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="sec-title">Preguntas probables</p>
+      <dl class="qa">
+        <div>
+          <dt>¿Entonces esto es inteligencia artificial?</dt>
+          <dd>Sí. DBSCAN es aprendizaje automático, de la rama no supervisada. El aprendizaje
+            profundo es otra rama, más pesada, y está planificada para la Etapa III.</dd>
+        </div>
+        <div>
+          <dt>¿Por qué no una red que ya detecta árboles?</dt>
+          <dd>Necesitaría datos etiquetados propios, más de una imagen, GPU, y su entrenamiento
+            usa matemática que aún no vemos. DBSCAN resuelve esta etapa con lo que ya sabemos, y
+            deja el terreno listo para la Etapa III.</dd>
+        </div>
+        <div>
+          <dt>¿Funciona con cualquier foto?</dt>
+          <dd>Con plantaciones uniformes de copas separadas. No con bosque mixto ni con dosel
+            cerrado —eso queda, a propósito, para otra etapa.</dd>
+        </div>
+        <div>
+          <dt>¿Cuánto tarda en ejecutarse?</dt>
+          <dd>Segundos, en cualquier portátil. Sin GPU.</dd>
+        </div>
+        <div>
+          <dt>¿Qué tan preciso es en la vida real?</dt>
+          <dd>Todavía no lo sabemos con rigor: esa medición es exactamente el siguiente paso, y
+            depende de tener una foto real de copas separadas.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="sec-title">Antes de exponer</p>
+      <ul class="check">
+        <li>Tener abierta la página de adelanto en otra pestaña, por si piden ver más.</li>
+        <li>Memorizar los tres números del cierre: F1 = 1.00 · error 0 % · 19 pruebas.</li>
+        <li>Practicar en voz alta una vez con cronómetro — apuntar a 6:40.</li>
+        <li>Preparar la figura de la diapositiva 4 en grande; es la que más se mira.</li>
+        <li>Decir "DBSCAN" siempre igual (de-bi-scan) y "clustering" sin traducir.</li>
+        <li>No leer el guion palabra por palabra: son ideas, no un libreto.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="big">
+      No construimos primero la tesis y después el camino. Construimos el camino que nos
+      permite descubrir cuál debe ser la tesis.
+    </p>
+    <p>Proyecto Centinela · Universidad Industrial de Santander — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
+  </div>
+</footer>

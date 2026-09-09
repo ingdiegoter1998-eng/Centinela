@@ -40,6 +40,9 @@ build/
 !docs/**/*.png
 !docs/adelanto/*.jpg
 
+# HTML de artefactos con imágenes embebidas (generado — se arma desde el .html fuente)
+*.build.html
+
 # ── Editores / herramientas / SO ───────────────────
 .vscode/*
 !.vscode/extensions.json
