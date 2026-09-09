@@ -7,6 +7,7 @@ embeben en base64 al publicar.
 |---|---|---|
 | `index.html` | Página de adelanto — qué plantea el proyecto, cómo funciona la Etapa I, su matemática y la hoja de ruta | <https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b> |
 | `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario | <https://claude.ai/code/artifact/d67e235c-c71f-467f-b498-5f984b31d7e5> |
+| `diapositivas.html` | 9 diapositivas navegables con flechas (← →), imprimibles a PDF | <https://claude.ai/code/artifact/e3383052-337c-4258-b676-6a3b4c110034> |
 
 ## Imágenes
 

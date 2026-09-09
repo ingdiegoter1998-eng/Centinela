@@ -1,0 +1,722 @@
+<title>Proyecto Centinela · Diapositivas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --paper: #f4f2ea;
+    --paper-2: #eceadd;
+    --ink: #1b211a;
+    --ink-2: #5c6350;
+    --line: #d5d3c2;
+    --canopy: #3f6f3c;
+    --canopy-deep: #2c4f2b;
+    --soil: #a9743e;
+    --detect: #2f7fc4;
+
+    --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --body: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f130e;
+      --paper-2: #171d16;
+      --ink: #e9ede2;
+      --ink-2: #a7b09b;
+      --line: #2c3429;
+      --canopy: #78b06f;
+      --canopy-deep: #a3d599;
+      --soil: #d29d61;
+      --detect: #6fb2e6;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0f130e;
+    --paper-2: #171d16;
+    --ink: #e9ede2;
+    --ink-2: #a7b09b;
+    --line: #2c3429;
+    --canopy: #78b06f;
+    --canopy-deep: #a3d599;
+    --soil: #d29d61;
+    --detect: #6fb2e6;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    height: 100%;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    overflow: hidden;
+  }
+
+  .deck {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    height: 100vh;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(14px, 2.2vh, 30px);
+    padding: clamp(40px, 7vw, 110px) clamp(36px, 8vw, 130px) clamp(70px, 9vh, 110px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease;
+  }
+
+  .slide.current {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide {
+      transition: none;
+    }
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: clamp(11px, 1.5vw, 15px);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--canopy);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    margin: 0;
+    text-wrap: balance;
+    font-size: clamp(3rem, 9vw, 6.6rem);
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.018em;
+    margin: 0;
+    text-wrap: balance;
+    font-size: clamp(2rem, 5.4vw, 4rem);
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .lead {
+    font-size: clamp(1.15rem, 2.6vw, 2rem);
+    line-height: 1.4;
+    max-width: 24ch;
+    color: var(--ink);
+  }
+
+  .sub {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.05rem, 2.2vw, 1.7rem);
+    color: var(--ink-2);
+    max-width: 34ch;
+  }
+
+  .flow {
+    font-family: var(--mono);
+    font-size: clamp(1rem, 2.4vw, 1.9rem);
+    color: var(--canopy-deep);
+    letter-spacing: 0.01em;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.6vh, 18px);
+    font-size: clamp(1.05rem, 2.3vw, 1.7rem);
+    line-height: 1.35;
+    max-width: 30ch;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 1.1em 1fr;
+    gap: 0.6em;
+  }
+
+  li::before {
+    content: "—";
+    color: var(--canopy);
+  }
+
+  ol.steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: s;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1.3vh, 14px);
+    font-size: clamp(1rem, 2.1vw, 1.5rem);
+    max-width: 32ch;
+  }
+
+  ol.steps li {
+    counter-increment: s;
+    grid-template-columns: 1.6em 1fr;
+  }
+
+  ol.steps li::before {
+    content: counter(s);
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--canopy);
+    padding-top: 0.25em;
+  }
+
+  ol.steps li.key {
+    font-weight: 600;
+  }
+
+  ol.steps li em {
+    white-space: nowrap;
+  }
+
+  em {
+    font-style: italic;
+    color: var(--canopy-deep);
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  .mono {
+    font-family: var(--mono);
+  }
+
+  /* two-column split for method + figure, and comparison */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(24px, 5vw, 64px);
+    align-items: center;
+  }
+
+  .split img {
+    width: 100%;
+    height: auto;
+    max-height: 62vh;
+    object-fit: contain;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper-2);
+  }
+
+  @media (max-width: 780px) {
+    .split {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    .split img {
+      max-height: 38vh;
+    }
+  }
+
+  table.cmp {
+    border-collapse: collapse;
+    font-size: clamp(0.9rem, 1.9vw, 1.35rem);
+    width: 100%;
+  }
+
+  table.cmp th,
+  table.cmp td {
+    text-align: left;
+    padding: clamp(8px, 1.4vh, 16px) clamp(12px, 2vw, 28px) clamp(8px, 1.4vh, 16px) 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.3;
+  }
+
+  table.cmp thead th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  table.cmp tbody th,
+  table.cmp tbody th {
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 0.72em;
+    color: var(--soil);
+    white-space: nowrap;
+  }
+
+  table.cmp .hf {
+    color: var(--ink-2);
+  }
+
+  table.cmp .db {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  table.roadmap {
+    border-collapse: collapse;
+    font-size: clamp(0.9rem, 2vw, 1.45rem);
+  }
+
+  table.roadmap td {
+    padding: clamp(7px, 1.3vh, 15px) clamp(14px, 3vw, 40px) clamp(7px, 1.3vh, 15px) 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+  }
+
+  table.roadmap td:first-child {
+    font-family: var(--mono);
+    color: var(--soil);
+    white-space: nowrap;
+  }
+
+  table.roadmap tr.now td {
+    color: var(--canopy-deep);
+    font-weight: 600;
+  }
+
+  table.roadmap td:last-child {
+    font-family: var(--mono);
+    font-size: 0.68em;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(18px, 4vw, 56px) clamp(28px, 6vw, 80px);
+  }
+
+  .metrics div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .metrics .v {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metrics .k {
+    font-family: var(--mono);
+    font-size: clamp(10px, 1.4vw, 13px);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .note {
+    font-size: clamp(0.95rem, 1.9vw, 1.35rem);
+    color: var(--ink-2);
+    border-left: 2px solid var(--soil);
+    padding-left: 0.9em;
+    max-width: 40ch;
+  }
+
+  .byline {
+    font-family: var(--mono);
+    font-size: clamp(0.8rem, 1.6vw, 1.1rem);
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+    margin-top: clamp(10px, 2vh, 24px);
+  }
+
+  .thesis-q {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(1.6rem, 4.4vw, 3.4rem);
+    line-height: 1.16;
+    letter-spacing: -0.015em;
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+
+  .links {
+    font-family: var(--mono);
+    font-size: clamp(0.8rem, 1.5vw, 1.05rem);
+    color: var(--ink-2);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: clamp(10px, 2vh, 20px);
+  }
+
+  .links a {
+    color: var(--canopy);
+  }
+
+  /* ── chrome ─────────────────────────────────────── */
+
+  .bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 clamp(20px, 5vw, 48px);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    z-index: 10;
+  }
+
+  .bar__name {
+    text-transform: uppercase;
+  }
+
+  .bar__count {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar__track {
+    position: absolute;
+    left: 0;
+    top: -1px;
+    height: 2px;
+    background: var(--canopy);
+    transition: width 0.28s ease;
+  }
+
+  .nav {
+    position: fixed;
+    bottom: 54px;
+    right: clamp(16px, 4vw, 36px);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  .nav button {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-2);
+    border-radius: 3px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: var(--body);
+    line-height: 1;
+  }
+
+  .nav button:hover {
+    color: var(--ink);
+    border-color: var(--ink-2);
+  }
+
+  .hint {
+    position: fixed;
+    top: clamp(14px, 3vh, 26px);
+    right: clamp(16px, 4vw, 36px);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    opacity: 0.7;
+    z-index: 10;
+    transition: opacity 0.4s ease;
+  }
+
+  .hint.gone {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--detect);
+    outline-offset: 3px;
+  }
+
+  /* ── print → PDF: one slide per page ────────────── */
+
+  @media print {
+    body {
+      overflow: visible;
+    }
+    .deck {
+      height: auto;
+    }
+    .slide {
+      position: static;
+      opacity: 1;
+      visibility: visible;
+      height: 100vh;
+      page-break-after: always;
+      break-after: page;
+    }
+    .bar,
+    .nav,
+    .hint {
+      display: none;
+    }
+  }
+</style>
+
+<div class="deck">
+
+  <section class="slide current" aria-label="Diapositiva 1">
+    <p class="eyebrow">Proyecto de investigación · Primer semestre</p>
+    <h1>Proyecto Centinela</h1>
+    <p class="sub">Agricultura de precisión para Saravena, Arauca</p>
+    <p class="byline">
+      Ingeniería en Inteligencia Artificial · UIS — Sede Saravena<br />
+      [ nombres de los integrantes ]
+    </p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 2">
+    <p class="eyebrow">Qué es</p>
+    <h2>Ver el cultivo desde el aire y entender lo que se ve</h2>
+    <p class="flow">observar → caracterizar → detectar → predecir</p>
+    <p class="note">
+      Partimos de problemas reales del campo araucano, no de una tecnología buscando dónde
+      aplicarse. La complejidad técnica crece al ritmo de la carrera.
+    </p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 3">
+    <p class="eyebrow">Cómo avanza</p>
+    <h2>Una etapa a la vez, cada una apoyada en la anterior</h2>
+    <table class="roadmap">
+      <tbody>
+        <tr class="now"><td>Etapa I</td><td>Conteo de árboles en una imagen</td><td>en curso</td></tr>
+        <tr><td>Etapa II</td><td>Caracterización del cultivo</td><td>backlog</td></tr>
+        <tr><td>Etapa III</td><td>Detección de maleza en arroz</td><td>próximo hito (~12 meses)</td></tr>
+        <tr><td>Etapa IV</td><td>Series temporales y predicción</td><td>backlog</td></tr>
+      </tbody>
+    </table>
+    <p class="note">La tesis de grado no está fijada a propósito — surgirá de la línea que demuestre más relevancia y viabilidad.</p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 4">
+    <p class="eyebrow">Dónde estamos</p>
+    <h2>Etapa I — contar árboles en una foto aérea</h2>
+    <p class="flow">imagen cenital &nbsp;→&nbsp; conteo + posición de cada copa</p>
+    <ul>
+      <li>Es <strong>inventario</strong>, no reconocimiento de especie</li>
+      <li>Abordable porque las copas son casi idénticas y hay cientos</li>
+      <li>Alcance: una imagen · sin GPS · copas separadas</li>
+    </ul>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 5">
+    <p class="eyebrow">Cómo funciona</p>
+    <div class="split">
+      <div style="display: flex; flex-direction: column; gap: clamp(14px, 2.5vh, 26px)">
+        <h2>El método</h2>
+        <ol class="steps">
+          <li>Vegetación vs. suelo — verde y oscuridad</li>
+          <li>Separar copas pegadas — <em>watershed</em></li>
+          <li>Describir cada mancha: área, color, forma</li>
+          <li class="key">Agrupar por similitud — DBSCAN</li>
+          <li>Contar</li>
+        </ol>
+        <p class="note">Visión por computador clásica. Sin modelos entrenados.</p>
+      </div>
+      <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y clusters de DBSCAN con 80 árboles." />
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 6">
+    <p class="eyebrow">El corazón del método</p>
+    <h2>¿Qué es <span class="mono">DBSCAN</span>?</h2>
+    <ul>
+      <li><em>Density-Based Spatial Clustering of Applications with Noise</em></li>
+      <li>Ester, Kriegel, Sander &amp; Xu · 1996 · premio <em>Test of Time</em> (KDD 2014)</li>
+      <li>Cada mancha = un punto en <span class="mono">ℝ⁷</span></li>
+      <li>Región densa de puntos parecidos = los árboles · lo disperso = <strong>ruido</strong></li>
+    </ul>
+    <p class="note">
+      No supervisado: sin ejemplos etiquetados, sin entrenamiento. Base matemática: distancia
+      euclidiana + contar vecinos.
+    </p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 7">
+    <p class="eyebrow">Por qué no una red neuronal</p>
+    <h2>DBSCAN frente a un modelo de Hugging Face</h2>
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Modelo entrenado (Hugging Face)</th>
+          <th>Algoritmo (DBSCAN)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Qué es</th>
+          <td class="hf">red con millones de parámetros ya ajustados</td>
+          <td class="db">un procedimiento, no un objeto entrenado</td>
+        </tr>
+        <tr>
+          <th scope="row">Necesita</th>
+          <td class="hf">datos etiquetados · GPU · reajuste propio</td>
+          <td class="db">solo los datos</td>
+        </tr>
+        <tr>
+          <th scope="row">Su matemática</th>
+          <td class="hf">cálculo multivariable — aún no lo vemos</td>
+          <td class="db">distancia euclidiana + contar — primer semestre</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">No es una limitación: es una decisión de diseño. El aprendizaje profundo entra en la Etapa III.</p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 8">
+    <p class="eyebrow">Qué llevamos</p>
+    <h2>Resultados</h2>
+    <div class="metrics">
+      <div><span class="v">1.00</span><span class="k">F1 · sintético</span></div>
+      <div><span class="v">0 %</span><span class="k">error de conteo</span></div>
+      <div><span class="v">19 / 19</span><span class="k">pruebas</span></div>
+      <div><span class="v">1 → 110</span><span class="k">índice combo · imagen real</span></div>
+    </div>
+    <p class="note">
+      Falta: validación sobre una foto real de copas separadas — depende del primer vuelo del
+      dron.
+    </p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 9">
+    <p class="eyebrow">Cierre</p>
+    <p class="thesis-q">
+      No construimos primero la tesis y después el camino. Construimos el camino que permite
+      descubrir cuál debe ser la tesis.
+    </p>
+    <p class="byline">Gracias.</p>
+    <div class="links">
+      <span>Código: repositorio público</span>
+      <span>Adelanto completo: <a href="https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b">claude.ai/code/artifact/adb9ef22…</a></span>
+    </div>
+  </section>
+
+</div>
+
+<p class="hint" id="hint">← → para navegar</p>
+
+<div class="nav" aria-hidden="true">
+  <button type="button" id="prev" title="Anterior (←)">‹</button>
+  <button type="button" id="next" title="Siguiente (→)">›</button>
+</div>
+
+<div class="bar">
+  <span class="bar__track" id="track"></span>
+  <span class="bar__name">Proyecto Centinela</span>
+  <span class="bar__count"><span id="cur">1</span> / <span id="total">9</span></span>
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+    var n = slides.length;
+    var i = 0;
+    var curEl = document.getElementById("cur");
+    var track = document.getElementById("track");
+    var hint = document.getElementById("hint");
+    document.getElementById("total").textContent = n;
+
+    function show(next) {
+      i = Math.max(0, Math.min(n - 1, next));
+      slides.forEach(function (s, k) {
+        s.classList.toggle("current", k === i);
+      });
+      curEl.textContent = i + 1;
+      track.style.width = ((i + 1) / n) * 100 + "%";
+      if (location.hash !== "#" + (i + 1)) {
+        history.replaceState(null, "", "#" + (i + 1));
+      }
+    }
+
+    function go(d) {
+      show(i + d);
+      if (hint) hint.classList.add("gone");
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+        e.preventDefault();
+        go(1);
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        go(-1);
+      } else if (e.key === "Home") {
+        show(0);
+      } else if (e.key === "End") {
+        show(n - 1);
+      }
+    });
+
+    document.getElementById("next").addEventListener("click", function () {
+      go(1);
+    });
+    document.getElementById("prev").addEventListener("click", function () {
+      go(-1);
+    });
+
+    document.querySelector(".deck").addEventListener("click", function (e) {
+      if (e.target.closest("a, button")) return;
+      go(e.clientX > window.innerWidth / 2 ? 1 : -1);
+    });
+
+    var start = parseInt((location.hash || "").slice(1), 10);
+    show(start >= 1 && start <= n ? start - 1 : 0);
+    setTimeout(function () {
+      if (hint) hint.classList.add("gone");
+    }, 4200);
+  })();
+</script>
