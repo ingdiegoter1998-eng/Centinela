@@ -1,0 +1,50 @@
+# ── Node / frontend ────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ── Python ─────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ── Django (cuando exista) ─────────────────────────
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+
+# ── Secretos y entorno ─────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Datos e imágenes (nunca al repo: pesan y/o tienen derechos) ─────────
+data/
+build/
+*.tif
+*.tiff
+*.JPG
+*.jpg
+*.jpeg
+*.png
+!landing/**/*.png
+!landing/**/*.svg
+!docs/**/*.png
+!docs/adelanto/*.jpg
+
+# ── Editores / herramientas / SO ───────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+*.log

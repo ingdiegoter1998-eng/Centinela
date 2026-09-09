@@ -1,0 +1,918 @@
+<title>Proyecto Centinela · Adelanto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --paper: #f4f2ea;
+    --paper-2: #eceadd;
+    --plate: #e7e7d7;
+    --ink: #1b211a;
+    --ink-2: #565c4c;
+    --line: #d5d3c2;
+    --canopy: #3f6f3c;
+    --canopy-deep: #2c4f2b;
+    --soil: #a9743e;
+    --detect: #2f7fc4;
+    --grid: rgba(63, 111, 60, 0.10);
+
+    --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --body: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+    --measure: 64ch;
+    --wide: 1080px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #10140f;
+      --paper-2: #161c15;
+      --plate: #191f18;
+      --ink: #e7ebe0;
+      --ink-2: #9aa38f;
+      --line: #2c3429;
+      --canopy: #74ac6c;
+      --canopy-deep: #9ccf92;
+      --soil: #cf9a5f;
+      --detect: #6fb2e6;
+      --grid: rgba(116, 172, 108, 0.12);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #10140f;
+    --paper-2: #161c15;
+    --plate: #191f18;
+    --ink: #e7ebe0;
+    --ink-2: #9aa38f;
+    --line: #2c3429;
+    --canopy: #74ac6c;
+    --canopy-deep: #9ccf92;
+    --soil: #cf9a5f;
+    --detect: #6fb2e6;
+    --grid: rgba(116, 172, 108, 0.12);
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 18px;
+    line-height: 1.62;
+    letter-spacing: 0.005em;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      font-size: 16.5px;
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--canopy);
+    text-underline-offset: 3px;
+  }
+
+  code,
+  .mono {
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  /* ── shell ─────────────────────────────────────────── */
+
+  .wrap {
+    width: 100%;
+    max-width: var(--wide);
+    margin-inline: auto;
+    padding-inline: clamp(20px, 5vw, 56px);
+  }
+
+  .col {
+    max-width: var(--measure);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--canopy);
+    margin: 0;
+  }
+
+  /* ── hero ──────────────────────────────────────────── */
+
+  .hero {
+    border-bottom: 1px solid var(--line);
+    padding: clamp(56px, 10vw, 104px) 0 clamp(40px, 7vw, 72px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-position: center;
+    mask-image: radial-gradient(ellipse 80% 70% at 70% 30%, #000 20%, transparent 75%);
+    pointer-events: none;
+  }
+
+  .hero > .wrap {
+    position: relative;
+  }
+
+  .hero__name {
+    font-size: clamp(2.6rem, 7vw, 4.6rem);
+    letter-spacing: -0.02em;
+  }
+
+  .hero__sub {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+    color: var(--ink-2);
+    margin-top: 8px;
+  }
+
+  .hero__lead {
+    margin-top: 28px;
+    font-size: clamp(1.05rem, 2vw, 1.22rem);
+    max-width: 46ch;
+  }
+
+  .hero__meta {
+    margin-top: 34px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .tag {
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 5px 11px;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .tag--live {
+    border-color: var(--canopy);
+    color: var(--canopy);
+  }
+
+  .tag--live::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--canopy);
+    margin-right: 7px;
+    vertical-align: 1px;
+  }
+
+  /* ── sections ──────────────────────────────────────── */
+
+  section {
+    padding: clamp(48px, 8vw, 84px) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 26px;
+  }
+
+  .sec-head__n {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--soil);
+    letter-spacing: 0.1em;
+    padding-top: 4px;
+  }
+
+  .sec-head h2 {
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .stack--tight {
+    gap: 12px;
+  }
+
+  .note {
+    border-left: 2px solid var(--soil);
+    padding: 4px 0 4px 18px;
+    color: var(--ink-2);
+    font-size: 0.94em;
+    max-width: 60ch;
+  }
+
+  .note b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ── ordered method list ───────────────────────────── */
+
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: var(--measure);
+  }
+
+  ol.steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2ch 1fr;
+    gap: 16px;
+  }
+
+  ol.steps li::before {
+    content: counter(step);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--canopy);
+    padding-top: 4px;
+  }
+
+  ol.steps b {
+    font-weight: 600;
+  }
+
+  /* ── plate (full-bleed figure band) ────────────────── */
+
+  .plate {
+    background: var(--plate);
+    border-block: 1px solid var(--line);
+    padding: clamp(32px, 6vw, 56px) 0;
+    margin-block: 0;
+  }
+
+  .plate.section {
+    border-bottom: 1px solid var(--line);
+  }
+
+  figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper);
+  }
+
+  figcaption {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+    max-width: 62ch;
+  }
+
+  /* ── math ──────────────────────────────────────────── */
+
+  .eq {
+    font-family: var(--mono);
+    font-size: clamp(12px, 2.3vw, 15px);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+
+  .eq .dim {
+    color: var(--ink-2);
+  }
+
+  .eq .hl {
+    color: var(--canopy-deep);
+  }
+
+  .diagram {
+    width: 100%;
+    max-width: 760px;
+    height: auto;
+    margin-top: 8px;
+  }
+
+  .diagram text {
+    font-family: var(--mono);
+    fill: var(--ink-2);
+  }
+
+  .diagram .lbl {
+    fill: var(--ink);
+    font-family: var(--display);
+  }
+
+  /* ── results figures ───────────────────────────────── */
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: var(--measure);
+  }
+
+  .metrics div {
+    background: var(--paper);
+    padding: 18px 16px 16px;
+  }
+
+  .metrics .k {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .metrics .v {
+    font-family: var(--display);
+    font-size: clamp(1.7rem, 5vw, 2.4rem);
+    font-weight: 500;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 560px) {
+    .metrics {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── roadmap table ─────────────────────────────────── */
+
+  .roadmap {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92em;
+  }
+
+  .roadmap caption {
+    text-align: left;
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding-bottom: 12px;
+  }
+
+  .roadmap th,
+  .roadmap td {
+    text-align: left;
+    padding: 11px 14px 11px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  .roadmap th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .roadmap td:first-child {
+    font-family: var(--mono);
+    color: var(--soil);
+    white-space: nowrap;
+    padding-right: 18px;
+  }
+
+  .roadmap tr[data-now] td {
+    background: var(--paper-2);
+  }
+
+  .roadmap tr[data-now] td:nth-child(2) {
+    font-weight: 600;
+    color: var(--canopy-deep);
+  }
+
+  .st {
+    font-family: var(--mono);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .st--now {
+    color: var(--canopy);
+  }
+  .st--next {
+    color: var(--soil);
+  }
+  .st--wait,
+  .st--back {
+    color: var(--ink-2);
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    max-width: var(--wide);
+  }
+
+  /* ── decisions ─────────────────────────────────────── */
+
+  .decisions {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: var(--measure);
+  }
+
+  .decisions > div {
+    background: var(--paper);
+    padding: 18px 20px;
+  }
+
+  .decisions h3 {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--canopy);
+    margin-bottom: 6px;
+  }
+
+  .decisions p {
+    color: var(--ink-2);
+    font-size: 0.95em;
+  }
+
+  /* ── footer ────────────────────────────────────────── */
+
+  footer {
+    padding: clamp(40px, 7vw, 64px) 0 48px;
+  }
+
+  footer p {
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+  }
+
+  footer .big {
+    font-family: var(--display);
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    max-width: 34ch;
+    margin-bottom: 16px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a:focus-visible,
+    :focus-visible {
+      outline: 2px solid var(--detect);
+      outline-offset: 2px;
+    }
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Proyecto de investigación · Primer semestre</p>
+    <h1 class="hero__name">Proyecto Centinela</h1>
+    <p class="hero__sub">Agricultura de precisión para Saravena, Arauca</p>
+    <p class="hero__lead">
+      Ver los cultivos de la región desde el aire y traducir esa imagen en información
+      concreta: cuántos árboles hay, dónde, cómo están y qué los amenaza. Se construye por
+      etapas — la complejidad crece al ritmo de la carrera.
+    </p>
+    <div class="hero__meta">
+      <span class="tag tag--live">Etapa I · pipeline funcionando</span>
+      <span class="tag">UIS Saravena</span>
+      <span class="tag">Ingeniería en IA</span>
+      <span class="tag">visión por computador + DBSCAN</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-head__n">01</span>
+        <h2>El problema de la Etapa I</h2>
+      </div>
+      <div class="stack col">
+        <p>
+          <strong>Entra</strong> una foto aérea cenital de una parcela de cítricos.
+          <strong>Sale</strong> el número de árboles, la posición de cada copa dentro de la
+          imagen, y la foto con las detecciones marcadas.
+        </p>
+        <p>
+          Es un problema de <strong>inventario</strong>: no "qué especie es" sino "cuántas
+          copas hay y dónde". En una plantación todas las copas se parecen mucho entre sí y
+          hay cientos — esa uniformidad es lo que hace el problema abordable sin un modelo
+          entrenado.
+        </p>
+        <div class="note">
+          <b>Alcance acotado a propósito.</b> Una sola imagen (sin mosaico ni GPS), copas
+          separadas con suelo visible entre ellas, sin georreferencia. El dron disponible es
+          de gama baja y solo transmite video: en vez de bloquear la etapa, se recortó al
+          núcleo. La georreferencia y el dosel cerrado quedan para etapas siguientes.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-head__n">02</span>
+        <h2>El método</h2>
+      </div>
+      <p class="col" style="margin-bottom: 30px">
+        Visión por computador clásica. <strong>Ningún modelo entrenado ni descargado.</strong>
+      </p>
+      <ol class="steps">
+        <li>
+          <span>
+            <b>Separar vegetación del suelo.</b> La copa es más verde <em>y</em> más oscura
+            que el suelo seco; el índice <code>combo</code> combina ambas señales.
+          </span>
+        </li>
+        <li>
+          <span>
+            <b>Limpiar y separar copas pegadas.</b> Operaciones morfológicas + <em>watershed</em>
+            sobre la transformada de distancia (metáfora: inundar un terreno desde los valles).
+          </span>
+        </li>
+        <li>
+          <span>
+            <b>Describir cada mancha</b> por área, color medio, circularidad y excentricidad.
+          </span>
+        </li>
+        <li>
+          <span>
+            <b>Agrupar por similitud — DBSCAN.</b> El grupo grande y compacto de manchas
+            parecidas entre sí = los árboles del cultivo. El resto (sombras, maleza, suelo)
+            se descarta como ruido.
+          </span>
+        </li>
+        <li>
+          <span><b>Contar y dibujar.</b></span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="plate section">
+    <div class="wrap">
+      <figure>
+        <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: imagen original, índice de vegetación, watershed con 80 instancias, y clusters de DBSCAN con 80 árboles." />
+        <figcaption>
+          El pipeline paso a paso sobre un huerto sintético de 80 árboles. 1 · original ·
+          2 · índice de vegetación · 3 · watershed (80 instancias) · 4 · DBSCAN (80 árboles).
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-head__n">03</span>
+        <h2>La matemática</h2>
+      </div>
+      <div class="stack col">
+        <p>
+          Casi todo es <strong>álgebra lineal de primer semestre</strong>: producto punto,
+          norma euclidiana y promedios de vectores — lo mismo que se ve en clase, generalizado
+          a más dimensiones.
+        </p>
+
+        <p><strong>Un píxel es un vector en ℝ³.</strong> El "cuán copa" de un píxel se
+          calcula con un producto punto:</p>
+      </div>
+
+      <div class="eq col" style="margin: 6px 0 22px">
+        oscuridad(p) = <span class="hl">−(0.2126, 0.7152, 0.0722) · (R, G, B)</span>
+        <span class="dim"># dos vectores en ℝ³</span>
+      </div>
+
+      <div class="stack col">
+        <p>
+          <strong>Cada mancha es un vector en ℝ⁷.</strong> Los siete descriptores forman un
+          punto en un espacio de características:
+        </p>
+      </div>
+
+      <div class="eq col" style="margin: 6px 0 22px">
+        mancha ↦ x = (área, L, a, b, circ, exc, ext) <span class="dim">∈ ℝ⁷</span>
+      </div>
+
+      <div class="stack col">
+        <p>
+          <strong>DBSCAN mide cercanía en ℝ⁷</strong> con la misma norma euclidiana de ℝ².
+          Dos manchas son vecinas si están a distancia ≤ ε; una mancha con suficientes vecinos
+          "arrastra" a su grupo. Lo que no cae en ningún grupo denso es ruido.
+        </p>
+      </div>
+
+      <div class="eq col" style="margin: 6px 0 24px">
+        vecinos(x) = { y : ‖x − y‖ ≤ ε } &nbsp;&nbsp;
+        <span class="dim">con</span> ‖x − y‖ = √( Σᵢ (xᵢ − yᵢ)² )
+      </div>
+
+      <svg class="diagram" viewBox="0 0 760 248" role="img"
+        aria-label="Progresión de espacios: R2 con un punto, R3 con un píxel RGB, y R7 con una mancha rodeada de una bola de radio épsilon y sus vecinos.">
+        <!-- R2 -->
+        <g transform="translate(20 30)">
+          <line x1="0" y1="150" x2="150" y2="150" stroke="var(--line)" stroke-width="1.5" />
+          <line x1="0" y1="150" x2="0" y2="10" stroke="var(--line)" stroke-width="1.5" />
+          <circle cx="92" cy="74" r="5" fill="var(--canopy)" />
+          <line x1="0" y1="150" x2="92" y2="74" stroke="var(--canopy)" stroke-width="1" stroke-dasharray="3 3" />
+          <text class="lbl" x="0" y="182" font-size="15">ℝ²</text>
+          <text x="0" y="200" font-size="10">vectores en clase</text>
+        </g>
+        <text x="192" y="115" font-size="16" fill="var(--ink-2)">→</text>
+        <!-- R3 -->
+        <g transform="translate(230 30)">
+          <line x1="0" y1="150" x2="140" y2="150" stroke="var(--line)" stroke-width="1.5" />
+          <line x1="0" y1="150" x2="0" y2="12" stroke="var(--line)" stroke-width="1.5" />
+          <line x1="0" y1="150" x2="52" y2="112" stroke="var(--line)" stroke-width="1.5" />
+          <circle cx="86" cy="66" r="5" fill="var(--soil)" />
+          <text class="lbl" x="0" y="182" font-size="15">ℝ³</text>
+          <text x="0" y="200" font-size="10">un píxel = (R,G,B)</text>
+        </g>
+        <text x="404" y="115" font-size="16" fill="var(--ink-2)">→</text>
+        <!-- R7 -->
+        <g transform="translate(445 30)">
+          <circle cx="150" cy="80" r="52" fill="none" stroke="var(--canopy)" stroke-width="1.2" stroke-dasharray="4 4" />
+          <circle cx="150" cy="80" r="5" fill="var(--canopy)" />
+          <circle cx="126" cy="62" r="3.5" fill="var(--canopy)" opacity="0.8" />
+          <circle cx="170" cy="98" r="3.5" fill="var(--canopy)" opacity="0.8" />
+          <circle cx="176" cy="58" r="3.5" fill="var(--canopy)" opacity="0.8" />
+          <circle cx="250" cy="150" r="3.5" fill="var(--soil)" />
+          <line x1="150" y1="80" x2="202" y2="80" stroke="var(--canopy)" stroke-width="1" />
+          <text x="176" y="74" font-size="11" fill="var(--canopy-deep)">ε</text>
+          <text class="lbl" x="70" y="188" font-size="15">ℝ⁷</text>
+          <text x="70" y="206" font-size="10">cada mancha · ruido aparte</text>
+        </g>
+      </svg>
+
+      <div class="note" style="margin-top: 26px">
+        <b>El aprendizaje aquí es no supervisado.</b> DBSCAN es machine learning — clustering
+        por densidad — pero no es un modelo entrenado: no necesita ejemplos etiquetados, no
+        ajusta pesos, se ejecuta directo sobre los datos. El deep learning (redes tipo U-Net
+        o YOLO) entra en la Etapa III, cuando el problema y los datos lo exijan.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-head__n">04</span>
+        <h2>Resultados</h2>
+      </div>
+
+      <div class="metrics" style="margin-bottom: 26px">
+        <div>
+          <div class="k">F1 · sintético</div>
+          <div class="v">1.00</div>
+        </div>
+        <div>
+          <div class="k">Error de conteo</div>
+          <div class="v">0 %</div>
+        </div>
+        <div>
+          <div class="k">Pruebas automáticas</div>
+          <div class="v">19 / 19</div>
+        </div>
+      </div>
+
+      <div class="stack col">
+        <p>
+          Sobre <strong>huerto sintético</strong> (80 árboles, respuesta conocida) el pipeline
+          acierta los 80, con precisión y recall de 1.00. Valida que toda la mecánica funciona
+          de punta a punta.
+        </p>
+        <p>
+          <strong>Aporte técnico de la etapa:</strong> el índice <code>combo</code>. Con solo
+          "verde" (ExG) el pipeline fallaba en imágenes desaturadas de satélite — pasó de
+          <strong>1 a 110 detecciones</strong> al añadir la señal de oscuridad.
+        </p>
+        <div class="note">
+          <b>Lo que falta para cerrar la Etapa I.</b> La validación sobre imagen real de copas
+          separadas. Las imágenes de satélite de cítrico comercial son de dosel cerrado (fuera
+          de alcance). Se cierra con el primer vuelo del dron o un huerto público adecuado.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="plate section">
+    <div class="wrap">
+      <figure>
+        <img src="{{REAL_IMG}}" alt="El pipeline sobre una imagen real de cítricos de satélite: el índice de vegetación capta el dosel, pero el watershed subsegmenta donde las copas se tocan." />
+        <figcaption>
+          Sobre cítricos reales (satélite, Lindsay CA): el índice <code>combo</code> ya capta
+          el dosel, pero el <em>watershed</em> no separa copa por copa donde el seto se cierra
+          — el caso de dosel cerrado, fuera del alcance de la Etapa I.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-head__n">05</span>
+        <h2>La hoja de ruta</h2>
+      </div>
+      <p class="col" style="margin-bottom: 28px">
+        Cada etapa resuelve un problema concreto y deja código y método que la siguiente
+        reutiliza. <strong>La tesis de grado no está fijada</strong> — surgirá de la línea que,
+        tras experimentar, demuestre más relevancia y viabilidad.
+      </p>
+      <div class="table-scroll">
+        <table class="roadmap">
+          <caption>estado a septiembre de 2026</caption>
+          <thead>
+            <tr>
+              <th>Fase</th>
+              <th>Nombre</th>
+              <th>Qué resuelve</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0.5</td>
+              <td>Landing pública</td>
+              <td>Presentación del proyecto</td>
+              <td><span class="st st--now">hecha</span></td>
+            </tr>
+            <tr data-now>
+              <td>I</td>
+              <td>Conteo</td>
+              <td>Contar árboles en una imagen aérea</td>
+              <td><span class="st st--now">en curso</span></td>
+            </tr>
+            <tr>
+              <td>I-B</td>
+              <td>Georreferencia</td>
+              <td>Ubicar cada árbol en coordenadas reales</td>
+              <td><span class="st st--wait">espera dron con GPS</span></td>
+            </tr>
+            <tr>
+              <td>II</td>
+              <td>Caracterización</td>
+              <td>Medir vigor y cobertura del cultivo</td>
+              <td><span class="st st--back">backlog</span></td>
+            </tr>
+            <tr>
+              <td>III</td>
+              <td>Maleza en arroz</td>
+              <td>Mapa de infestación cultivo / maleza / suelo</td>
+              <td><span class="st st--next">próximo boss (~12 meses)</span></td>
+            </tr>
+            <tr>
+              <td>IV</td>
+              <td>Series temporales</td>
+              <td>Anticipar la evolución de la parcela</td>
+              <td><span class="st st--back">backlog</span></td>
+            </tr>
+            <tr>
+              <td>V</td>
+              <td>Integración</td>
+              <td>Plataforma consultable</td>
+              <td><span class="st st--back">backlog</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-head__n">06</span>
+        <h2>Decisiones de diseño</h2>
+      </div>
+      <div class="decisions">
+        <div>
+          <h3>La tecnología subordinada al problema</h3>
+          <p>
+            Nada de bases de datos geoespaciales ni modelos grandes antes de necesitarlos.
+            Se añade complejidad solo cuando una etapa demuestra que hace falta.
+          </p>
+        </div>
+        <div>
+          <h3>Una imagen, sin georreferencia</h3>
+          <p>
+            El dron es de $40 y sin GPS. Recortar el alcance a "contar en una imagen" hace la
+            etapa alcanzable ya; la georreferencia espera al hardware.
+          </p>
+        </div>
+        <div>
+          <h3>Clustering, no deep learning</h3>
+          <p>
+            DBSCAN basta para contar objetos muy parecidos entre sí en una imagen sin dataset.
+            Y su matemática cabe en el primer semestre.
+          </p>
+        </div>
+        <div>
+          <h3>Núcleo reutilizable</h3>
+          <p>
+            El pipeline es Python puro, corre en cualquier portátil, y la Etapa III hereda el
+            mismo procesamiento cambiando solo el paso final.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="big">
+      No se construye primero la tesis y después el camino. Se construye el camino que
+      permite descubrir cuál debe ser la tesis.
+    </p>
+    <p>Proyecto Centinela · Universidad Industrial de Santander — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
+  </div>
+</footer>

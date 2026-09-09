@@ -1,0 +1,35 @@
+# Configuración del pipeline de conteo — Etapa I.
+# Todos los parámetros ajustables viven aquí. Nada hardcodeado en el código.
+# Los defaults están pensados para cítricos vistos desde ~40-80 m (copas de 15-25 px).
+
+crop:
+  # Recorte del overlay de la app del dron. [x0, y0, x1, y1] en píxeles, o null.
+  overlay_bbox: null
+
+vegetation:
+  index: combo         # combo (verde + oscuridad, robusto) | exg | exgr | dark | hsv
+  threshold: otsu      # otsu | <float>
+  # `combo` normaliza ExG y oscuridad por su propia separación de Otsu y los
+  # suma: funciona con dron (verde vivo) y con satélite desaturado (manda la
+  # oscuridad) sin re-parametrizar. `exg` solo si la copa es de verde intenso.
+
+morphology:
+  open_radius: 3       # quita motas
+  close_radius: 5      # une copa fragmentada
+  min_area_px: 80      # descarta manchas más chicas que esto
+  fill_holes: true
+
+watershed:
+  min_distance_px: 15  # separación mínima entre centros de copa ≈ radio de copa
+  footprint_px: 7
+
+features:
+  color_space: lab     # espacio para el color medio de cada mancha
+
+cluster:
+  eps: 0.8             # radio DBSCAN en el espacio de descriptores normalizados
+  min_samples: 6       # mínimo de manchas para formar un cluster
+  dominant: largest    # largest | densest — cómo se elige el cluster "cultivo"
+
+evaluate:
+  match_radius_px: 14  # tolerancia para emparejar detección con punto manual
