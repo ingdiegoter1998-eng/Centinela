@@ -505,7 +505,7 @@
     <h1>Proyecto Centinela</h1>
     <p class="thesis">
       Contar árboles en una imagen aérea con visión por computador y agrupamiento no
-      supervisado — y por qué esa es la decisión correcta para primer semestre.
+      supervisado. Etapa I de cinco.
     </p>
     <div class="meta">
       <span>7 diapositivas</span>
@@ -555,22 +555,23 @@
         <ul>
           <li>Agricultura de precisión para Saravena, Arauca</li>
           <li>Dron · visión por computador · análisis de datos</li>
-          <li>Estudiantes de Ingeniería en Inteligencia Artificial — UIS Saravena</li>
-          <li><em>La técnica crece al ritmo de la carrera</em></li>
+          <li>Ingeniería en Inteligencia Artificial — UIS Saravena</li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
           Buenos días. Presentamos <em>Proyecto Centinela</em>: una plataforma de agricultura
-          de precisión para los cultivos de Saravena y del resto de Arauca. La idea central es
-          fácil de enunciar —observar los cultivos desde el aire con un dron y convertir esas
-          imágenes en información concreta: cuántas plantas hay, cómo están, qué las amenaza—.
+          de precisión para los cultivos de Saravena y del resto de Arauca.
         </p>
         <p>
-          El proyecto no parte de una tecnología buscando dónde aplicarse, sino de problemas
-          reales del campo araucano. Y se construye por etapas: la complejidad técnica de cada
-          etapa crece al mismo ritmo que nuestros conocimientos en la carrera.
+          La idea es esta: un dron sobrevuela la parcela y el software convierte esas imágenes
+          en datos concretos —cuántas plantas hay, cómo están, dónde hay problemas—. Eso es
+          agricultura de precisión, y hoy prácticamente no existe para esta región.
+        </p>
+        <p>
+          El proyecto está dividido en cinco etapas. Hoy les contamos la primera, que ya está
+          funcionando.
         </p>
       </div>
     </article>
@@ -595,16 +596,15 @@
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          El proyecto avanza en cuatro capacidades acumulativas: observar, caracterizar,
-          detectar y, eventualmente, predecir. Cada etapa resuelve un problema autocontenido y
-          deja código y método que la siguiente reutiliza.
+          El proyecto avanza en cuatro capacidades: observar, caracterizar, detectar y, con
+          suficiente historia, predecir. Cada etapa resuelve un problema completo y deja código
+          que la siguiente reutiliza.
         </p>
         <p>
-          Hoy estamos en la Etapa I, el conteo. La Etapa III —detección de maleza en arroz— es
-          el hito grande a mediano plazo, porque el arroz es un cultivo central en Arauca. Una
-          decisión deliberada: no fijamos de antemano cuál etapa será la tesis de grado. La
-          tesis surgirá de la línea que, tras experimentar, demuestre mayor relevancia y
-          viabilidad.
+          Hoy estamos en la Etapa I, el conteo. La que más nos interesa es la Etapa III:
+          detectar maleza en arroz y producir un mapa de dónde está. El arroz es el cultivo
+          grande de Arauca, y hoy la fumigación se hace pareja sobre todo el lote; con un mapa
+          se podría aplicar solo donde hace falta.
         </p>
       </div>
     </article>
@@ -619,25 +619,26 @@
         <p class="screen__label">En pantalla</p>
         <p class="flow">una imagen aérea cenital &nbsp;→&nbsp; conteo + posición de cada copa</p>
         <ul>
-          <li>Es un problema de <strong>inventario</strong>, no de reconocimiento de especie</li>
-          <li>Abordable porque: copas muy parecidas entre sí + hay cientos</li>
-          <li>Alcance acotado: una imagen · sin GPS · copas separadas con suelo visible</li>
+          <li>Un huerto tiene cientos de copas casi idénticas entre sí</li>
+          <li>Esa regularidad es la que hace que el conteo funcione</li>
+          <li>Por ahora: una imagen · sin GPS · copas separadas con suelo visible</li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          La Etapa I resuelve un problema de inventario. Entra una fotografía aérea tomada en
-          vista cenital —la cámara apuntando directamente hacia abajo— de una parcela de
-          cítricos. Sale el número de árboles y la posición de cada copa dentro de la imagen.
-          No nos interesa <em>qué</em> especie es cada planta, sino <em>cuántas</em> copas hay
-          y <em>dónde</em>.
+          La Etapa I resuelve un problema de inventario: cuántos árboles hay en una parcela y
+          dónde está cada uno. Entra una fotografía aérea tomada en vista cenital —la cámara
+          apuntando directo hacia abajo— de un huerto de cítricos. Sale el conteo y la posición
+          de cada copa dentro de la imagen.
         </p>
         <p>
-          El problema es abordable por una razón concreta: en una plantación uniforme, todas
-          las copas se parecen mucho entre sí y hay cientos de ellas. Esa regularidad es la que
-          vamos a explotar. Por ahora el alcance está acotado: una sola imagen, sin GPS, y
-          copas separadas con suelo visible entre ellas.
+          Lo que hace el problema abordable es que un huerto tiene cientos de copas casi
+          idénticas entre sí. Esa regularidad es la que vamos a aprovechar.
+        </p>
+        <p>
+          El alcance de esta etapa es una sola imagen, sin GPS, con copas separadas y suelo
+          visible entre ellas.
         </p>
       </div>
     </article>
@@ -652,8 +653,8 @@
         <p class="screen__label">En pantalla</p>
         <h3>Visión por computador clásica — sin modelos entrenados</h3>
         <ol style="margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px">
-          <li>Separar vegetación del suelo (más verde <em>y</em> más oscura)</li>
-          <li>Limpiar y separar copas pegadas (<em>watershed</em>)</li>
+          <li>Vegetación vs. suelo — verde y oscuridad</li>
+          <li>Separar copas pegadas — <em>watershed</em></li>
           <li>Describir cada mancha: área, color, forma</li>
           <li><strong>Agrupar por similitud — DBSCAN</strong></li>
           <li>Contar</li>
@@ -693,10 +694,10 @@
         <h3><span class="mono">DBSCAN</span></h3>
         <ul>
           <li><em>Density-Based Spatial Clustering of Applications with Noise</em></li>
-          <li>Ester, Kriegel, Sander &amp; Xu — 1996 · premio <em>Test of Time</em>, KDD 2014</li>
-          <li>Cada mancha = un punto en ℝ⁷ (sus 7 descriptores)</li>
-          <li>Busca la <strong>región densa</strong> de puntos parecidos = los árboles</li>
-          <li>Lo disperso y aislado = <strong>ruido</strong> → se descarta</li>
+          <li>1996 — Ester, Kriegel, Sander y Xu</li>
+          <li>Premio <em>Test of Time</em> de KDD, 2014</li>
+          <li>Cada mancha es un punto en ℝ⁷ (sus 7 descriptores)</li>
+          <li>La región densa de puntos parecidos son los árboles; lo disperso es <strong>ruido</strong></li>
         </ul>
       </div>
       <div class="script">
@@ -716,9 +717,9 @@
         </p>
         <p>
           Nunca le decimos al programa qué aspecto tiene una copa; la uniformidad del cultivo
-          hace el trabajo. Y es un método <em>no supervisado</em>: no necesita ejemplos
-          etiquetados a mano y no hay fase de entrenamiento. Su base matemática es la distancia
-          euclidiana —la norma que vemos en Álgebra Lineal— y contar vecinos.
+          hace el trabajo. Es un método <em>no supervisado</em>: corre directo sobre los datos,
+          sin ejemplos etiquetados y sin fase de entrenamiento. Su base matemática es la
+          distancia euclidiana —la norma que vemos en Álgebra Lineal— y contar vecinos.
         </p>
       </div>
     </article>
@@ -757,24 +758,24 @@
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          Nos preguntaron por qué no usamos un modelo de <em>Hugging Face</em>. Hugging Face es
-          una plataforma donde se comparten modelos ya entrenados, en su mayoría redes
-          neuronales profundas. Usar uno significa descargar una función con millones de
-          parámetros ya ajustados, que aprendió de grandes conjuntos de imágenes etiquetadas.
-          Para nuestro problema, además, habría que reajustarlo etiquetando a mano cientos de
-          copas. Y entender <em>cómo</em> aprende esa red exige cálculo de varias variables
+          Vale la pena comparar DBSCAN con lo que hoy la mayoría asocia a inteligencia
+          artificial: los modelos de <em>Hugging Face</em>. Hugging Face es una plataforma donde
+          se publican modelos ya entrenados, casi todos redes neuronales profundas. Usar uno
+          significa descargar una función con millones de parámetros ya ajustados, que aprendió
+          de grandes conjuntos de imágenes etiquetadas a mano.
+        </p>
+        <p>
+          Para nuestro caso habría que reajustarlo etiquetando cientos de copas nosotros
+          mismos. Y entender <em>cómo</em> aprende esa red exige cálculo de varias variables
           —gradientes, retropropagación— que todavía no vemos.
         </p>
         <p>
           DBSCAN es otra cosa: es un algoritmo, no un modelo. No se entrena, no se descarga, no
-          necesita etiquetas. Corre directamente sobre nuestros datos y su matemática cabe en
-          el primer semestre.
+          necesita etiquetas. Corre directo sobre los datos.
         </p>
         <p>
-          Que hayamos elegido DBSCAN no es una limitación: es una decisión de diseño. El
-          principio del proyecto es que la tecnología está subordinada al problema. El
-          aprendizaje profundo entra en la Etapa III, cuando el problema —segmentar maleza
-          píxel a píxel— y la cantidad de datos etiquetados lo justifiquen.
+          Las redes profundas las vamos a necesitar en la Etapa III, cuando haya que segmentar
+          maleza píxel a píxel. Para contar objetos casi idénticos en una imagen, DBSCAN alcanza.
         </p>
       </div>
     </article>
@@ -794,7 +795,7 @@
           <div><span class="v">1 → 110</span><span class="k">índice combo (imagen real)</span></div>
         </div>
         <ul style="margin-top: 16px">
-          <li>Falta: validación sobre foto real de copas separadas (depende del vuelo del dron)</li>
+          <li>Falta probarlo sobre una foto real de copas separadas — depende del vuelo del dron</li>
           <li>Código en repositorio público + página de adelanto</li>
         </ul>
       </div>
@@ -803,19 +804,21 @@
         <p>
           Resultados. Sobre un huerto sintético, con respuesta conocida, el sistema acierta los
           ochenta árboles: precisión y exhaustividad de uno, error de conteo cero, y diecinueve
-          pruebas automáticas en verde. El aporte técnico de esta etapa fue un índice de
-          vegetación robusto que llamamos <em>combo</em>: pasó de una a ciento diez detecciones
-          en una imagen real difícil.
+          pruebas automáticas en verde.
         </p>
         <p>
-          Lo que falta para cerrar la etapa es la validación sobre una fotografía real de copas
-          separadas, que depende del primer vuelo del dron. Somos honestos con eso.
+          El aporte técnico de esta etapa fue un índice de vegetación que llamamos
+          <em>combo</em>: sobre una imagen real difícil pasó de una a ciento diez detecciones.
         </p>
         <p>
-          Cierro con la frase que guía el proyecto: no construimos primero la tesis y después
-          el camino; construimos el camino que nos permite descubrir cuál debe ser la tesis.
-          El código está en un repositorio público y dejamos el enlace al adelanto completo.
-          Gracias. <span class="cue">[dejar la última diapositiva en pantalla para preguntas]</span>
+          Falta probarlo sobre una foto real de copas separadas, y eso depende del primer vuelo
+          del dron.
+        </p>
+        <p>
+          El objetivo del proyecto, al final, es que un productor de Saravena sepa qué pasa en
+          su parcela sin tener que recorrerla entera. Vamos en la primera de cinco etapas. El
+          código está en un repositorio público. Gracias.
+          <span class="cue">[dejar la última diapositiva en pantalla para preguntas]</span>
         </p>
       </div>
     </article>
@@ -960,14 +963,13 @@
         </div>
         <div>
           <dt>¿Por qué no una red que ya detecta árboles?</dt>
-          <dd>Necesitaría datos etiquetados propios, más de una imagen, GPU, y su entrenamiento
-            usa matemática que aún no vemos. DBSCAN resuelve esta etapa con lo que ya sabemos, y
-            deja el terreno listo para la Etapa III.</dd>
+          <dd>Necesitaría datos etiquetados propios, más de una imagen y GPU, y su entrenamiento
+            usa matemática que aún no vemos. DBSCAN resuelve esta etapa sin nada de eso.</dd>
         </div>
         <div>
           <dt>¿Funciona con cualquier foto?</dt>
-          <dd>Con plantaciones uniformes de copas separadas. No con bosque mixto ni con dosel
-            cerrado —eso queda, a propósito, para otra etapa.</dd>
+          <dd>Con plantaciones uniformes de copas separadas. Con bosque mixto o dosel cerrado
+            todavía no; eso es Etapa III.</dd>
         </div>
         <div>
           <dt>¿Cuánto tarda en ejecutarse?</dt>
@@ -975,8 +977,8 @@
         </div>
         <div>
           <dt>¿Qué tan preciso es en la vida real?</dt>
-          <dd>Todavía no lo sabemos con rigor: esa medición es exactamente el siguiente paso, y
-            depende de tener una foto real de copas separadas.</dd>
+          <dd>Todavía no lo sabemos. Esa medición es el siguiente paso y depende de tener la
+            foto del dron.</dd>
         </div>
       </dl>
     </div>
@@ -1000,8 +1002,7 @@
 <footer>
   <div class="wrap">
     <p class="big">
-      No construimos primero la tesis y después el camino. Construimos el camino que nos
-      permite descubrir cuál debe ser la tesis.
+      Que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.
     </p>
     <p>Proyecto Centinela · Universidad Industrial de Santander — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
   </div>
