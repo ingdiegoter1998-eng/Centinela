@@ -48,7 +48,7 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 | 0.5 | — | Landing page del proyecto | 🟢 Implementada — `landing/` | Hecho |
 | 1 | I | Conteo de árboles en una imagen (visión clásica + DBSCAN) | ✅ Cerrada — validada en sintético | Hecho |
 | 1b | I-B | Validación con imagen real, georreferencia, múltiples imágenes | ⚪ Backlog — necesita dron con GPS | Cuando haya dron |
-| 2 | II | Caracterización del cultivo | ⚪ Soporte paralelo | Puede avanzar en paralelo a III |
+| 2 | II | Caracterización del cultivo | ⚪ Especificada, sin iniciar | Puede avanzar en paralelo a III |
 | 3 | III | **Detección de maleza en arroz** | 🟡 Próximo boss importante | ~12 meses |
 | 4 | IV | Series temporales y predicción | ⚪ Backlog | Año 3 |
 | 5 | V/VI | Visión de integración a largo plazo | ⚪ Backlog, no comprometido | Sin fecha |
@@ -235,11 +235,92 @@ No se ataca ahora. Se deja mapeado para que las decisiones de hoy no lo bloqueen
 
 ---
 
-## 6. ⚪ Etapa II — Caracterización del cultivo (soporte, en paralelo)
+## 6. ⚪ Etapa II — Caracterización del cultivo (especificada, sin iniciar)
 
-**Pregunta que responde:** no "qué existe", sino "cómo está" el cultivo — vigor vegetal, cobertura, variabilidad espacial, estrés hídrico, anomalías, diferencias entre sectores.
+> Igual que la Etapa I en su momento: esta sección queda completamente especificada antes de tocar código, para no perder tiempo repensando el problema cuando se active. Nivel técnico: extensión de la Ruta A de la Etapa I — mismos descriptores, sin modelos nuevos.
 
-**Nota de dependencia:** esta etapa **no es un bloqueante estricto** para atacar la Etapa III. La detección de maleza puede arrancar principalmente con lo que deja la Etapa I (imágenes + georreferenciación) más un nuevo modelo de segmentación. Etapa II puede avanzar en paralelo, alimentando a III con mapas de vigor que ayuden a interpretar por qué una zona tiene más infestación que otra, pero no es requisito de entrada.
+### 6.1 Objetivo preciso
+
+A partir de las detecciones que ya produce la Etapa I sobre **una imagen**, calcular por cada árbol un conjunto de métricas de estado visual — verdor relativo, huecos en la copa, tamaño relativo — y compararlas contra la distribución del propio huerto para marcar cuáles se apartan de la norma en sentido negativo. **No diagnostica causa** (no dice "esto es hongo" o "falta nitrógeno"); señala dónde mirar. Es una herramienta de triage, no de diagnóstico — responde no "qué existe" (Etapa I) sino "cómo está" el cultivo.
+
+### 6.2 Alcance — qué SÍ incluye la Etapa II
+
+- Reutiliza las detecciones de la Etapa I sobre la **misma imagen** — no requiere nueva captura ni nuevo hardware.
+- Un índice de vigor visual continuo por copa (VARI o GLI), no solo la máscara binaria de vegetación que ya existe.
+- Una medida de **huecos internos** de la copa (defoliación, ramas secas) vía la solidez de la instancia.
+- Comparación **relativa dentro del mismo huerto**: cada árbol contra la mediana y dispersión del propio vuelo, no contra un valor absoluto.
+- Salida: bandera por árbol (`normal` / `revisar`) + qué métrica la disparó + overlay visual.
+- Sigue en el régimen heredado de la Etapa I: una imagen, copas separadas.
+
+### 6.3 Explícitamente fuera de alcance
+
+- **Diagnóstico de causa** — qué plaga, qué deficiencia específica. No discriminable con RGB (ver §6.4).
+- **Estrés hídrico temprano** — necesita térmico; con RGB solo se ve el síntoma tardío.
+- **Vigor fotosintético absoluto / NDVI real** — necesita NIR. Esta etapa da un proxy relativo, no una medida calibrada.
+- **Comparación entre vuelos o fechas distintas** — una sola imagen, un solo momento. El seguimiento en el tiempo es la Etapa IV.
+- **Calibración radiométrica** — sin panel de referencia en la foto, no hay valores absolutos comparables entre fotos distintas.
+- **Sectorización geográfica real** — sin coordenadas (I-B pendiente), un "sector" es una rejilla en píxeles sobre la imagen, no una zona real de la parcela.
+
+### 6.4 Por qué RGB alcanza para esto (y dónde no)
+
+Sin infrarrojo cercano no se mide clorofila real — ExG/VARI/GLI son una versión mucho más débil y ruidosa de la misma señal que da el NDVI. Pero para el objetivo de esta etapa (señalar qué revisar, no cuantificar cuánto) alcanza:
+
+| Señal | ¿Con RGB? | Qué da |
+|---|---|---|
+| Verdor relativo | Sí (VARI/GLI) | "Este árbol es menos verde que la mediana del huerto" |
+| Tamaño/forma de copa | Sí (ya calculado en Etapa I) | Atraso de crecimiento, daño estructural |
+| Huecos en la copa | Sí (solidez) | Defoliación visible |
+| Clorofila real | No | Necesita NIR |
+| Estrés hídrico temprano | No | Necesita térmico |
+| Causa específica | No | Necesita inspección de campo o laboratorio |
+
+Coherente con §3: no se mete sensor multiespectral hasta que el RGB demuestre que hace falta más.
+
+### 6.5 Enfoque técnico
+
+```text
+por cada árbol ya detectado (is_tree = True, Etapa I)
+  + índice VARI o GLI sobre los píxeles de vegetación de su instancia
+  + solidez de la instancia (área / área del casco convexo) → huecos ≈ 1 − solidez
+  + z-score robusto de cada métrica (tamaño, vigor, huecos) contra la mediana del huerto
+  → bandera "revisar" si alguna métrica cae peor que el umbral, en la dirección mala
+```
+
+**Las banderas son direccionales, no simétricas.** DBSCAN en la Etapa I marca "distinto" en cualquier dirección — correcto para separar árbol de sombra. Aquí no: un árbol **más** grande o **más** verde que la mediana no es un problema. Se marca solo cuando la métrica es peor (más chico, menos verde, más huecos) que el resto del huerto.
+
+**Descriptores nuevos que hacen falta** (no están en `features.py` de la Etapa I):
+- `vari` / `gli` — igual que `vegetation.py` ya calcula `combo`/`exg`, pero muestreado sobre los píxeles de cada instancia en vez de la imagen completa.
+- `solidity` — `regionprops` ya la calcula (`área / área_del_casco_convexo`); falta añadirla a la tabla de salida.
+
+### 6.6 Pipeline técnico
+
+```text
+detecciones de Etapa I (instancias is_tree=True)
+ → VARI/GLI muestreado por instancia → color de vigor
+ → solidez por instancia → huecos internos
+ → mediana + MAD de tamaño/vigor/huecos sobre el huerto completo
+ → z-score robusto direccional por árbol
+ → bandera + métrica responsable
+ → overlay: verde = normal, ámbar = revisar (con la causa señalada)
+```
+
+### 6.7 Entregable concreto
+
+- Extensión de `centinela_core`: `vari`/`gli` en `vegetation.py`, `solidity` en `features.py`, módulo nuevo `health.py` con el z-score direccional y las banderas.
+- CLI: `centinela characterize IMG.jpg` → añade `vari`, `solidity`, `flag`, `motivo` al CSV de detecciones + overlay de banderas.
+- `config.yaml`: sección `health:` con los umbrales de z-score por métrica.
+- El huerto sintético de la Etapa I necesita **variabilidad deliberada**: 1–2 árboles inyectados a propósito más chicos / menos verdes / con huecos, con posición conocida, para poder probar que el pipeline los detecta.
+
+### 6.8 Criterios de éxito medibles
+
+- Sobre huerto sintético con árboles "sanos" + *k* árboles anómalos inyectados: recuperar esos *k* con recall alto (propuesta inicial: ≥80 %) y pocos falsos positivos entre los sanos (propuesta inicial: <10 %).
+- Reproducibilidad: mismos umbrales en `config.yaml`, mismo resultado.
+- Corre directo sobre la salida de la Etapa I, sin reprocesar la imagen desde cero.
+- La validación sobre imagen real queda, igual que en la Etapa I, para cuando exista esa imagen (I-B) — no bloquea cerrar esta especificación ni empezar a construirla sobre sintético.
+
+### 6.9 Por qué importa más allá de sí mismo
+
+Un mapa de vigor por sector es lo que le da a la Etapa III el "por qué": una zona con más maleza puede coincidir con una zona de menor vigor, por competencia de agua o nutrientes. Esta etapa **no es un bloqueante estricto** para atacar la Etapa III — esa puede arrancar con lo que deja la Etapa I (imágenes + georreferenciación) más un modelo de segmentación propio — pero corriendo en paralelo le da a III el contexto de por qué una zona se infesta más que otra. También deja el terreno listo para cuando se sume un sensor NIR real: mismo pipeline, se cambia el índice de entrada.
 
 ---
 
