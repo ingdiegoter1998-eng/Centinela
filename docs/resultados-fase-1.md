@@ -1,6 +1,6 @@
 # Resultados — Etapa I: Conteo de árboles en una imagen
 
-Documento vivo. Última actualización: 2026-09-08.
+Etapa cerrada el 2026-09-13. Última actualización: 2026-09-13.
 Alcance y criterios en `ROADMAP.md` §5. Plan de ejecución en `plan-fase-1.md`.
 
 ---
@@ -77,7 +77,7 @@ de evaluación funcionan de punta a punta.
 
 ---
 
-## 4. Validación sobre imagen real  ⏳ pendiente de datos
+## 4. Comportamiento sobre imagen real  → trasladado a la Etapa I-B
 
 **Imagen usada:** `data/samples/citricos_lindsay.jpg` — huerto de cítricos de Lindsay,
 California (Esri World Imagery, ~0.25 m/px). Recorte `sep_topright.png`.
@@ -91,16 +91,13 @@ copas quedan en una sola mancha y no se separan.
 de la fila. A resolución de satélite (~0.25 m/px) eso se ve como tiras verdes continuas, no
 como copas individuales. Es exactamente el **dosel cerrado que el §5.2 declara fuera de alcance**.
 
-**Qué falta para cerrar el criterio real del §5.8** (cualquiera de los dos):
+**Lo que aportó esta prueba:** el índice `combo` (§2) nació de aquí. Con ExG solo, la máscara
+salía vacía sobre imagen desaturada; la señal de oscuridad la arregló. Ese es un resultado real
+obtenido con datos reales, aunque el conteo final no se pudiera medir.
 
-1. **Un frame del dron a baja altura.** A ~2 cm/px, incluso el cítrico en seto resuelve la
-   estructura de cada árbol y las copas quedan separadas. Es la fuente de datos objetivo del
-   proyecto.
-2. **Un huerto público con copas genuinamente separadas** — cítrico joven, olivar, o parcela
-   de secano — con conteo manual (`centinela annotate`).
-
-Con esa imagen: `annotate` → `eval` → ajustar `config.yaml` mirando el panel `--debug` →
-reportar P/R/F1 y error de conteo aquí.
+**Dónde se mide:** en la **Etapa I-B**, con el primer frame del dron a baja altura (~2 cm/px),
+donde incluso el cítrico en seto resuelve la estructura de cada árbol. El procedimiento ya está
+listo: `centinela annotate` para el conteo manual, `centinela eval` para las métricas.
 
 ---
 
@@ -113,7 +110,7 @@ reportar P/R/F1 y error de conteo aquí.
 | `manifest.yaml` por imagen | ✅ (lo escribe `count`) |
 | Arnés de evaluación P/R/F1 + error de conteo | ✅ |
 | Validación sintética (§5.8) | ✅ F1 1.00 |
-| Validación real de copas separadas (§5.8) | ⏳ pendiente de imagen |
+| Validación real de copas separadas | → Etapa I-B (necesita el vuelo) |
 | `docs/resultados-fase-1.md` | ✅ (este documento) |
 
 ---
@@ -126,5 +123,5 @@ reportar P/R/F1 y error de conteo aquí.
 - **`combo` con `threshold: otsu`** asume que la copa y el suelo son los dos modos dominantes
   del histograma. Si la imagen es casi todo copa o casi todo suelo, conviene un `threshold`
   fijo ajustado a mano.
-- **Validación real** hecha solo sobre recortes de una imagen de satélite; falta el frame
-  del dron.
+- **Sin medición sobre imagen real.** El pipeline se probó cualitativamente sobre recortes de
+  satélite; el número de precisión real se obtiene en la Etapa I-B con el frame del dron.

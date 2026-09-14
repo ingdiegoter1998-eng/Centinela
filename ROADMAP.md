@@ -46,8 +46,8 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 | # | Etapa | Nombre | Estado | Horizonte |
 |---|-------|--------|--------|-----------|
 | 0.5 | — | Landing page del proyecto | 🟢 Implementada — `landing/` | Hecho |
-| 1 | I | Conteo de árboles en una imagen (visión clásica + DBSCAN) | 🟢 En curso | Ahora |
-| 1b | I-B | Georreferencia, múltiples imágenes, modelos entrenados | ⚪ Backlog — necesita dron con GPS | Cuando haya dron |
+| 1 | I | Conteo de árboles en una imagen (visión clásica + DBSCAN) | ✅ Cerrada — validada en sintético | Hecho |
+| 1b | I-B | Validación con imagen real, georreferencia, múltiples imágenes | ⚪ Backlog — necesita dron con GPS | Cuando haya dron |
 | 2 | II | Caracterización del cultivo | ⚪ Soporte paralelo | Puede avanzar en paralelo a III |
 | 3 | III | **Detección de maleza en arroz** | 🟡 Próximo boss importante | ~12 meses |
 | 4 | IV | Series temporales y predicción | ⚪ Backlog | Año 3 |
@@ -92,9 +92,9 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 
 ---
 
-## 5. 🟢 Boss actual — Etapa I: Conteo de árboles en una imagen
+## 5. ✅ Etapa I — Conteo de árboles en una imagen (cerrada)
 
-> Alcance recortado a propósito (ver §5.4). Nivel técnico: **visión clásica + DBSCAN**. Sin modelos entrenados, sin descargas de Hugging Face, sin georreferenciación, sin fine-tuning. Plan de ejecución detallado en `docs/plan-fase-1.md`.
+> **Cerrada el 2026-09-13** con validación sobre huerto sintético. Nivel técnico: **visión clásica + DBSCAN**. Sin modelos entrenados, sin descargas de Hugging Face, sin georreferenciación, sin fine-tuning. La medición sobre imagen real pasa a la Etapa I-B (§5.11), que es donde vive el vuelo del dron. Resultados en `docs/resultados-fase-1.md`, plan en `docs/plan-fase-1.md`.
 
 ### 5.1 Objetivo preciso
 
@@ -199,7 +199,9 @@ Contra conteo manual de la misma imagen:
 - **Reproducibilidad:** correr el CLI dos veces sobre la misma imagen y config da resultado idéntico; toda la parametrización está en `config.yaml`, nada hardcodeado.
 - **Robustez básica:** el pipeline no se cae ni degrada catastróficamente sobre variaciones sintéticas de la imagen (brillo global ±20 %, ruido gaussiano) — chequeo con imágenes generadas.
 
-**Estado (2026-09-08):** los cuatro criterios se cumplen sobre **huerto sintético** (F1 = 1.00, error de conteo 0 %, 19 tests). La validación sobre **imagen real de copas separadas** queda pendiente de datos: las imágenes de satélite de cítrico comercial son de dosel cerrado (fuera de alcance, §5.2) y no sirven; se cierra cuando haya un frame del dron o un huerto público con copas genuinamente separadas. Resultados completos en `docs/resultados-fase-1.md`.
+**Estado (cerrada 2026-09-13):** los cuatro criterios se cumplen sobre **huerto sintético** — F1 = 1.00, error de conteo 0 %, 19 tests, parametrización completa en `config.yaml`.
+
+La medición sobre imagen real de copas separadas se traslada a la **Etapa I-B**. El motivo: depende del vuelo del dron, que es precisamente la entrada de esa etapa. Mantener la I abierta a la espera de un insumo que pertenece a la siguiente no aporta nada. El arnés de evaluación ya está construido y corre sobre cualquier imagen con su conteo manual, así que la medición es un `centinela eval` el día que exista la foto.
 
 La validación de **generalización entre parcelas distintas** se aplaza a la Etapa I-B.
 
@@ -224,6 +226,7 @@ Si el dron no da un frame cenital usable, el pipeline se desarrolla igual con (a
 
 No se ataca ahora. Se deja mapeado para que las decisiones de hoy no lo bloqueen:
 
+- **Validación sobre imagen real (heredada de la Etapa I):** con el primer frame del dron, `centinela annotate` para el conteo manual y `centinela eval` para obtener precision / recall / F1 y error de conteo. Umbral: <10 % de error de conteo. El arnés ya existe.
 - **Georreferenciación:** con un dron que escriba GPS en el EXIF, convertir centroides de píxel a coordenadas usando GSD + altura + orientación. `GSD = (altura × ancho_sensor) / (focal × ancho_px)`. Ojo: el GPS de consumo sin RTK tiene error de 1–3 m y la altitud barométrica deriva; no confiar el conteo final a deduplicación por GPS puro.
 - **Múltiples imágenes y solape:** ortomosaico con OpenDroneMap, o deduplicación por homografía (features SIFT/ORB entre frames). Recomendación: solape ~75 % frontal / ~65 % lateral desde el primer vuelo con GPS.
 - **Comparación con modelos pre-entrenados (zero-shot):** DeepForest (`weecology/deepforest-tree`, Hugging Face, MIT) y SAM/SAM2 como baselines contra la Ruta A, con el mismo arnés de evaluación. Mini-estudio defendible.

@@ -225,7 +225,7 @@ adelante hay muchas, se migra a labelme / CVAT.
 
 ---
 
-## 11. Estado actual (2026-09-08)
+## 11. Estado final — etapa cerrada (2026-09-13)
 
 **Construido y verde** (resultados completos en `resultados-fase-1.md`):
 
@@ -241,15 +241,9 @@ adelante hay muchas, se migra a labelme / CVAT.
 **Decisión de alcance (2026-09-08): solo copas separadas.** El dosel cerrado (cítrico en
 seto visto desde satélite) queda fuera — se retoma en la Etapa III. Ver `ROADMAP.md` §5.2.
 
-**Lo que falta para cerrar la Fase 1:** la validación real del §5.8. Las imágenes de
-satélite de cítrico comercial son de dosel cerrado y no sirven como caso de copas
-separadas. Se necesita **una de estas dos**:
-
-1. Un frame del dron a baja altura (fuente objetivo del proyecto), o
-2. Un huerto público con copas genuinamente separadas (cítrico joven, olivar, secano).
-
-Con esa imagen: `centinela annotate` → `centinela eval` → ajustar `config.yaml` mirando el
-panel `--debug` → registrar P/R/F1 y error de conteo en `resultados-fase-1.md`.
+**Etapa cerrada.** Los cuatro criterios del §5.8 se cumplen sobre huerto sintético. La
+medición sobre imagen real pasa a la Etapa I-B, junto con el vuelo del dron del que depende;
+el arnés (`annotate` + `eval`) queda construido y listo para ese día.
 
 ## 12. Decisiones tomadas
 

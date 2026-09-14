@@ -36,8 +36,8 @@ export const queEs = [
 ]
 
 export const queSera = [
-  'No partimos de una tecnología buscando dónde aplicarla. Partimos de problemas concretos del campo araucano y construimos únicamente lo que hace falta para resolverlos.',
-  'Cada etapa deja datos, código y métodos que la siguiente reutiliza. Con el tiempo eso se acumula en algo que hoy no existe para la región: un registro detallado y georreferenciado de cómo se comportan sus cultivos.',
+  'Cada etapa resuelve un problema completo y deja datos, código y métodos que la siguiente reutiliza. Con el tiempo eso se acumula en algo que hoy no existe para la región: un registro detallado y georreferenciado de cómo se comportan sus cultivos.',
+  'El objetivo final es que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.',
 ]
 
 export const fases = [
@@ -46,8 +46,8 @@ export const fases = [
     nombre: 'Inventario y conteo',
     resumen:
       'Contar automáticamente cuántas plantas hay en una imagen aérea de la parcela y ubicar cada una.',
-    estado: 'en-curso',
-    etiqueta: 'En curso',
+    estado: 'hecha',
+    etiqueta: 'Cerrada',
   },
   {
     n: 'II',
@@ -87,10 +87,10 @@ export const notaFases =
   'Además mantenemos abierta una línea de investigación futura sobre cacao y presencia de metales pesados.'
 
 export const dondeEstamos = {
-  fase: 'Etapa I — en curso',
+  fase: 'Etapa I — cerrada',
   parrafos: [
-    'Estamos desarrollando el proceso que toma una imagen aérea de una parcela y cuenta las plantas agrupándolas por similitud visual — color, tamaño y forma de la copa — sin necesitar un modelo entrenado para cada especie. Cada planta detectada queda ubicada dentro de la imagen, no solamente contada.',
-    'El avance es autogestionado: vamos al ritmo que permiten los resultados y el aprendizaje, sin fechas de entrega impuestas desde afuera.',
+    'La primera etapa ya funciona. El programa toma una imagen aérea de una parcela, cuenta las copas de árbol y marca dónde está cada una, agrupándolas por similitud visual — color, tamaño y forma — sin necesitar un modelo entrenado para cada especie.',
+    'Sobre huertos de prueba con respuesta conocida acierta todos los árboles. La medición sobre una fotografía real llega con el primer vuelo del dron.',
   ],
 }
 

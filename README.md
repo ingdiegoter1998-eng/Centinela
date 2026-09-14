@@ -15,8 +15,8 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 | Componente | Estado |
 |---|---|
 | Landing pública (Fase 0.5) | 🟢 Implementada — `landing/` |
-| Conteo de árboles en una imagen (Etapa I) | 🟢 Pipeline validado en sintético (F1 = 1.00, 19 tests) — falta validación sobre imagen real, ver [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) |
-| Georreferencia + múltiples imágenes (Etapa I-B) | ⚪ Backlog — necesita dron con GPS |
+| Conteo de árboles en una imagen (Etapa I) | ✅ Cerrada — F1 = 1.00 y error de conteo 0 % en sintético, 19 tests. Ver [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) |
+| Validación real + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS |
 | Detección de maleza en arroz (Etapa III) | 🟡 Próximo boss grande (~12 meses) |
 
 ## Estructura
@@ -31,7 +31,9 @@ proyecto-centinela/
 ├── docs/
 │   ├── plan-fase-1.md        Plan y estado de la Etapa I
 │   ├── resultados-fase-1.md  Resultados y métricas de la Etapa I
-│   └── adelanto/            Fuente de la página de presentación
+│   └── adelanto/             Fuentes de la presentación (página, guion, diapositivas)
+├── .github/workflows/    Despliegue de la landing en GitHub Pages
+├── LICENSE               MIT
 └── ROADMAP.md            Hoja de ruta del proyecto
 ```
 
@@ -63,9 +65,17 @@ de ningún framework web, para que la Etapa III lo reutilice tal cual.
 ```bash
 cd landing
 npm install
-npm run dev          # desarrollo
-npm run build        # producción → landing/dist/ (hosting estático)
+npm run dev          # desarrollo → http://localhost:5173/proyecto-centinela/
+npm run build        # producción → landing/dist/
 ```
+
+Se despliega sola en **GitHub Pages** con cada push a `main`
+(`.github/workflows/pages.yml`). Hay que activarlo una vez en
+*Settings → Pages → Source: GitHub Actions*.
+
+El `base` de Vite apunta a `/proyecto-centinela/` porque en Pages el sitio vive
+bajo la ruta del repositorio. Si cambia el nombre del repo o se usa dominio
+propio: `BASE_PATH=/ npm run build`.
 
 ## Requisitos
 

@@ -360,6 +360,10 @@ a {
   color: #a9b6ac;
 }
 
+.fase--hecha .fase__n {
+  color: var(--green);
+}
+
 .fase__nombre {
   font-family: var(--display);
   font-size: 22px;
@@ -381,6 +385,11 @@ a {
   border-radius: 999px;
   padding: 6px 13px;
   border: 1px solid transparent;
+}
+
+.estado--hecha {
+  background: var(--green);
+  color: #fff;
 }
 
 .estado--en-curso {
