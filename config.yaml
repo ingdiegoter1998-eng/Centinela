@@ -33,3 +33,11 @@ cluster:
 
 evaluate:
   match_radius_px: 14  # tolerancia para emparejar detección con punto manual
+
+health:
+  vigor_index: vari    # vari | gli — índice de vigor visual por copa (Etapa II)
+  z_threshold: 2.5     # desviaciones robustas para marcar "revisar"
+                       # Calibrado sobre sintetico: a 2.0 los falsos positivos
+                       # suben al 14 %; a 3.0 el recall cae de 0.88 a 0.75.
+  metrics: [area, vigor, gap, solidity]
+  min_trees: 5         # por debajo de esto la mediana no significa nada: no se marca

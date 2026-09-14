@@ -108,3 +108,35 @@ def errors_overlay(result: PipelineResult, gt_xy: np.ndarray, match_radius_px: f
     a.axis("off")
     fig.savefig(path, bbox_inches="tight", dpi=dpi)
     plt.close(fig)
+
+
+def health_overlay(result: PipelineResult, path: str | Path, dpi: int = 110) -> None:
+    """Etapa II: verde = normal, ámbar = revisar, con el motivo anotado."""
+    det = result.detections
+    trees = det[det["is_tree"].fillna(False).astype(bool)]
+    ok = trees[trees["flag"] != "revisar"]
+    bad = trees[trees["flag"] == "revisar"]
+
+    h, w = result.rgb.shape[:2]
+    fig, ax = plt.subplots(figsize=(w / dpi, h / dpi))
+    ax.imshow(result.rgb)
+    ax.scatter(
+        ok["x_px"], ok["y_px"], s=45, facecolors="none",
+        edgecolors="#30d158", linewidths=1.2, label=f"normal ({len(ok)})",
+    )
+    ax.scatter(
+        bad["x_px"], bad["y_px"], s=150, facecolors="none",
+        edgecolors="#ff9f0a", linewidths=2.2, label=f"revisar ({len(bad)})",
+    )
+    for _, row in bad.iterrows():
+        ax.annotate(
+            str(row["motivo"]),
+            (row["x_px"], row["y_px"]),
+            textcoords="offset points", xytext=(0, 14),
+            ha="center", fontsize=7, color="#ff9f0a",
+        )
+    ax.legend(loc="upper right", framealpha=0.9)
+    ax.set_title(f"{len(bad)} de {len(trees)} árboles para revisar")
+    ax.axis("off")
+    fig.savefig(path, bbox_inches="tight", dpi=dpi)
+    plt.close(fig)

@@ -48,7 +48,7 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 | 0.5 | — | Landing page del proyecto | 🟢 Implementada — `landing/` | Hecho |
 | 1 | I | Conteo de árboles en una imagen (visión clásica + DBSCAN) | ✅ Cerrada — validada en sintético | Hecho |
 | 1b | I-B | Validación con imagen real, georreferencia, múltiples imágenes | ⚪ Backlog — necesita dron con GPS | Cuando haya dron |
-| 2 | II | Caracterización del cultivo | ⚪ Especificada, sin iniciar | Puede avanzar en paralelo a III |
+| 2 | II | Caracterización del cultivo | ✅ Implementada — validada en sintético | Hecho |
 | 3 | III | **Detección de maleza en arroz** | 🟡 Próximo boss importante | ~12 meses |
 | 4 | IV | Series temporales y predicción | ⚪ Backlog | Año 3 |
 | 5 | V/VI | Visión de integración a largo plazo | ⚪ Backlog, no comprometido | Sin fecha |
@@ -235,9 +235,9 @@ No se ataca ahora. Se deja mapeado para que las decisiones de hoy no lo bloqueen
 
 ---
 
-## 6. ⚪ Etapa II — Caracterización del cultivo (especificada, sin iniciar)
+## 6. ✅ Etapa II — Caracterización del cultivo (implementada)
 
-> Igual que la Etapa I en su momento: esta sección queda completamente especificada antes de tocar código, para no perder tiempo repensando el problema cuando se active. Nivel técnico: extensión de la Ruta A de la Etapa I — mismos descriptores, sin modelos nuevos.
+> **Implementada el 2026-09-14.** Recall 0.88 sobre anómalos inyectados y 8.7 % de falsos positivos en huerto sintético, dentro de los umbrales del §6.8. Comando: `centinela characterize`. Resultados en `docs/resultados-fase-2.md`, plan en `docs/plan-fase-2.md`. La validación sobre imagen real queda, igual que en la Etapa I, para la Etapa I-B.
 
 ### 6.1 Objetivo preciso
 

@@ -55,6 +55,16 @@ class EvaluateCfg:
 
 
 @dataclass
+class HealthCfg:
+    vigor_index: str = "vari"  # vari | gli
+    z_threshold: float = 2.5
+    metrics: list[str] = field(
+        default_factory=lambda: ["area", "vigor", "gap", "solidity"]
+    )
+    min_trees: int = 5
+
+
+@dataclass
 class Config:
     crop: CropCfg = field(default_factory=CropCfg)
     vegetation: VegetationCfg = field(default_factory=VegetationCfg)
@@ -63,6 +73,7 @@ class Config:
     features: FeaturesCfg = field(default_factory=FeaturesCfg)
     cluster: ClusterCfg = field(default_factory=ClusterCfg)
     evaluate: EvaluateCfg = field(default_factory=EvaluateCfg)
+    health: HealthCfg = field(default_factory=HealthCfg)
 
     @classmethod
     def load(cls, path: str | Path | None = None) -> Config:

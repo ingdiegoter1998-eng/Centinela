@@ -72,6 +72,34 @@ def combo(rgb: np.ndarray) -> np.ndarray:
     return _otsu_gap_norm(excess_green(rgb)) + _otsu_gap_norm(darkness(rgb))
 
 
+def vari(rgb: np.ndarray) -> np.ndarray:
+    """Visible Atmospherically Resistant Index — proxy de vigor con solo RGB.
+
+    VARI = (G − R) / (G + R − B). Es el índice visible que mejor correlaciona con
+    el NDVI sin necesitar infrarrojo, aunque mucho más ruidoso (ROADMAP §6.4).
+    El denominador puede acercarse a cero, así que se protege y se recorta.
+    """
+    f = rgb.astype(np.float32)
+    r, g, b = f[..., 0], f[..., 1], f[..., 2]
+    denom = g + r - b
+    out = np.divide(g - r, denom, out=np.zeros_like(denom), where=np.abs(denom) > 1e-3)
+    return np.clip(out, -1.0, 1.0)
+
+
+def gli(rgb: np.ndarray) -> np.ndarray:
+    """Green Leaf Index = (2G − R − B) / (2G + R + B).
+
+    Menos sensible que VARI pero más estable: el denominador nunca es negativo.
+    """
+    f = rgb.astype(np.float32)
+    r, g, b = f[..., 0], f[..., 1], f[..., 2]
+    denom = 2.0 * g + r + b
+    out = np.divide(
+        2.0 * g - r - b, denom, out=np.zeros_like(denom), where=denom > 1e-3
+    )
+    return np.clip(out, -1.0, 1.0)
+
+
 def _hsv_green(rgb: np.ndarray) -> np.ndarray:
     import cv2
 
@@ -87,6 +115,8 @@ INDEXES = {
     "exg": excess_green,
     "exgr": excess_green_red,
     "dark": darkness,
+    "vari": vari,
+    "gli": gli,
     "hsv": _hsv_green,
 }
 

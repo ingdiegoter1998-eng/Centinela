@@ -9,7 +9,7 @@ def test_exg_higher_on_crowns_than_soil(orchard_small):
 
     yy, xx = np.mgrid[0 : img.shape[0], 0 : img.shape[1]]
     on_crown = np.zeros(img.shape[:2], dtype=bool)
-    for x, y in gt.to_numpy():
+    for x, y in gt[["x", "y"]].to_numpy():
         on_crown |= (yy - y) ** 2 + (xx - x) ** 2 <= 8**2
 
     assert exg[on_crown].mean() > exg[~on_crown].mean() + 0.1

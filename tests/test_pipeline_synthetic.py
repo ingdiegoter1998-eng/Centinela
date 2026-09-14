@@ -18,7 +18,7 @@ def _run_on(tmp_path, img, name="orchard.png"):
 def test_end_to_end_f1(tmp_path, orchard_medium):
     img, gt = orchard_medium
     result = _run_on(tmp_path, img)
-    res = evaluate(result.trees[["x_px", "y_px"]].to_numpy(), gt.to_numpy(),
+    res = evaluate(result.trees[["x_px", "y_px"]].to_numpy(), gt[["x", "y"]].to_numpy(),
                    match_radius_px=14)
     assert res.f1 >= 0.85, res.as_dict()
     assert res.count_error <= 0.15, res.as_dict()
@@ -35,7 +35,7 @@ def test_reproducible(tmp_path, orchard_medium):
 def test_robustness_to_perturbations(tmp_path, orchard_medium, kind):
     img, gt = orchard_medium
     result = _run_on(tmp_path, perturb(img, kind), f"{kind}.png")
-    res = evaluate(result.trees[["x_px", "y_px"]].to_numpy(), gt.to_numpy(),
+    res = evaluate(result.trees[["x_px", "y_px"]].to_numpy(), gt[["x", "y"]].to_numpy(),
                    match_radius_px=16)
     # no exigimos el mismo F1, solo que no colapse
     assert res.recall >= 0.7, (kind, res.as_dict())

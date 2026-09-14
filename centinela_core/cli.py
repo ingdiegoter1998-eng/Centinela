@@ -2,6 +2,7 @@
 
     centinela count IMG.jpg [--config config.yaml] [--debug]
     centinela eval  IMG.jpg GT.csv [--config config.yaml] [--errors]
+    centinela characterize IMG.jpg [--config config.yaml]
     centinela make-synthetic OUT.png [--seed 0]
     centinela annotate IMG.jpg
 """
@@ -74,10 +75,10 @@ def _cmd_make_synthetic(args: argparse.Namespace) -> None:
     from .io import save_image
     from .synthetic import make_orchard
 
-    img, gt = make_orchard(seed=args.seed)
+    img, gt = make_orchard(seed=args.seed, n_anomalous=args.anomalous)
     out = Path(args.out)
     save_image(out, img)
-    gt.to_csv(out.with_name(out.stem + "_gt.csv"), index=False)
+    gt[["x", "y"]].to_csv(out.with_name(out.stem + "_gt.csv"), index=False)
     print(f"{len(gt)} árboles · {out} · {out.with_name(out.stem + '_gt.csv')}")
 
 
@@ -85,6 +86,34 @@ def _cmd_annotate(args: argparse.Namespace) -> None:
     from .annotate import annotate
 
     annotate(args.image)
+
+
+def _cmd_characterize(args: argparse.Namespace) -> None:
+    from . import viz
+    from .config import Config
+    from .health import characterize, summary
+    from .io import save_detections
+    from .pipeline import run
+
+    cfg = Config.load(args.config)
+    result = run(args.image, cfg)
+    result.detections = characterize(
+        result.detections,
+        vigor_index=cfg.health.vigor_index,
+        z_threshold=cfg.health.z_threshold,
+        metrics=cfg.health.metrics,
+        min_trees=cfg.health.min_trees,
+    )
+    stem = Path(args.image).with_suffix("")
+    save_detections(result.detections, f"{stem}_estado.csv")
+    viz.health_overlay(result, f"{stem}_estado.png")
+
+    s = summary(result.detections)
+    print(f"{'árboles':>16}: {s['n_trees']}")
+    print(f"{'para revisar':>16}: {s['n_flagged']} ({s['pct_flagged']:.1f} %)")
+    for motivo, n in s["por_motivo"].items():
+        print(f"{motivo:>16}: {n}")
+    print(f"{'salida':>16}: {stem}_estado.csv, {stem}_estado.png")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -108,7 +137,16 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("make-synthetic", help="genera un huerto sintético con GT")
     s.add_argument("out")
     s.add_argument("--seed", type=int, default=0)
+    s.add_argument(
+        "--anomalous", type=int, default=0,
+        help="cuántos árboles deteriorados inyectar (Etapa II)",
+    )
     s.set_defaults(func=_cmd_make_synthetic)
+
+    ch = sub.add_parser("characterize", help="marca árboles a revisar (Etapa II)")
+    ch.add_argument("image")
+    ch.add_argument("--config", default=None)
+    ch.set_defaults(func=_cmd_characterize)
 
     a = sub.add_parser("annotate", help="marca copas a mano (matplotlib interactivo)")
     a.add_argument("image")

@@ -60,7 +60,7 @@ def run(image_path: str | Path, config: Config | None = None) -> PipelineResult:
     labels = separate_crowns(
         mask, cfg.watershed.min_distance_px, cfg.watershed.footprint_px
     )
-    feats = extract_features(labels, rgb)
+    feats = extract_features(labels, rgb, veg)
     dets = cluster_blobs(
         feats, cfg.cluster.eps, cfg.cluster.min_samples, cfg.cluster.dominant
     )

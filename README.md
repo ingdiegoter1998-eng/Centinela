@@ -16,6 +16,7 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 |---|---|
 | Landing pública (Fase 0.5) | 🟢 Implementada — `landing/` |
 | Conteo de árboles en una imagen (Etapa I) | ✅ Cerrada — F1 = 1.00 y error de conteo 0 % en sintético, 19 tests. Ver [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) |
+| Caracterización del cultivo (Etapa II) | ✅ Implementada — recall 0.88 / 8.7 % FP en sintético. Ver [`docs/resultados-fase-2.md`](docs/resultados-fase-2.md) |
 | Validación real + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS |
 | Detección de maleza en arroz (Etapa III) | 🟡 Próximo boss grande (~12 meses) |
 
@@ -55,6 +56,7 @@ centinela make-synthetic data/samples/huerto.png    # huerto sintético + ground
 centinela count data/samples/huerto.png --debug      # conteo + overlay + panel de depuración
 centinela eval  data/samples/huerto.png data/samples/huerto_gt.csv   # precision / recall / F1
 centinela annotate IMG.jpg                           # marcar copas a mano → GT.csv
+centinela characterize data/samples/huerto.png        # Etapa II: marca árboles a revisar
 ```
 
 El pipeline vive en `centinela_core/` como paquete **Python puro**, sin dependencia
