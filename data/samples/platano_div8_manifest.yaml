@@ -1,0 +1,15 @@
+capturado: null
+ubicacion: null
+cultivo: null
+variedad: null
+dispositivo: null
+altura_vuelo_m: null
+gsd_cm_px: null
+condiciones: null
+pipeline_version: 0.1.0
+generado: '2026-09-21T11:15:40'
+imagen: platano_div8.png
+indice_vegetacion: combo
+config: (defaults)
+arboles_detectados: 268
+manchas_totales: 521

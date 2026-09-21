@@ -26,8 +26,7 @@ db.sqlite3-journal
 .env.*
 !.env.example
 
-# ── Datos e imágenes (nunca al repo: pesan y/o tienen derechos) ─────────
-data/
+# ── Datos e imágenes ────────────────────────────────────────────────────
 build/
 *.tif
 *.tiff
@@ -39,6 +38,12 @@ build/
 !landing/**/*.svg
 !docs/**/*.png
 !docs/adelanto/*.jpg
+# El banco de imágenes de referencia SÍ va al repo.
+# Licencias y atribución obligatoria: data/ATRIBUCIONES.md
+!data/**/*.jpg
+!data/**/*.png
+# Excepción: material de banco comercial con derechos reservados.
+data/samples/musa_lote*
 
 # HTML de artefactos con imágenes embebidas (generado — se arma desde el .html fuente)
 *.build.html
