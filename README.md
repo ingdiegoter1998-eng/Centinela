@@ -17,7 +17,7 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 | Landing pública (Fase 0.5) | 🟢 Implementada — `landing/` |
 | Conteo de árboles en una imagen (Etapa I) | ✅ Cerrada — F1 = 1.00 y error de conteo 0 % en sintético, 19 tests. Ver [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) |
 | Caracterización del cultivo (Etapa II) | ✅ Implementada — recall 0.88 / 8.7 % FP en sintético. Ver [`docs/resultados-fase-2.md`](docs/resultados-fase-2.md) |
-| Validación real + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS |
+| Validación real + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS. Modos de fallo sobre imagen real ya medidos: [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) |
 | Detección de maleza en arroz (Etapa III) | 🟡 Próximo boss grande (~12 meses) |
 
 ## Estructura
@@ -32,6 +32,9 @@ proyecto-centinela/
 ├── docs/
 │   ├── plan-fase-1.md        Plan y estado de la Etapa I
 │   ├── resultados-fase-1.md  Resultados y métricas de la Etapa I
+│   ├── plan-fase-2.md        Plan y estado de la Etapa II
+│   ├── resultados-fase-2.md  Resultados y métricas de la Etapa II
+│   ├── resultados-imagen-real.md  Modos de fallo sobre imagen aérea real
 │   └── adelanto/             Fuentes de la presentación (página, guion, diapositivas)
 ├── .github/workflows/    Despliegue de la landing en GitHub Pages
 ├── LICENSE               MIT
