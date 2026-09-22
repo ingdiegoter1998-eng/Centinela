@@ -11,6 +11,8 @@ from pathlib import Path
 
 import yaml
 
+from .cluster import FEATURE_COLS
+
 
 @dataclass
 class CropCfg:
@@ -44,9 +46,11 @@ class FeaturesCfg:
 
 @dataclass
 class ClusterCfg:
+    method: str = "dbscan"  # dbscan | watershed (toda mancha cuenta, sin agrupar)
     eps: float = 0.8
     min_samples: int = 6
     dominant: str = "largest"  # largest | densest
+    features: list[str] = field(default_factory=lambda: list(FEATURE_COLS))
 
 
 @dataclass

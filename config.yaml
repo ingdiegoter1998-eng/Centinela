@@ -27,9 +27,16 @@ features:
   color_space: lab     # espacio para el color medio de cada mancha
 
 cluster:
+  method: dbscan       # dbscan | watershed (toda mancha del watershed cuenta, sin agrupar)
+                       # Con dbscan, `centinela count` reporta además si el conteo es
+                       # estable ante eps. Ver docs/resultados-imagen-real.md §5.
   eps: 0.8             # radio DBSCAN en el espacio de descriptores normalizados
   min_samples: 6       # mínimo de manchas para formar un cluster
   dominant: largest    # largest | densest — cómo se elige el cluster "cultivo"
+  # Descriptores sobre los que agrupa DBSCAN. Solo-forma (area_px, circularity,
+  # eccentricity, extent) separa copa de maleza, pero fragmenta una escena sin
+  # distractores. No hay un conjunto universal: ver resultados-imagen-real.md §5.7.
+  features: [area_px, color_l, color_a, color_b, circularity, eccentricity, extent]
 
 evaluate:
   match_radius_px: 14  # tolerancia para emparejar detección con punto manual

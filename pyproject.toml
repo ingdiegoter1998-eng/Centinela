@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
+demo = ["streamlit>=1.38"]  # demo/app.py — demo en vivo
 
 [project.scripts]
 centinela = "centinela_core.cli:main"

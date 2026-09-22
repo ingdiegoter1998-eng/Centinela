@@ -20,10 +20,17 @@ def _cmd_count(args: argparse.Namespace) -> None:
     from .config import Config
     from .io import save_detections, write_manifest
     from .pipeline import run
+    from .stability import estabilidad
 
     cfg = Config.load(args.config)
     result = run(args.image, cfg)
     stem = Path(args.image).with_suffix("")
+    est = (
+        estabilidad(result.detections, min_samples=cfg.cluster.min_samples,
+                    dominant=cfg.cluster.dominant, features=cfg.cluster.features)
+        if cfg.cluster.method == "dbscan"
+        else None
+    )
 
     save_detections(result.detections, f"{stem}_detecciones.csv")
     viz.overlay(result, f"{stem}_overlay.png")
@@ -37,11 +44,24 @@ def _cmd_count(args: argparse.Namespace) -> None:
         config=args.config or "(defaults)",
         arboles_detectados=result.n_trees,
         manchas_totales=len(result.detections),
+        metodo=cfg.cluster.method,
+        decision=result.decision,
+        estabilidad=est.veredicto if est else None,
     )
 
     print(f"Árboles detectados: {result.n_trees}")
     print(f"Manchas totales:    {len(result.detections)}")
+    print(f"Decidió el conteo:  {_DECISION[result.decision]}")
+    if est:
+        print(f"Estabilidad (eps):  {est.resumen()}")
     print(f"Salida:             {stem}_detecciones.csv, {stem}_overlay.png, {stem}_manifest.yaml")
+
+
+_DECISION = {
+    "dbscan": "DBSCAN (cluster dominante)",
+    "fallback": "watershed — DBSCAN no formó ningún cluster y toda mancha cuenta",
+    "watershed": "watershed (método sin agrupar)",
+}
 
 
 def _cmd_eval(args: argparse.Namespace) -> None:
@@ -75,7 +95,7 @@ def _cmd_make_synthetic(args: argparse.Namespace) -> None:
     from .io import save_image
     from .synthetic import make_orchard
 
-    img, gt = make_orchard(seed=args.seed, n_anomalous=args.anomalous)
+    img, gt = make_orchard(seed=args.seed, n_anomalous=args.anomalous, n_weeds=args.weeds)
     out = Path(args.out)
     save_image(out, img)
     gt[["x", "y"]].to_csv(out.with_name(out.stem + "_gt.csv"), index=False)
@@ -140,6 +160,10 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument(
         "--anomalous", type=int, default=0,
         help="cuántos árboles deteriorados inyectar (Etapa II)",
+    )
+    s.add_argument(
+        "--weeds", type=int, default=0,
+        help="cuántas manchas de maleza sembrar entre hileras (no entran al GT)",
     )
     s.set_defaults(func=_cmd_make_synthetic)
 

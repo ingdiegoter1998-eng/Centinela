@@ -72,6 +72,12 @@ de mediodía, gradiente de iluminación y ruido; el ground truth (centro de cada
 Los cuatro criterios de éxito del §5.8 se cumplen. El pipeline, sus parámetros y el arnés
 de evaluación funcionan de punta a punta.
 
+> **Corrección (2026-09-22).** Las cifras son correctas, pero su atribución no. Con la config
+> por defecto DBSCAN **no forma ningún cluster** sobre este huerto: el pipeline cae al modo
+> "toda mancha cuenta" y el 80/80 lo produce el watershed solo. Lo mismo vale para las 110
+> detecciones de `sep_topright` (§2). Este F1 valida la segmentación, no el clustering.
+> Detalle y consecuencias en `resultados-imagen-real.md` §5.6–5.8.
+
 > El sintético valida la **mecánica** del pipeline con verdad de terreno exacta y controlada.
 > No sustituye a una imagen real; la complementa.
 

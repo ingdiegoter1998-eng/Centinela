@@ -39,3 +39,24 @@ def test_robustness_to_perturbations(tmp_path, orchard_medium, kind):
                    match_radius_px=16)
     # no exigimos el mismo F1, solo que no colapse
     assert res.recall >= 0.7, (kind, res.as_dict())
+
+
+def test_conteo_sintetico_no_depende_de_dbscan(tmp_path, orchard_medium):
+    """Documenta el hallazgo de docs/resultados-imagen-real.md §5.6.
+
+    Sobre el sintético DBSCAN no llega a decidir: el conteo sale igual sin agrupar.
+    Si algún día este test falla porque DBSCAN empieza a cambiar el conteo, es buena
+    noticia — y hay que revisar las métricas de la Etapa I.
+    """
+    img, _ = orchard_medium
+    path = tmp_path / "orchard.png"
+    cv2.imwrite(str(path), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+
+    cfg_ws = Config()
+    cfg_ws.cluster.method = "watershed"
+    con_dbscan = run(path, Config())
+    sin_dbscan = run(path, cfg_ws)
+
+    assert con_dbscan.decision == "fallback"
+    assert sin_dbscan.decision == "watershed"
+    assert con_dbscan.n_trees == sin_dbscan.n_trees

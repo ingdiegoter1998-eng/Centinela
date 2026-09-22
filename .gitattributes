@@ -8,3 +8,7 @@
 *.tif binary
 *.tiff binary
 *.svg text
+
+# Scripts de Windows: cmd.exe falla con LF en bloques entre paréntesis.
+*.bat text eol=crlf
+*.cmd text eol=crlf

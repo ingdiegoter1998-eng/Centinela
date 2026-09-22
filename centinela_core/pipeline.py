@@ -34,6 +34,7 @@ class PipelineResult:
     mask: np.ndarray  # máscara limpia
     labels: np.ndarray  # instancias del watershed
     detections: pd.DataFrame  # una fila por mancha (con is_tree)
+    decision: str = "dbscan"  # quién decidió el conteo: dbscan | fallback | watershed
 
     @property
     def trees(self) -> pd.DataFrame:
@@ -62,9 +63,17 @@ def run(image_path: str | Path, config: Config | None = None) -> PipelineResult:
     )
     feats = extract_features(labels, rgb, veg)
     dets = cluster_blobs(
-        feats, cfg.cluster.eps, cfg.cluster.min_samples, cfg.cluster.dominant
+        feats,
+        cfg.cluster.eps,
+        cfg.cluster.min_samples,
+        cfg.cluster.dominant,
+        method=cfg.cluster.method,
+        features=cfg.cluster.features,
     )
+    decision = dets.attrs["decision"]
     dets["lat"] = np.nan  # reservado para Etapa I-B (georreferencia)
     dets["lon"] = np.nan
 
-    return PipelineResult(rgb=rgb, index=idx, veg=veg, mask=mask, labels=labels, detections=dets)
+    return PipelineResult(
+        rgb=rgb, index=idx, veg=veg, mask=mask, labels=labels, detections=dets, decision=decision
+    )

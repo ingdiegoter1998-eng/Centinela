@@ -249,11 +249,10 @@ Dicho de otro modo: **el parámetro no selecciona el conteo, el parámetro *es* 
 valor que se elija va a estar justificado por el número que produce, no por una estructura en los
 datos. Y sin verdad de terreno no hay forma de elegirlo.
 
-En el sintético esto no se ve porque las copas son clones: mismo tamaño, mismo color, misma forma.
-La nube en el espacio de descriptores es un punto, cualquier `eps` la captura entera y `eps = 0,8`
-parecía un valor sensato. Sobre árboles reales, con variación natural de tamaño, iluminación y
-solape, esa nube se estira hasta ocupar todo el espacio y el criterio "cluster más numeroso" pierde
-sentido.
+~~En el sintético esto no se ve porque las copas son clones: la nube en el espacio de descriptores es
+un punto y cualquier `eps` la captura entera.~~ **Falso — ver §5.6.** En el sintético esto no se veía
+por una razón peor: con `eps = 0,8` DBSCAN no forma ningún cluster y el pipeline cae a "toda mancha
+cuenta". El 80/80 nunca pasó por el clustering.
 
 ### 5.5 Consecuencia
 
@@ -274,6 +273,104 @@ Dos salidas posibles, ninguna cara:
    qué número hay que calibrar. Es la misma tarea que ya estaba en la lista, ahora con un caso
    concreto donde rinde de inmediato.
 
+La salida 1 quedó implementada como `cluster.method: watershed` (§5.8). No se cambió el default: sin
+verdad de terreno real no hay con qué justificar que 218 sea mejor que 6.
+
+### 5.6 El sintético nunca ejercitó el DBSCAN
+
+Sesión del 2026-09-22. Al barrer `eps` también sobre el sintético para tener el contraste, apareció
+esto:
+
+| `eps` | 0,3 | 0,5 | 0,8 | 1,0 | 1,2 | 1,5 | 2,0 | 2,5 | 3,0 |
+|---|---|---|---|---|---|---|---|---|---|
+| Árboles (`huerto_demo`) | 80 | 80 | **80** | 80 | 80 | 80 | 61 | 77 | 79 |
+| Clusters formados | 0 | 0 | **0** | 0 | 0 | 0 | 1 | 1 | 1 |
+
+Con la config por defecto **DBSCAN no forma ningún cluster**: las 80 manchas son ruido y el pipeline
+cae al *fallback* de `cluster.py` ("si no hay cluster, toda mancha cuenta"). El 80/80 es el conteo
+del watershed, sin filtrar.
+
+Lo mismo pasa con `sep_topright`, el cítrico satelital de la Etapa I: sus 110 detecciones son también
+fallback. **Todos los números publicados de la Etapa I los produjo el watershed; DBSCAN no votó en
+ninguno.** El F1 = 1,00 sigue siendo cierto, pero lo que valida es la segmentación, no el clustering.
+
+Por qué no lo detectó ningún test: el generador sintético no produce manchas distractoras (la sombra
+oscurece la copa pero no forma mancha aparte), así que el watershed entrega exactamente 80 manchas
+y el fallback acierta por construcción. El único test de DBSCAN (`test_cluster.py`) usa descriptores
+inventados con varianza mínima, que no se parecen a los que salen de una imagen.
+
+Corrección aplicada: el pipeline ahora registra **quién decidió el conteo** (`dbscan`, `fallback` o
+`watershed`) y `centinela count` lo imprime. Un test documenta que en el sintético el conteo sale igual
+con y sin DBSCAN.
+
+### 5.7 Cuando sí hay algo que separar: maleza sintética
+
+Para ver si DBSCAN funciona *cuando tiene algo que descartar*, el generador aceptó un parámetro nuevo:
+`centinela make-synthetic OUT --weeds 25` siembra manchas de maleza entre hileras, con casi el mismo
+verde y la misma luminancia que la copa — el pipeline la segmenta igual que al pasto real — pero de
+forma irregular y alargada. La maleza no entra a la verdad de terreno.
+
+Los descriptores sí separan las dos clases:
+
+| Descriptor (media) | Copa | Maleza |
+|---|---|---|
+| Área (px) | 1085 | 225 |
+| Excentricidad | 0,23 | 0,77 |
+| Circularidad | 0,90 | 0,73 |
+| Extent | 0,77 | 0,65 |
+| Color L / a / b | 42 / −31 / 29 | 41 / −20 / 32 |
+
+Y aun así, con los 7 descriptores de la Etapa I, DBSCAN no encuentra meseta: cae en fallback a
+`eps = 0,8` (F1 = 0,82, cuenta la maleza como árbol) y solo acierta en un `eps` estrecho que no se
+puede elegir sin conocer la respuesta. **Quitando los tres canales de color** —casi iguales entre
+clases, que solo aportan ruido a las distancias— aparece la meseta:
+
+| Configuración | Huerto limpio | Huerto con maleza | USDA real |
+|---|---|---|---|
+| Sin agrupar (watershed) | F1 1,00 | F1 0,82 | 218 |
+| DBSCAN, 7 descriptores | F1 1,00 · *sin estructura* (fallback) | F1 0,82 · **inestable** | 6 · **inestable** |
+| DBSCAN, solo forma | **F1 0,14** · **inestable** | **F1 1,00 · estable, meseta 80** | 176 · **inestable** |
+
+Tres lecturas:
+
+1. **DBSCAN sí sirve cuando hay grupos distintos y los descriptores correctos.** Con maleza y solo
+   forma, descarta exactamente las 36 manchas de maleza y el conteo es estable en un rango de `eps`.
+2. **El mismo ajuste destruye la escena sin maleza** (F1 = 0,14). La causa es el `StandardScaler`:
+   reescala cada descriptor con la varianza *de la propia imagen*. Sin maleza, la varianza es solo la
+   natural entre copas y `eps = 0,8` la corta en pedazos; con maleza, la varianza la domina la
+   diferencia copa/maleza y las copas quedan compactas. **Un mismo `eps` significa cosas distintas en
+   cada imagen**, y por eso ningún valor fijo sirve en todas.
+3. **Sobre la imagen real no hay configuración estable.** No es un problema de descriptores: en USDA
+   no hay dos grupos limpios que separar.
+
+### 5.8 El guardarraíl: chequeo de estabilidad
+
+De §5.4 y §5.7 sale un criterio que el pipeline puede aplicarse solo, sin verdad de terreno: si
+existe estructura real, el conteo hace meseta en `eps`; si no, es una rampa. `centinela_core/stability.py`
+barre `eps` sobre una grilla y da un veredicto:
+
+- **estable** — ≥ 3 valores consecutivos de `eps` con el conteo dentro de ±5 % *y* DBSCAN
+  descartando al menos 5 % de las manchas (una meseta por saturación, donde todo cae en un cluster,
+  no cuenta);
+- **inestable** — DBSCAN descarta, pero el conteo no se estabiliza;
+- **sin estructura** — DBSCAN casi nunca descarta nada: el conteo lo decide el watershed.
+
+Validación sobre las seis combinaciones con verdad de terreno de la tabla del §5.7: **el único
+veredicto *estable* es el único caso con F1 = 1,00 decidido por DBSCAN.** El caso destructivo
+(solo forma sobre huerto limpio, F1 = 0,14) sale *inestable*. Hay tests para ambos.
+
+`centinela count` imprime ahora el veredicto en cada corrida y lo guarda en el manifiesto:
+
+```
+Árboles detectados: 6
+Manchas totales:    218
+Decidió el conteo:  DBSCAN (cluster dominante)
+Estabilidad (eps):  INESTABLE — el conteo va de 6 a 190 según eps; no hay meseta
+```
+
+Además quedaron configurables `cluster.method` (`dbscan` | `watershed`) y `cluster.features`. Los
+defaults no cambiaron: el sintético de las Etapas I y II da exactamente los mismos números.
+
 ---
 
 ## 6. Pendiente inmediato
@@ -283,6 +380,10 @@ Dos salidas posibles, ninguna cara:
 - **Verdad de terreno sobre `huerto_reticula_usda`.** `centinela annotate` sobre esa imagen da el
   primer F1 honesto del proyecto fuera del sintético, y es lo único que permite decidir entre las dos
   salidas del §5.5. Subió de prioridad: ahora bloquea una decisión de diseño, no solo una métrica.
+- **Normalización con escala fija en vez de `StandardScaler`** (§5.7, lectura 2). Si `eps` se mide
+  en unidades con significado físico —área relativa a la copa esperada según el GSD, excentricidad
+  tal cual— deja de depender de qué más haya en la imagen. Es la corrección de fondo al problema del
+  §5.4, y se puede probar ya sobre el sintético con y sin maleza.
 - **Revisar el resto del banco imagen por imagen**, como se hizo en §5.1, y corregir la tabla del §2.
   Las oblicuas deberían quedar marcadas como no aptas.
 - **Detección de centros por simetría radial** como alternativa clásica sin etiquetas: la roseta de

@@ -41,3 +41,37 @@ def test_no_cluster_degrades_to_all_trees():
     df = pd.DataFrame([_blob(i * 1000, i * 10, i, i, 0.1 * i, 0.09 * i, 0.1 * i) for i in range(1, 5)])
     out = cluster_blobs(df, eps=0.01, min_samples=3)
     assert out["is_tree"].all()
+
+
+def test_decision_queda_registrada():
+    rng = np.random.default_rng(0)
+    rows = [_blob(300 + rng.normal(0, 15), 55 + rng.normal(0, 2), -20, 25, 0.9, 0.3, 0.8)
+            for _ in range(40)]
+    rows += [_blob(90 + rng.normal(0, 10), 25, 2, 3, 0.5, 0.85, 0.5) for _ in range(8)]
+    df = pd.DataFrame(rows)
+    assert cluster_blobs(df, eps=0.9, min_samples=5).attrs["decision"] == "dbscan"
+    assert cluster_blobs(df, eps=1e-6, min_samples=5).attrs["decision"] == "fallback"
+    assert cluster_blobs(df, method="watershed").attrs["decision"] == "watershed"
+
+
+def test_metodo_watershed_cuenta_toda_mancha():
+    df = pd.DataFrame([_blob(i * 100, i, i, i, 0.5, 0.5, 0.5) for i in range(1, 11)])
+    out = cluster_blobs(df, method="watershed")
+    assert out["is_tree"].all()
+    assert (out["cluster_id"] == 0).all()
+
+
+def test_metodo_desconocido_falla():
+    import pytest
+
+    df = pd.DataFrame([_blob(100, 50, 0, 0, 0.5, 0.5, 0.5)])
+    with pytest.raises(ValueError):
+        cluster_blobs(df, method="kmeans")
+
+
+def test_descriptor_inexistente_falla():
+    import pytest
+
+    df = pd.DataFrame([_blob(100, 50, 0, 0, 0.5, 0.5, 0.5) for _ in range(10)])
+    with pytest.raises(ValueError, match="descriptores"):
+        cluster_blobs(df, features=["area_px", "no_existe"])

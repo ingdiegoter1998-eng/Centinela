@@ -5,6 +5,11 @@ no depende de tener imágenes reales para validar que el pipeline funciona.
 
 Con `n_anomalous > 0` inyecta árboles deteriorados de posición conocida, que es
 lo que permite probar las banderas de la Etapa II (ROADMAP §6.8).
+
+Con `n_weeds > 0` siembra manchas de maleza entre hileras: vegetación que el
+pipeline segmenta pero que no son árboles y no entran al ground truth. Es lo
+único que le da al DBSCAN algo que descartar — sin maleza, el sintético nunca
+llega a ejercitar el clustering (docs/resultados-imagen-real.md §5.6).
 """
 
 from __future__ import annotations
@@ -17,6 +22,9 @@ CROWN_RGB = np.array([58.0, 112.0, 48.0])
 # Copa clorótica: sigue siendo vegetación (más oscura que el suelo) pero su verde
 # está muy por debajo del resto del huerto.
 PALE_CROWN_RGB = np.array([104.0, 114.0, 58.0])
+# Maleza: casi el mismo verde y la misma luminancia que la copa (el pipeline la
+# segmenta igual que al pasto real); lo que la distingue es la forma irregular.
+WEED_RGB = np.array([74.0, 104.0, 38.0])
 
 # Un defecto por métrica de la Etapa II, para que el test las ejercite todas.
 ANOMALY_KINDS = ("small", "pale", "gappy", "bitten")
@@ -32,6 +40,7 @@ def make_orchard(
     shadows: bool = True,
     noise_sigma: float = 7.0,
     n_anomalous: int = 0,
+    n_weeds: int = 0,
     seed: int = 0,
 ) -> tuple[np.ndarray, pd.DataFrame]:
     """Devuelve (imagen RGB uint8, DataFrame GT con columnas x, y, anomalous, kind).
@@ -43,6 +52,10 @@ def make_orchard(
     - `pale`    — copa clorótica, poco verde    → dispara `vigor`
     - `gappy`   — huecos perforados en la copa  → dispara `gap`
     - `bitten`  — mordida en el borde (cóncava) → dispara `solidity`
+
+    `n_weeds` siembra esa cantidad de manchas de maleza en los huecos entre
+    cuatro árboles. Usa su propio generador aleatorio: con `n_weeds=0` la imagen
+    sale idéntica a la de versiones anteriores.
     """
     rng = np.random.default_rng(seed)
     h = round(pad * 2 + (n_rows - 1) * spacing)
@@ -106,12 +119,35 @@ def make_orchard(
             bite = ((yy - by) ** 2 + (xx - bx) ** 2) <= (r * 0.75) ** 2
             img[bite & disk] = soil_here[bite & disk]
 
+    if n_weeds:
+        _sow_weeds(img, yy, xx, n_rows, n_cols, spacing, pad, n_weeds, seed)
+
     img = np.clip(img, 0, 255).astype(np.uint8)
     gt = pd.DataFrame(
         [(cx, cy, bool(kind), kind) for cx, cy, _, kind in centers],
         columns=["x", "y", "anomalous", "kind"],
     )
     return img, gt
+
+
+def _sow_weeds(img, yy, xx, n_rows, n_cols, spacing, pad, n_weeds, seed) -> None:
+    """Maleza en el centro de las celdas entre árboles: racimos de discos chicos."""
+    rng = np.random.default_rng(seed + 10_007)
+    cells = [(i, j) for i in range(n_rows - 1) for j in range(n_cols - 1)]
+    n_weeds = min(n_weeds, len(cells))
+    for k in rng.choice(len(cells), size=n_weeds, replace=False):
+        i, j = cells[k]
+        cy = pad + (i + 0.5) * spacing + rng.uniform(-5, 5)
+        cx = pad + (j + 0.5) * spacing + rng.uniform(-5, 5)
+        # Racimo alargado en una dirección al azar: poca circularidad, alta excentricidad.
+        ang = rng.uniform(0, np.pi)
+        patch = np.zeros(img.shape[:2], dtype=bool)
+        for _ in range(rng.integers(5, 9)):
+            t = rng.uniform(-14, 14)
+            py = cy + t * np.sin(ang) + rng.normal(0, 2.5)
+            px = cx + t * np.cos(ang) + rng.normal(0, 2.5)
+            patch |= ((yy - py) ** 2 + (xx - px) ** 2) <= rng.uniform(3.5, 6.0) ** 2
+        img[patch] = WEED_RGB + rng.normal(0, 9, 3)
 
 
 def perturb(img: np.ndarray, kind: str, seed: int = 0) -> np.ndarray:
