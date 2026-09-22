@@ -9,13 +9,14 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 - **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md)
 - **Etapa actual — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md)
 - **Página de adelanto:** <https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b>
+- **Demo en vivo:** doble clic en `demo\iniciar.bat` · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
 
 ## Estado
 
 | Componente | Estado |
 |---|---|
 | Landing pública (Fase 0.5) | 🟢 Implementada — `landing/` |
-| Conteo de árboles en una imagen (Etapa I) | 🟠 Reabierta — F1 = 1.00 en sintético, pero la prueba de control sobre imagen real cenital deja el clustering en entredicho. Ver [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) y [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) §5 |
+| Conteo de árboles en una imagen (Etapa I) | 🟠 Reabierta — el F1 = 1.00 del sintético lo produce el watershed; DBSCAN no llegaba a decidir. El pipeline ahora reporta quién decidió y si el conteo es estable. Ver [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) §5 |
 | Caracterización del cultivo (Etapa II) | ✅ Implementada — recall 0.88 / 8.7 % FP en sintético. Ver [`docs/resultados-fase-2.md`](docs/resultados-fase-2.md) |
 | Validación real + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS. Cuatro modos de fallo sobre imagen real ya medidos: [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) |
 | Detección de maleza en arroz (Etapa III) | 🟡 Próximo boss grande (~12 meses) |
@@ -26,8 +27,9 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 proyecto-centinela/
 ├── landing/              Landing pública — React + Vite (estática, sin backend)
 ├── centinela_core/       Pipeline de conteo — Python puro (OpenCV / skimage / sklearn)
-├── tests/                Suite pytest (36 tests)
+├── tests/                Suite pytest (52 tests)
 ├── scripts/              Mediciones reproducibles fuera del CLI
+├── demo/                 App de demo en vivo (Streamlit) + lanzador para Windows
 ├── config.yaml           Parámetros del pipeline
 ├── pyproject.toml        Paquete + CLI `centinela`
 ├── docs/
@@ -36,6 +38,7 @@ proyecto-centinela/
 │   ├── plan-fase-2.md        Plan y estado de la Etapa II
 │   ├── resultados-fase-2.md  Resultados y métricas de la Etapa II
 │   ├── resultados-imagen-real.md  Modos de fallo sobre imagen aérea real + prueba de control
+│   ├── demo-en-vivo.md       Guion de la demo en vivo (~7 min) con plan B
 │   └── adelanto/             Fuentes de la presentación (página, guion, diapositivas)
 ├── .github/workflows/    Despliegue de la landing en GitHub Pages
 ├── LICENSE               MIT
@@ -57,13 +60,17 @@ pip install -e ".[dev]"
 pytest -q
 
 centinela make-synthetic data/samples/huerto.png    # huerto sintético + ground truth
-centinela count data/samples/huerto.png --debug      # conteo + overlay + panel de depuración
+centinela make-synthetic OUT.png --weeds 25          # ídem con maleza entre hileras (no entra al GT)
+centinela count data/samples/huerto.png --debug      # conteo + quién decidió + estabilidad + overlay
 centinela eval  data/samples/huerto.png data/samples/huerto_gt.csv   # precision / recall / F1
 centinela annotate IMG.jpg                           # marcar copas a mano → GT.csv
 centinela characterize data/samples/huerto.png        # Etapa II: marca árboles a revisar
 
 python scripts/control_banco.py                       # control sobre el banco real (métricas por etapa)
 python scripts/control_banco.py --eps data/samples/banco/huerto_reticula_usda.jpg
+
+pip install -e ".[demo]"                              # una vez
+streamlit run demo/app.py                             # demo en vivo (o demo\iniciar.bat)
 ```
 
 El pipeline vive en `centinela_core/` como paquete **Python puro**, sin dependencia
