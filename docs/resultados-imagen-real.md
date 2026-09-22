@@ -1,11 +1,16 @@
 # Resultados — Confrontación del pipeline con imagen real
 
-Sesión del 2026-09-21. Complementa `resultados-fase-1.md` (Etapa I) y `resultados-fase-2.md` (Etapa II).
+Sesiones del 2026-09-21. Complementa `resultados-fase-1.md` (Etapa I) y `resultados-fase-2.md` (Etapa II).
 
-Hasta esta sesión el pipeline solo se había medido sobre huerto sintético (F1 = 1,00). Aquí se
-confronta con imágenes aéreas reales de varios cultivos y condiciones. **El resultado es negativo
-en los tres casos reales probados, y los tres fallan por motivos distintos.** Ese es el aporte del
+Hasta estas sesiones el pipeline solo se había medido sobre huerto sintético (F1 = 1,00). Aquí se
+confronta con imágenes aéreas reales de varios cultivos y condiciones. **El resultado es negativo en
+los cuatro casos probados, y los cuatro fallan por motivos distintos.** Ese es el aporte del
 documento: no es "no funcionó", es un mapa de en qué condiciones la Ruta A no puede funcionar.
+
+Los tres primeros (§3) son fallos **de la escena**: la premisa "verde sobre fondo no verde" no se
+cumple. El cuarto (§5) es distinto y llegó después, con la prueba de control: en la única escena real
+que sí coopera, la segmentación entrega manchas utilizables y el conteo sale mal de todos modos.
+Ese fallo es **de la implementación**, y está en el paso de clustering.
 
 ---
 
@@ -42,8 +47,8 @@ cualquier búsqueda con "aerial"), paisajes, zonas urbanas, o fotos de suelo mal
 
 ## 2. Banco de imágenes de referencia
 
-Las imágenes **no van al repositorio** (`.gitignore` línea 30: pesan y tienen condiciones de uso).
-Esta tabla es la ficha de procedencia para poder reconstruirlo.
+El banco **sí quedó versionado** en `data/samples/banco/` (commit `8bc635c`), junto con su ficha de
+procedencia. Esta tabla la reproduce para poder leerla sin salir del documento.
 
 | Archivo | Contenido | Autor | Licencia | Tamaño |
 |---|---|---|---|---|
@@ -57,7 +62,12 @@ Esta tabla es la ficha de procedencia para poder reconstruirlo.
 | `palma_joven_suelo` | Palma joven sobre suelo desnudo | WWF Deutschland | CC BY-NC-SA 2.0 | 1024×683 |
 | `palma_dosel` | Palma, dosel cerrado | unredd.photo | CC BY-NC 2.0 | 1024×576 |
 
-Las URL de origen de cada una quedan en `data/samples/banco/PROCEDENCIA.csv` (local, no versionado).
+Las URL de origen de cada una quedan en `data/samples/banco/PROCEDENCIA.csv`.
+
+> **Corrección (§5).** Las descripciones de las cuatro del USDA se tomaron del pie de foto de la
+> fuente y no de la imagen. Al inspeccionarlas una por una para la prueba de control resultó que
+> solo `huerto_reticula_usda` es cenital con árboles espaciados; las otras tres no sirven como
+> control. Ver §5.1.
 
 **Notas de licencia.** Las cuatro del USDA son `PDM` (*Public Domain Mark*, marca de dominio
 público): sin restricción. Las dos marcadas `NC` (*NonCommercial*, no comercial) sirven para uso
@@ -142,6 +152,7 @@ marcas por planta. El 522 es sobrecuenta por fragmentación, no conteo correcto.
 | Banano dosel cerrado | **No se cumple** — no hay suelo | Sobresegmenta ×65 |
 | Musa sobre pasto | **No se cumple** — el fondo es verde | Subdetecta |
 | Palma | Se cumple parcialmente | Sobrecuenta por fragmentación |
+| Huerto USDA cenital | **Se cumple** | Segmenta bien y **aun así publica 6** de las 218 manchas (§5) |
 
 **El pipeline funciona exactamente cuando se cumple su premisa, y esa premisa casi nunca se cumple
 en el trópico húmedo.** Esto no invalida la Ruta A: delimita su dominio de validez, que es
@@ -152,15 +163,127 @@ preferencia técnica y pasa a tener justificación empírica. En dosel cerrado y
 hay umbral que resolver, porque no hay nada que umbralizar — la tarea real es reconocer la
 estructura de la roseta, y eso es reconocimiento de patrón.
 
+> **Añadido tras el §5.** La última fila de la tabla se midió después y obliga a matizar el párrafo
+> de arriba: no basta con que se cumpla la premisa. Incluso en la escena cooperativa el conteo
+> publicado es indefendible, por una razón que no tiene que ver con el color sino con el clustering.
+> El dominio de validez de la Ruta A, tal como está implementada hoy, es más estrecho que
+> "donde se cumple la premisa": por ahora es el sintético.
+
 ---
 
-## 5. Pendiente inmediato
+## 5. La prueba de control — cuarto modo de fallo, y este sí es del código
 
-- **Prueba de control sobre las cuatro imágenes del USDA.** Árboles espaciados sobre suelo desnudo:
-  la única condición real donde la premisa sí se cumple. Responde si el código está sano y el
-  problema son las escenas, o si está roto de raíz. Es el control que el proyecto nunca ha tenido
-  fuera del generador sintético.
+Sesión del 2026-09-21, continuación. Ejecuta el primer pendiente de la sesión anterior: correr el
+pipeline sobre las cuatro imágenes del USDA, la única condición real donde la premisa "verde sobre
+fondo no verde" podría cumplirse, para separar *el código está roto* de *las escenas no le sirven*.
+
+Reproducible con `python scripts/control_banco.py`.
+
+### 5.1 El conjunto de control no era un conjunto de control
+
+Primer hallazgo, antes de mirar métricas. Las descripciones del §2 se habían tomado del pie de foto
+de la fuente. Al abrir las imágenes:
+
+| Imagen | Descripción del §2 | Lo que realmente es |
+|---|---|---|
+| `huerto_hileras_usda` | Huerto joven sobre suelo desnudo | **Oblicua** — línea de horizonte, bosque al fondo, perspectiva fuerte |
+| `huerto_reticula_usda` | Retícula de árboles, suelo visible | ✅ Cenital, árboles espaciados, franjas de pasto entre hileras |
+| `huerto_surcos_usda` | Surcos con franjas de suelo | **No es un huerto** — suelo desnudo con franjas de pasto y dos árboles sueltos |
+| `huerto_camino_usda` | Huerto con camino | **Oblicua**, con cielo y nubes en el tercio superior |
+
+De las cuatro, **una sirve**. En las dos oblicuas el pipeline no tiene forma de funcionar aunque
+todo lo demás estuviera bien: una copa cerca del horizonte mide una fracción de lo que mide la misma
+copa en primer plano, así que el descriptor `area_px` deja de ser comparable entre manchas — y es
+justo el descriptor sobre el que agrupa el DBSCAN. En `huerto_camino` la máscara además se traga el
+cielo nublado y el bosque del fondo (61 % de la imagen en una sola mancha gigante).
+
+> Lección de método: una imagen no entra al banco por lo que dice su pie de foto. Hay que abrirla.
+
+### 5.2 Medición
+
+| Imagen | px | Máscara | Veg. cruda | Verde real | Manchas | Ruido DBSCAN | Árboles |
+|---|---|---|---|---|---|---|---|
+| `huerto_hileras_usda` (oblicua) | 1024×767 | 29,0 % | 45,2 % | 62,2 % | 322 | **86 %** | 14 |
+| `huerto_reticula_usda` (cenital) | 1024×683 | 21,7 % | 35,7 % | 57,3 % | 218 | **97 %** | 6 |
+| `huerto_surcos_usda` (sin huerto) | 683×1024 | 21,6 % | 39,8 % | 43,2 % | 193 | **87 %** | 25 |
+| `huerto_camino_usda` (oblicua) | 1024×767 | 61,0 % | 61,9 % | 55,3 % | 189 | **90 %** | 13 |
+
+### 5.3 El cuello de botella no es la máscara ni el watershed
+
+Aquí está el aporte de la sesión. En `huerto_reticula` —la buena— las dos primeras etapas se
+comportan:
+
+- la máscara toma el 21,7 % de la imagen, un valor razonable para un huerto joven, y **no colapsa**
+  como en el banano (§3.2) ni sobre pasto (§3.3);
+- el *watershed* entrega **218 manchas** que caen sobre copas, con mediana de 394 px — del orden de
+  una copa real, no 65 veces menor como en Musa.
+
+Es decir: por primera vez sobre imagen real, la segmentación entrega algo utilizable. **Y aun así el
+conteo publicado es 6.** El DBSCAN descarta 212 de 218 manchas como ruido y el "cluster dominante"
+queda en seis miembros.
+
+Los tres modos de fallo del §3 eran de la escena: la premisa no se cumplía y no había nada que hacer.
+**Este es de la implementación.** La escena coopera y el conteo sale mal igual.
+
+### 5.4 Por qué: `eps` no tiene punto de operación
+
+Barrido sobre `huerto_reticula`, todo lo demás fijo (`python scripts/control_banco.py --eps …`):
+
+| `eps` | Ruido | Clusters | Árboles |
+|---|---|---|---|
+| 0,8 (actual) | 97 % | 1 | **6** |
+| 1,0 | 72 % | 4 | 36 |
+| 1,2 | 31 % | 2 | 137 |
+| 1,5 | 13 % | 1 | 190 |
+| 2,0 | 3 % | 1 | 211 |
+| 2,5 | 1 % | 1 | 215 |
+| 3,0 | 0 % | 1 | 217 |
+| 4,0 | 0 % | 1 | 218 |
+
+El conteo recorre **de 6 a 218 sin una sola meseta**. No hay un rango de `eps` donde el resultado se
+estabilice, que es lo que uno esperaría si existiera de verdad una nube compacta "copas" separada del
+resto: el número de clusters nunca pasa de cuatro y a partir de 1,5 todo es un único cluster que se
+va tragando el ruido. La curva no tiene rodilla; es una rampa.
+
+Dicho de otro modo: **el parámetro no selecciona el conteo, el parámetro *es* el conteo.** Cualquier
+valor que se elija va a estar justificado por el número que produce, no por una estructura en los
+datos. Y sin verdad de terreno no hay forma de elegirlo.
+
+En el sintético esto no se ve porque las copas son clones: mismo tamaño, mismo color, misma forma.
+La nube en el espacio de descriptores es un punto, cualquier `eps` la captura entera y `eps = 0,8`
+parecía un valor sensato. Sobre árboles reales, con variación natural de tamaño, iluminación y
+solape, esa nube se estira hasta ocupar todo el espacio y el criterio "cluster más numeroso" pierde
+sentido.
+
+### 5.5 Consecuencia
+
+El §4 decía que la Ruta A funciona cuando se cumple su premisa. Hay que matizarlo: **incluso cuando
+se cumple, el paso de clustering no produce un conteo defendible.** Lo que separa copas de no-copas
+en el sintético es que allí no hay nada que separar.
+
+Esto refuerza la conclusión sobre la Ruta B (§5.11 del ROADMAP) por un segundo camino, independiente
+del primero: no solo la premisa de color falla en trópico húmedo, sino que el mecanismo de decisión
+—agrupar descriptores geométricos sin etiquetas— no discrimina sobre árboles reales.
+
+Dos salidas posibles, ninguna cara:
+
+1. **Quitar el DBSCAN del camino crítico.** Publicar el conteo de manchas del watershed con un filtro
+   de área explícito y justificable, en vez de esconder la decisión dentro de un `eps` que nadie
+   puede defender. Menos sofisticado y más honesto.
+2. **Medir antes de decidir.** Anotar a mano `huerto_reticula` con `centinela annotate` y ver contra
+   qué número hay que calibrar. Es la misma tarea que ya estaba en la lista, ahora con un caso
+   concreto donde rinde de inmediato.
+
+---
+
+## 6. Pendiente inmediato
+
+- ~~Prueba de control sobre las cuatro imágenes del USDA.~~ **Hecha — §5.** Resultado: la
+  segmentación está sana sobre escena cooperativa y el fallo está en el clustering.
+- **Verdad de terreno sobre `huerto_reticula_usda`.** `centinela annotate` sobre esa imagen da el
+  primer F1 honesto del proyecto fuera del sintético, y es lo único que permite decidir entre las dos
+  salidas del §5.5. Subió de prioridad: ahora bloquea una decisión de diseño, no solo una métrica.
+- **Revisar el resto del banco imagen por imagen**, como se hizo en §5.1, y corregir la tabla del §2.
+  Las oblicuas deberían quedar marcadas como no aptas.
 - **Detección de centros por simetría radial** como alternativa clásica sin etiquetas: la roseta de
   Musa y la copa de palma son radialmente simétricas y las nervaduras convergen en un punto.
-- **Verdad de terreno real.** `centinela annotate` sobre cualquiera de las imágenes del banco
-  produciría el primer F1 honesto del proyecto fuera del sintético.
