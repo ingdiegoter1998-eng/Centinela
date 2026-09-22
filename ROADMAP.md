@@ -1,6 +1,6 @@
 # Hoja de Ruta — Plataforma de Agricultura de Precisión en Saravena
 
-### v2 · Documento de trabajo interno (contexto para el desarrollo con Claude Code)
+### v2 · Documento de trabajo interno (contexto para el desarrollo con Claude Code) · estado al 2026-09-22
 
 ---
 
@@ -46,9 +46,9 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 | # | Etapa | Nombre | Estado | Horizonte |
 |---|-------|--------|--------|-----------|
 | 0.5 | — | Landing page del proyecto | 🟢 Implementada — `landing/` | Hecho |
-| 1 | I | Conteo de árboles en una imagen (visión clásica + DBSCAN) | ✅ Cerrada — validada en sintético | Hecho |
+| 1 | I | Conteo de árboles en una imagen (visión clásica + DBSCAN) | 🟠 **Reabierta** (2026-09-22) — la segmentación funciona; el clustering no decide sobre imagen real (§5.8) | Pendiente de verdad de terreno real |
 | 1b | I-B | Validación con imagen real, georreferencia, múltiples imágenes | ⚪ Backlog — necesita dron con GPS | Cuando haya dron |
-| 2 | II | Caracterización del cultivo | ✅ Implementada — validada en sintético | Hecho |
+| 2 | II | Caracterización del cultivo | ✅ Implementada — validada en sintético; hereda el estado de la Etapa I | Hecho |
 | 3 | III | **Detección de maleza en arroz** | 🟡 Próximo boss importante | ~12 meses |
 | 4 | IV | Series temporales y predicción | ⚪ Backlog | Año 3 |
 | 5 | V/VI | Visión de integración a largo plazo | ⚪ Backlog, no comprometido | Sin fecha |
@@ -92,8 +92,14 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 
 ---
 
-## 5. ✅ Etapa I — Conteo de árboles en una imagen (cerrada)
+## 5. 🟠 Etapa I — Conteo de árboles en una imagen (reabierta)
 
+> **Reabierta el 2026-09-22.** Al confrontar el pipeline con imagen aérea real se encontró que el
+> F1 = 1,00 del sintético no pasaba por DBSCAN: con la config por defecto no forma ningún cluster y
+> el conteo lo decide el watershed solo. Sobre la única escena real que cumple la premisa, DBSCAN
+> descarta el 97 % de las manchas y el conteo depende por completo de `eps`. Detalle en
+> `docs/resultados-imagen-real.md` §5. Qué hace falta para volver a cerrarla: §5.8.
+>
 > **Cerrada el 2026-09-13** con validación sobre huerto sintético. Nivel técnico: **visión clásica + DBSCAN**. Sin modelos entrenados, sin descargas de Hugging Face, sin georreferenciación, sin fine-tuning. La medición sobre imagen real pasa a la Etapa I-B (§5.11), que es donde vive el vuelo del dron. Resultados en `docs/resultados-fase-1.md`, plan en `docs/plan-fase-1.md`.
 
 ### 5.1 Objetivo preciso
@@ -163,6 +169,8 @@ Máscara de vegetación (índice `combo` sobre RGB, umbral por Otsu)
 
 **Por qué DBSCAN y no umbrales a mano:** si los umbrales de tamaño y forma se fijan manualmente, el clustering casi no aporta. Su valor es que **fija los umbrales solo**: encuentra el grupo compacto de manchas parecidas entre sí (las copas del cultivo, que son visualmente muy uniformes) y marca todo lo demás como outlier. Eso es lo que cumple el §5.1 de "sin modelo entrenado".
 
+> **Medido después (2026-09-22):** la hipótesis se cumple solo a medias. DBSCAN sí separa copa de maleza cuando hay dos grupos distintos y los descriptores los distinguen (sintético con maleza, solo descriptores de forma: F1 1,00 y conteo estable). Pero como los descriptores se estandarizan con la varianza de cada imagen, **un mismo `eps` significa cosas distintas en cada escena**: el ajuste que acierta con maleza destruye el huerto limpio (F1 0,14), y sobre imagen real ninguna configuración da un conteo estable. El pipeline ahora mide esa estabilidad y la reporta en cada corrida. `docs/resultados-imagen-real.md` §5.6–5.8.
+
 **Ayudas específicas para cítricos/palma:**
 
 - **Copas que se tocan:** watershed sobre la transformada de distancia de la máscara. Remedio clásico, Ruta A pura.
@@ -187,6 +195,7 @@ Imagen RGB (una) → [recorte de overlay de la app] → máscara de vegetación 
   - `centinela eval IMG.jpg GT.csv` → precision / recall / F1 + error de conteo
 - Un archivo de configuración (`config.yaml`) con todos los parámetros ajustables (método de umbral, tamaños de kernel morfológico, `min_distance` del watershed, `eps` / `min_samples` de DBSCAN, filtros de tamaño de mancha). Requisito de reproducibilidad.
 - `manifest.yaml` por imagen con la metadata mínima (§11), aunque sea parcial.
+- **Añadido 2026-09-22:** `centinela count` informa **quién decidió el conteo** (DBSCAN, fallback o watershed) y si el conteo es **estable** ante `eps` (`stability.py`). `config.yaml` admite `cluster.method` (`dbscan` | `watershed`) y `cluster.features`. Demo interactiva en `demo/app.py`.
 
 **Decisión de arquitectura:** el pipeline vive en `centinela_core/`, paquete **Python puro** (OpenCV / numpy / scikit-image / scikit-learn) más un CLI, sin dependencia de ningún framework web ni de `rasterio` (no hay georreferencia todavía). Django entra solo cuando haya resultados que valga la pena servir y persistir. Esto mantiene el núcleo reutilizable tal cual por la Etapa III (§5.9).
 
@@ -200,6 +209,14 @@ Contra conteo manual de la misma imagen:
 - **Robustez básica:** el pipeline no se cae ni degrada catastróficamente sobre variaciones sintéticas de la imagen (brillo global ±20 %, ruido gaussiano) — chequeo con imágenes generadas.
 
 **Estado (cerrada 2026-09-13):** los cuatro criterios se cumplen sobre **huerto sintético** — F1 = 1.00, error de conteo 0 %, 19 tests, parametrización completa en `config.yaml`.
+
+**Estado (reabierta 2026-09-22):** las cifras anteriores siguen siendo ciertas, pero validan la segmentación, no el clustering (§5.5, nota). Hoy hay 52 tests. Para volver a cerrar la etapa:
+
+1. **Verdad de terreno real** — conteo manual con `centinela annotate` sobre las dos imágenes del banco aptas como control: `huerto_reticula_usda` y `palma_aceite_rio`.
+2. **Decisión sobre el paso de clustering**, medida contra ese conteo: normalizar con escalas fijas en vez de por imagen, o publicar el conteo del watershed (`cluster.method: watershed`) con un filtro de área explícito.
+3. **F1 y error de conteo reportados sobre imagen real**, con el chequeo de estabilidad en *estable* o el método sin agrupar justificado.
+
+Esto ya no depende del dron: las dos imágenes de control son públicas y están en el repo.
 
 La medición sobre imagen real de copas separadas se traslada a la **Etapa I-B**. El motivo: depende del vuelo del dron, que es precisamente la entrada de esa etapa. Mantener la I abierta a la espera de un insumo que pertenece a la siguiente no aporta nada. El arnés de evaluación ya está construido y corre sobre cualquier imagen con su conteo manual, así que la medición es un `centinela eval` el día que exista la foto.
 
@@ -226,7 +243,7 @@ Si el dron no da un frame cenital usable, el pipeline se desarrolla igual con (a
 
 No se ataca ahora. Se deja mapeado para que las decisiones de hoy no lo bloqueen:
 
-- **Validación sobre imagen real (heredada de la Etapa I):** con el primer frame del dron, `centinela annotate` para el conteo manual y `centinela eval` para obtener precision / recall / F1 y error de conteo. Umbral: <10 % de error de conteo. El arnés ya existe.
+- **Validación sobre imagen real (heredada de la Etapa I):** con el primer frame del dron, `centinela annotate` para el conteo manual y `centinela eval` para obtener precision / recall / F1 y error de conteo. Umbral: <10 % de error de conteo. El arnés ya existe. *(2026-09-22: la primera validación sobre imagen real pública se adelanta a la Etapa I — ver §5.8. La del dron propio sigue aquí.)*
 - **Georreferenciación:** con un dron que escriba GPS en el EXIF, convertir centroides de píxel a coordenadas usando GSD + altura + orientación. `GSD = (altura × ancho_sensor) / (focal × ancho_px)`. Ojo: el GPS de consumo sin RTK tiene error de 1–3 m y la altitud barométrica deriva; no confiar el conteo final a deduplicación por GPS puro.
 - **Múltiples imágenes y solape:** ortomosaico con OpenDroneMap, o deduplicación por homografía (features SIFT/ORB entre frames). Recomendación: solape ~75 % frontal / ~65 % lateral desde el primer vuelo con GPS.
 - **Comparación con modelos pre-entrenados (zero-shot):** DeepForest (`weecology/deepforest-tree`, Hugging Face, MIT) y SAM/SAM2 como baselines contra la Ruta A, con el mismo arnés de evaluación. Mini-estudio defendible.
@@ -237,6 +254,8 @@ No se ataca ahora. Se deja mapeado para que las decisiones de hoy no lo bloqueen
 
 ## 6. ✅ Etapa II — Caracterización del cultivo (implementada)
 
+> **Nota 2026-09-22:** las detecciones de entrada del sintético de esta etapa también vienen del fallback del clustering (Etapa I, §5.8). Las métricas de la Etapa II siguen valiendo —miden las banderas sobre los árboles detectados—, pero sobre imagen real esta etapa hereda el problema de la Etapa I.
+>
 > **Implementada el 2026-09-14.** Recall 0.88 sobre anómalos inyectados y 8.7 % de falsos positivos en huerto sintético, dentro de los umbrales del §6.8. Comando: `centinela characterize`. Resultados en `docs/resultados-fase-2.md`, plan en `docs/plan-fase-2.md`. La validación sobre imagen real queda, igual que en la Etapa I, para la Etapa I-B.
 
 ### 6.1 Objetivo preciso

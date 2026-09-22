@@ -225,7 +225,11 @@ adelante hay muchas, se migra a labelme / CVAT.
 
 ---
 
-## 11. Estado final — etapa cerrada (2026-09-13)
+## 11. Estado final — etapa cerrada (2026-09-13) · reabierta (2026-09-22)
+
+> **Reabierta el 2026-09-22.** El F1 = 1.00 de abajo lo produjo el watershed: DBSCAN no llegó a
+> formar ningún cluster sobre el sintético. Criterios para volver a cerrarla en `ROADMAP.md` §5.8;
+> hallazgos en `resultados-imagen-real.md` §5.
 
 **Construido y verde** (resultados completos en `resultados-fase-1.md`):
 

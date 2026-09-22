@@ -1,6 +1,7 @@
 # Resultados — Etapa I: Conteo de árboles en una imagen
 
-Etapa cerrada el 2026-09-13. Última actualización: 2026-09-13.
+Etapa cerrada el 2026-09-13 y **reabierta el 2026-09-22** (ver la corrección del §3 y
+`resultados-imagen-real.md` §5). Última actualización: 2026-09-22.
 Alcance y criterios en `ROADMAP.md` §5. Plan de ejecución en `plan-fase-1.md`.
 
 ---
@@ -29,7 +30,7 @@ imagen RGB
 ```
 
 Dependencias: numpy, scipy, opencv, scikit-image, scikit-learn, pandas, matplotlib, pyyaml.
-Todo CPU. 19 tests (`pytest -q`).
+Todo CPU. 19 tests (`pytest -q`) al cierre; 52 al 2026-09-22.
 
 ---
 
@@ -115,8 +116,8 @@ listo: `centinela annotate` para el conteo manual, `centinela eval` para las mé
 | `config.yaml` con toda la parametrización | ✅ |
 | `manifest.yaml` por imagen | ✅ (lo escribe `count`) |
 | Arnés de evaluación P/R/F1 + error de conteo | ✅ |
-| Validación sintética (§5.8) | ✅ F1 1.00 |
-| Validación real de copas separadas | → Etapa I-B (necesita el vuelo) |
+| Validación sintética (§5.8) | ✅ F1 1.00 — producido por el watershed (corrección del §3) |
+| Validación real de copas separadas | 🟠 Adelantada (2026-09-22): 2 imágenes públicas de control en el banco; falta su conteo manual. `ROADMAP.md` §5.8 |
 | `docs/resultados-fase-1.md` | ✅ (este documento) |
 
 ---
@@ -131,3 +132,5 @@ listo: `centinela annotate` para el conteo manual, `centinela eval` para las mé
   fijo ajustado a mano.
 - **Sin medición sobre imagen real.** El pipeline se probó cualitativamente sobre recortes de
   satélite; el número de precisión real se obtiene en la Etapa I-B con el frame del dron.
+  *(2026-09-22: ya medido cualitativamente sobre imagen real pública — el clustering no decide
+  bien. Ver `resultados-imagen-real.md` §5.)*

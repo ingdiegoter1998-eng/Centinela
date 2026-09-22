@@ -1,6 +1,6 @@
 # Resultados — Confrontación del pipeline con imagen real
 
-Sesiones del 2026-09-21. Complementa `resultados-fase-1.md` (Etapa I) y `resultados-fase-2.md` (Etapa II).
+Sesiones del 2026-09-21 y 22. Complementa `resultados-fase-1.md` (Etapa I) y `resultados-fase-2.md` (Etapa II).
 
 Hasta estas sesiones el pipeline solo se había medido sobre huerto sintético (F1 = 1,00). Aquí se
 confronta con imágenes aéreas reales de varios cultivos y condiciones. **El resultado es negativo en
@@ -50,24 +50,24 @@ cualquier búsqueda con "aerial"), paisajes, zonas urbanas, o fotos de suelo mal
 El banco **sí quedó versionado** en `data/samples/banco/` (commit `8bc635c`), junto con su ficha de
 procedencia. Esta tabla la reproduce para poder leerla sin salir del documento.
 
-| Archivo | Contenido | Autor | Licencia | Tamaño |
-|---|---|---|---|---|
-| `musa_bangladesh` | **Banano cenital** — única Musa del barrido | The Roving Rokibul | CC BY-SA 4.0 | 8064×6048 |
-| `huerto_hileras_usda` | Huerto joven, árboles sobre suelo desnudo | USDA | PDM 1.0 | 1024×767 |
-| `huerto_reticula_usda` | Retícula de árboles, suelo visible | USDA | PDM 1.0 | 1024×683 |
-| `huerto_surcos_usda` | Surcos con franjas de suelo | USDA | PDM 1.0 | 683×1024 |
-| `huerto_camino_usda` | Huerto con camino | USDA | PDM 1.0 | 1024×767 |
-| `cultivo_hileras_wisconsin` | Hileras de cultivo cenital | Jules Verne Times Two | CC BY-SA 4.0 | 7524×5783 |
-| `palma_aceite_rio` | Palma de aceite junto a río | DrLianPinKoh | CC BY 2.0 | 1024×768 |
-| `palma_joven_suelo` | Palma joven sobre suelo desnudo | WWF Deutschland | CC BY-NC-SA 2.0 | 1024×683 |
-| `palma_dosel` | Palma, dosel cerrado | unredd.photo | CC BY-NC 2.0 | 1024×576 |
+Revisada imagen por imagen el 2026-09-22. La primera versión de esta tabla describía cada foto
+según su pie en la fuente; varias no correspondían (§5.1). La columna **Vista** separa las que
+sirven para contar plantas —cenitales, con plantas individuales— de las que no.
 
-Las URL de origen de cada una quedan en `data/samples/banco/PROCEDENCIA.csv`.
+| Archivo | Lo que muestra | Vista | ¿Sirve para contar? | Autor | Licencia | px |
+|---|---|---|---|---|---|---|
+| `huerto_reticula_usda` | Árboles espaciados sobre suelo, franjas de pasto entre hileras | Cenital | ✅ **Control** (§5) | USDA | PDM 1.0 | 1024×683 |
+| `palma_aceite_rio` | Palmas separadas sobre suelo, junto a un río | Casi cenital | ✅ **Segundo control** (§5.2) | DrLianPinKoh | CC BY 2.0 | 1024×768 |
+| `musa_bangladesh` | Banano en dosel cerrado — la única Musa del barrido | Cenital | ⚠️ Solo como modo de fallo (§3.2) | The Roving Rokibul | CC BY-SA 4.0 | 8064×6048 |
+| `huerto_surcos_usda` | Suelo desnudo con franjas de pasto y dos o tres árboles sueltos | Cenital | ❌ No es un huerto | USDA | PDM 1.0 | 683×1024 |
+| `cultivo_hileras_wisconsin` | Cultivo en surcos, sin plantas individuales distinguibles | Cenital | ❌ Nada que contar | Jules Verne Times Two | CC BY-SA 4.0 | 3840×2951 |
+| `huerto_hileras_usda` | Huerto en hileras, bosque al fondo | **Oblicua** | ❌ | USDA | PDM 1.0 | 1024×767 |
+| `huerto_camino_usda` | Huerto junto a una carretera, cielo en el tercio superior | **Oblicua** | ❌ | USDA | PDM 1.0 | 1024×767 |
+| `palma_joven_suelo` | Palma joven en terrazas sobre suelo desnudo | **Oblicua** | ❌ | WWF Deutschland | CC BY-NC-SA 2.0 | 1024×683 |
+| `palma_dosel` | Palma en dosel cerrado, carretera y claro | **Oblicua** | ❌ | unredd.photo | CC BY-NC 2.0 | 1024×576 |
 
-> **Corrección (§5).** Las descripciones de las cuatro del USDA se tomaron del pie de foto de la
-> fuente y no de la imagen. Al inspeccionarlas una por una para la prueba de control resultó que
-> solo `huerto_reticula_usda` es cenital con árboles espaciados; las otras tres no sirven como
-> control. Ver §5.1.
+**De 9 imágenes, 2 sirven como control de conteo.** Las URL de origen están en
+`data/samples/banco/PROCEDENCIA.csv`, que además dice cuáles están descargadas.
 
 **Notas de licencia.** Las cuatro del USDA son `PDM` (*Public Domain Mark*, marca de dominio
 público): sin restricción. Las dos marcadas `NC` (*NonCommercial*, no comercial) sirven para uso
@@ -80,7 +80,7 @@ plátano ni de árbol; su ausencia no cambia el panorama.
 
 ---
 
-## 3. Los tres modos de fallo
+## 3. Modos de fallo de la escena
 
 Todas las corridas con `centinela count` y la `config.yaml` por defecto.
 
@@ -207,6 +207,11 @@ cielo nublado y el bosque del fondo (61 % de la imagen en una sola mancha gigant
 | `huerto_reticula_usda` (cenital) | 1024×683 | 21,7 % | 35,7 % | 57,3 % | 218 | **97 %** | 6 |
 | `huerto_surcos_usda` (sin huerto) | 683×1024 | 21,6 % | 39,8 % | 43,2 % | 193 | **87 %** | 25 |
 | `huerto_camino_usda` (oblicua) | 1024×767 | 61,0 % | 61,9 % | 55,3 % | 189 | **90 %** | 13 |
+| `palma_aceite_rio` (casi cenital) | 1024×768 | 56,4 % | 51,8 % | 62,0 % | 197 | **79 %** | 36 |
+
+La última fila se agregó el 2026-09-22, al revisar el banco completo (§2): es la segunda imagen del
+banco donde la premisa se cumple, y repite el patrón de `huerto_reticula` — DBSCAN descarta casi
+todo y el chequeo de estabilidad (§5.8) la marca *inestable* (el conteo va de 36 a 173 según `eps`).
 
 ### 5.3 El cuello de botella no es la máscara ni el watershed
 
@@ -377,14 +382,15 @@ defaults no cambiaron: el sintético de las Etapas I y II da exactamente los mis
 
 - ~~Prueba de control sobre las cuatro imágenes del USDA.~~ **Hecha — §5.** Resultado: la
   segmentación está sana sobre escena cooperativa y el fallo está en el clustering.
-- **Verdad de terreno sobre `huerto_reticula_usda`.** `centinela annotate` sobre esa imagen da el
-  primer F1 honesto del proyecto fuera del sintético, y es lo único que permite decidir entre las dos
-  salidas del §5.5. Subió de prioridad: ahora bloquea una decisión de diseño, no solo una métrica.
+- **Verdad de terreno sobre `huerto_reticula_usda`** (y después `palma_aceite_rio`).
+  `centinela annotate` sobre esa imagen da el primer F1 honesto del proyecto fuera del sintético, y
+  es lo único que permite decidir entre las dos salidas del §5.5. Subió de prioridad: ahora bloquea
+  una decisión de diseño, no solo una métrica.
 - **Normalización con escala fija en vez de `StandardScaler`** (§5.7, lectura 2). Si `eps` se mide
   en unidades con significado físico —área relativa a la copa esperada según el GSD, excentricidad
   tal cual— deja de depender de qué más haya en la imagen. Es la corrección de fondo al problema del
   §5.4, y se puede probar ya sobre el sintético con y sin maleza.
-- **Revisar el resto del banco imagen por imagen**, como se hizo en §5.1, y corregir la tabla del §2.
-  Las oblicuas deberían quedar marcadas como no aptas.
+- ~~Revisar el resto del banco imagen por imagen.~~ **Hecho — §2.** De 9 imágenes, 2 sirven como
+  control (`huerto_reticula_usda`, `palma_aceite_rio`); 4 son oblicuas.
 - **Detección de centros por simetría radial** como alternativa clásica sin etiquetas: la roseta de
   Musa y la copa de palma son radialmente simétricas y las nervaduras convergen en un punto.

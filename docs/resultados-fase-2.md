@@ -3,6 +3,11 @@
 Implementada el 2026-09-14. Alcance y criterios en `ROADMAP.md` §6.
 Plan de ejecución en `plan-fase-2.md`.
 
+> **Nota 2026-09-22.** Sobre `etapa2.png` el clustering de la Etapa I cae en *fallback*: los árboles
+> que esta etapa caracteriza son todas las manchas del watershed. Las métricas de abajo siguen
+> valiendo para las banderas, pero sobre imagen real esta etapa hereda el problema de la Etapa I
+> (`resultados-imagen-real.md` §5.6).
+
 ---
 
 ## 1. Qué se construyó

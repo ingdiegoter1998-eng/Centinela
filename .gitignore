@@ -44,6 +44,16 @@ build/
 !data/**/*.png
 # Excepción: material de banco comercial con derechos reservados.
 data/samples/musa_lote*
+# Salidas de `centinela count / eval / characterize`: se escriben junto a la imagen y
+# se regeneran con un comando. Las de referencia ya versionadas viven en data/samples/salidas/.
+data/**/*_detecciones.csv
+data/**/*_overlay.png
+data/**/*_debug.png
+data/**/*_manifest.yaml
+data/**/*_errores.png
+data/**/*_estado.csv
+data/**/*_estado.png
+!data/samples/salidas/**
 
 # HTML de artefactos con imágenes embebidas (generado — se arma desde el .html fuente)
 *.build.html

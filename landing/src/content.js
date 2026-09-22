@@ -46,8 +46,8 @@ export const fases = [
     nombre: 'Inventario y conteo',
     resumen:
       'Contar automáticamente cuántas plantas hay en una imagen aérea de la parcela y ubicar cada una.',
-    estado: 'hecha',
-    etiqueta: 'Cerrada',
+    estado: 'en-curso',
+    etiqueta: 'En revisión',
   },
   {
     n: 'II',
@@ -87,10 +87,10 @@ export const notaFases =
   'Además mantenemos abierta una línea de investigación futura sobre cacao y presencia de metales pesados.'
 
 export const dondeEstamos = {
-  fase: 'Etapa I — cerrada',
+  fase: 'Etapa I — en revisión',
   parrafos: [
-    'La primera etapa ya funciona. El programa toma una imagen aérea de una parcela, cuenta las copas de árbol y marca dónde está cada una, agrupándolas por similitud visual — color, tamaño y forma — sin necesitar un modelo entrenado para cada especie.',
-    'Sobre huertos de prueba con respuesta conocida acierta todos los árboles. La medición sobre una fotografía real llega con el primer vuelo del dron.',
+    'El programa toma una imagen aérea de una parcela, separa la vegetación del suelo, cuenta las copas de árbol y marca dónde está cada una. Sobre huertos de prueba con respuesta conocida acierta todos los árboles.',
+    'Al probarlo con fotografías aéreas reales encontramos que el paso que decide qué mancha es un árbol y cuál no depende demasiado de un solo ajuste. Ahora el programa avisa cuándo su propio conteo no es confiable, y el siguiente paso es contar a mano los árboles de dos fotografías reales para medirlo con precisión.',
   ],
 }
 

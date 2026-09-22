@@ -130,10 +130,9 @@ Cada `count` imprime "Decidió el conteo" y "Estabilidad (eps)". El segundo guar
 junto a la imagen (`huerto_reticula_usda_debug.png`). El tercero imprime la tabla de la rampa
 6 → 218.
 
-*Ojo:* `count` escribe sus salidas al lado de la imagen, y en `data\samples` algunas ya están
-versionadas. Después de la demo, `git status` muestra qué cambió; `git restore data/samples`
-devuelve los archivos versionados a como estaban, y los nuevos de `data\samples\banco\`
-(`*_detecciones.csv`, `*_overlay.png`, `*_manifest.yaml`, `*_debug.png`) se borran a mano.
+`count` escribe sus salidas al lado de la imagen (`*_detecciones.csv`, `*_overlay.png`,
+`*_manifest.yaml`, `*_debug.png`). Git las ignora, así que no ensucian el repo; se pueden borrar
+cuando quieras.
 
 **Si el puerto 8501 está ocupado:** cierra la otra ventana de consola de Streamlit, o edita el
 `8501` en `demo\iniciar.bat`.

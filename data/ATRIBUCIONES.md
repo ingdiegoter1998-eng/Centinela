@@ -20,8 +20,9 @@ Ficha completa con las URL de origen: `data/samples/banco/PROCEDENCIA.csv`.
 | `huerto_reticula_usda.jpg` | USDA | Public Domain Mark 1.0 | Flickr |
 | `huerto_camino_usda.jpg` | USDA | Public Domain Mark 1.0 | Flickr |
 
-`platano_bangladesh.jpg` y sus versiones reducidas (`platano_div4`, `platano_div8`,
-`platano_crop_full`) son la misma imagen de The Roving Rokibul (CC BY-SA 4.0) y sus derivadas.
+`data/samples/platano_div8.png` y las versiones de `data/samples/intermedias/`
+(`platano_crop_full`, `platano_div4`) son derivadas de `musa_bangladesh.jpg` de The Roving
+Rokibul (CC BY-SA 4.0). `intermedias/palma_zoom.png` es un recorte de `palma_lote.jpg`.
 
 ## Qué implica cada licencia
 
@@ -45,7 +46,20 @@ redistribuye**. Queda ignorado en `.gitignore`.
 
 `citricos_lindsay.jpg` y sus recortes (`sep_topright*`) provienen de Esri World Imagery. Su
 condición de uso no quedó registrada en su momento; conviene verificarla antes de publicar
-cualquier figura derivada de ellas.
+cualquier figura derivada de ellas. `palma_lote.jpg` tampoco tiene procedencia registrada:
+mismo cuidado.
 
-Los archivos `huerto_demo*` y `etapa2*` los genera `centinela make-synthetic`: son sintéticos,
-sin autor externo.
+Los archivos `huerto_demo*`, `huerto_maleza*` y `etapa2*` los genera `centinela make-synthetic`:
+son sintéticos, sin autor externo.
+
+## Cómo está organizado `data/samples/`
+
+| Carpeta | Qué contiene |
+|---|---|
+| `data/samples/` | Imágenes de entrada que usan la demo, los documentos y los ejemplos, con su verdad de terreno (`*_gt.csv`) cuando existe |
+| `data/samples/banco/` | Banco de referencia de imágenes reales, con `PROCEDENCIA.csv` |
+| `data/samples/intermedias/` | Recortes y reducciones de las que salieron las entradas |
+| `data/samples/salidas/` | Salidas de corridas anteriores del pipeline, conservadas como referencia |
+
+Las salidas nuevas que `centinela count` escribe junto a cada imagen quedan fuera del repo
+(`.gitignore`): se regeneran con un comando.

@@ -7,7 +7,7 @@ Proyecto de estudiantes de Ingeniería en Inteligencia Artificial, UIS — Sede 
 Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 
 - **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md)
-- **Etapa actual — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md)
+- **Etapa actual (I, reabierta) — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) · [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md)
 - **Página de adelanto:** <https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b>
 - **Demo en vivo:** doble clic en `demo\iniciar.bat` · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
 
@@ -17,8 +17,8 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 |---|---|
 | Landing pública (Fase 0.5) | 🟢 Implementada — `landing/` |
 | Conteo de árboles en una imagen (Etapa I) | 🟠 Reabierta — el F1 = 1.00 del sintético lo produce el watershed; DBSCAN no llegaba a decidir. El pipeline ahora reporta quién decidió y si el conteo es estable. Ver [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) §5 |
-| Caracterización del cultivo (Etapa II) | ✅ Implementada — recall 0.88 / 8.7 % FP en sintético. Ver [`docs/resultados-fase-2.md`](docs/resultados-fase-2.md) |
-| Validación real + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS. Cuatro modos de fallo sobre imagen real ya medidos: [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) |
+| Caracterización del cultivo (Etapa II) | ✅ Implementada — recall 0.88 / 8.7 % FP en sintético; sobre imagen real hereda el estado de la Etapa I. Ver [`docs/resultados-fase-2.md`](docs/resultados-fase-2.md) |
+| Validación con dron propio + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS. La validación con imagen real *pública* se adelantó a la Etapa I: [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) |
 | Detección de maleza en arroz (Etapa III) | 🟡 Próximo boss grande (~12 meses) |
 
 ## Estructura
@@ -100,7 +100,15 @@ propio: `BASE_PATH=/ npm run build`.
 
 ## Datos
 
-Las imágenes de vuelo y las capturas de prueba **no están en el repositorio**
-(`.gitignore`): pesan y algunas tienen restricciones de licencia. El generador
-`centinela make-synthetic` produce datos de prueba reproducibles sin necesidad de
-imágenes externas.
+| Carpeta | Qué contiene |
+|---|---|
+| `data/samples/` | Imágenes de entrada de la demo y los documentos, con verdad de terreno (`*_gt.csv`) cuando existe |
+| `data/samples/banco/` | Banco de 9 imágenes aéreas reales con licencia abierta — 2 sirven como control de conteo |
+| `data/samples/intermedias/` | Recortes y reducciones de los que salieron las entradas |
+| `data/samples/salidas/` | Salidas de corridas anteriores del pipeline, como referencia |
+| `data/busqueda/` | Rastro de la búsqueda de imágenes públicas: CSV de candidatas, miniaturas y hojas de contacto |
+
+Las imágenes del banco conservan la licencia de su autor, no la MIT del código:
+[`data/ATRIBUCIONES.md`](data/ATRIBUCIONES.md). Las salidas nuevas de `centinela count` quedan
+fuera del repo (`.gitignore`), y `centinela make-synthetic` produce datos de prueba
+reproducibles sin imágenes externas.
