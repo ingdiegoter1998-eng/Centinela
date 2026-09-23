@@ -6,6 +6,7 @@ import {
   fases,
   notaFases,
   dondeEstamos,
+  paginas,
   quienesSomos,
   cierre,
 } from './content'
@@ -115,6 +116,7 @@ export default function App() {
             <a href="#fases">Fases</a>
             <a href="#ahora">Dónde estamos</a>
             <a href="#nosotros">Quiénes somos</a>
+            <a href="hoja-de-ruta.html">Hoja de ruta</a>
           </div>
           <a className="nav__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
             Probar la demo
@@ -227,6 +229,14 @@ export default function App() {
         <div className="wrap">
           <h2 className="pie__titulo">{cierre.titulo}</h2>
           <p className="pie__texto">{cierre.texto}</p>
+          <nav className="pie__paginas" aria-label="Más páginas del proyecto">
+            {paginas.map((p) => (
+              <a key={p.url} href={p.url}>
+                <strong>{p.nombre}</strong>
+                <span>{p.nota}</span>
+              </a>
+            ))}
+          </nav>
           <div className="pie__base">
             <span>{proyecto.nombre} · {proyecto.lugar}</span>
             <span>Universidad Industrial de Santander — Sede Saravena</span>

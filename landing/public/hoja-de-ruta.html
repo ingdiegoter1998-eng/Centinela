@@ -1,3 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  .cn-barra { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 38px;
+    display: flex; align-items: center; gap: 4px; padding: 0 12px; overflow-x: auto;
+    background: #0c1610; border-bottom: 1px solid #1d3225;
+    font: 500 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .cn-barra a { color: #a2b4a6; text-decoration: none; padding: 6px 10px; border-radius: 4px;
+    white-space: nowrap; }
+  .cn-barra a:hover { color: #eef2ec; background: #14231a; }
+  .cn-barra a[aria-current] { color: #eef2ec; background: #1d3225; }
+  .cn-barra a:focus-visible { outline: 2px solid #59b072; outline-offset: 1px; }
+  .cn-barra .cn-marca { color: #59b072; font-weight: 600; margin-right: 6px; }
+  .cn-barra .cn-demo { margin-left: auto; background: #59b072; color: #0c1610; font-weight: 600; }
+  .cn-barra .cn-demo:hover { background: #eef2ec; color: #0c1610; }
+  .cn-espacio { height: 38px; }
+</style>
+</head>
+<body>
+<nav class="cn-barra" aria-label="Páginas del proyecto"><a class="cn-marca" href="./">Centinela</a><a href="hoja-de-ruta.html" aria-current="page">Hoja de ruta</a><a href="diapositivas.html">Diapositivas</a><a href="guion.html">Guion de exposición</a><a href="adelanto.html">Adelanto</a><a class="cn-demo" href="https://centinela-demo.streamlit.app/" target="_blank" rel="noreferrer">Probar la demo</a></nav>
+<div class="cn-espacio"></div>
 <title>Hoja de ruta Centinela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -773,17 +797,17 @@
             <tr>
               <td>Diapositivas</td>
               <td>12 diapositivas, incluida la foto real y la gráfica de estabilidad</td>
-              <td><a href="https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT">abrir</a></td>
+              <td><a href="diapositivas.html">abrir</a></td>
             </tr>
             <tr>
               <td>Guion de exposición</td>
               <td>7 minutos, con glosario y preguntas probables</td>
-              <td><a href="https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC">abrir</a></td>
+              <td><a href="guion.html">abrir</a></td>
             </tr>
             <tr>
               <td>Adelanto</td>
               <td>El proyecto explicado de punta a punta, con su matemática</td>
-              <td><a href="https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6">abrir</a></td>
+              <td><a href="adelanto.html">abrir</a></td>
             </tr>
           </tbody>
         </table>
@@ -806,3 +830,6 @@
     <p>Proyecto Centinela · UIS — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
   </div>
 </footer>
+
+</body>
+</html>

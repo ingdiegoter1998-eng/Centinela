@@ -533,6 +533,39 @@ a {
   padding: clamp(64px, 8vw, 96px) 0 40px;
 }
 
+.pie__paginas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.pie__paginas a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--ink-3);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: border-color 0.18s ease;
+}
+
+.pie__paginas a:hover,
+.pie__paginas a:focus-visible {
+  border-color: var(--green-bright);
+}
+
+.pie__paginas strong {
+  color: var(--tx-onDark);
+  font-weight: 600;
+}
+
+.pie__paginas span {
+  font-size: 14px;
+  color: var(--tx-onDark-soft);
+}
+
 .pie__titulo {
   font-size: clamp(26px, 3.4vw, 36px);
   color: var(--tx-onDark);

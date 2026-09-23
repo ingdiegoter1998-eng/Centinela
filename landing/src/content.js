@@ -86,6 +86,14 @@ export const fases = [
 export const notaFases =
   'Además mantenemos abierta una línea de investigación futura sobre cacao y presencia de metales pesados.'
 
+export const paginas = [
+  { nombre: 'Hoja de ruta', url: 'hoja-de-ruta.html', nota: 'Las etapas de principio a fin' },
+  { nombre: 'Diapositivas', url: 'diapositivas.html', nota: 'Para exponer, con ← →' },
+  { nombre: 'Guion de exposición', url: 'guion.html', nota: '7 minutos, con glosario' },
+  { nombre: 'Adelanto', url: 'adelanto.html', nota: 'El método y su matemática' },
+  { nombre: 'Código', url: 'https://github.com/ingdiegoter1998-eng/Centinela', nota: 'Repositorio en GitHub' },
+]
+
 export const dondeEstamos = {
   fase: 'Etapa I — en revisión',
   parrafos: [
