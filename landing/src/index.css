@@ -146,6 +146,7 @@ a {
 }
 
 .nav__links {
+  margin-left: auto;
   display: flex;
   gap: 28px;
   font-size: 14px;
@@ -165,6 +166,41 @@ a {
   .nav__links {
     display: none;
   }
+}
+
+.nav__cta,
+.hero__cta {
+  display: inline-block;
+  background: var(--green-bright);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background 0.18s ease;
+}
+
+.nav__cta {
+  margin-left: 24px;
+  padding: 7px 16px;
+  font-size: 14px;
+}
+
+.hero__cta {
+  margin-top: 32px;
+  padding: 13px 26px;
+  font-size: 16px;
+}
+
+.nav__cta:hover,
+.hero__cta:hover {
+  background: var(--tx-onDark);
+}
+
+.nav__cta:focus-visible,
+.hero__cta:focus-visible {
+  outline: 2px solid var(--tx-onDark);
+  outline-offset: 3px;
 }
 
 /* ── hero ──────────────────────────────────────────────────────────── */

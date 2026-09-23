@@ -116,6 +116,9 @@ export default function App() {
             <a href="#ahora">Dónde estamos</a>
             <a href="#nosotros">Quiénes somos</a>
           </div>
+          <a className="nav__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
+            Probar la demo
+          </a>
         </div>
       </nav>
 
@@ -138,6 +141,9 @@ export default function App() {
               <span className="chip">UIS Saravena</span>
               <span className="chip">Ingeniería en IA</span>
             </div>
+            <a className="hero__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
+              Probar la demo en el navegador →
+            </a>
           </div>
         </div>
       </header>
