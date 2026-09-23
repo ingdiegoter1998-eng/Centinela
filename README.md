@@ -8,7 +8,7 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 
 - **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md)
 - **Etapa actual (I, reabierta) — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) · [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md)
-- **Página de adelanto:** <https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b>
+- **Presentación:** [adelanto](https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6) · [diapositivas](https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT) · [guion de exposición](https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC) — fuentes en `docs/adelanto/`
 - **Demo en vivo:** doble clic en `demo\iniciar.bat` · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
 
 ## Estado

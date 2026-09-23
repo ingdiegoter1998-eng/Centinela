@@ -509,7 +509,8 @@
     </p>
     <div class="meta">
       <span>7 diapositivas</span>
-      <span>≈ 950 palabras habladas</span>
+      <span>≈ 1 000 palabras habladas</span>
+      <span>actualizado el 22-sep</span>
       <span>registro académico</span>
       <span>glosario incluido</span>
     </div>
@@ -531,12 +532,13 @@
           <tr><td>4</td><td>El método (el <em>pipeline</em>)</td><td>1:05</td><td>3:20</td></tr>
           <tr><td>5</td><td>¿Qué es DBSCAN?</td><td>1:10</td><td>4:30</td></tr>
           <tr><td>6</td><td>DBSCAN frente a modelos de Hugging Face</td><td>1:10</td><td>5:40</td></tr>
-          <tr><td>7</td><td>Resultados y cierre</td><td>1:00</td><td>6:40</td></tr>
+          <tr><td>7</td><td>Resultados, lo que encontramos y cierre</td><td>1:20</td><td>7:00</td></tr>
         </tbody>
       </table>
       <p style="margin-top: 16px; color: var(--ink-2); font-size: 0.9em; max-width: 60ch">
-        Margen de ~20 s para transiciones. Si el tiempo aprieta, la diapositiva 2 se puede
-        abreviar a dos frases.
+        Sin margen para transiciones. Si el tiempo aprieta, la diapositiva 2 se puede abreviar a
+        dos frases y la 6 a su último párrafo. Si además hay demo en vivo, su guion está en
+        <span class="mono">docs/demo-en-vivo.md</span>.
       </p>
     </div>
   </section>
@@ -570,8 +572,8 @@
           agricultura de precisión, y hoy prácticamente no existe para esta región.
         </p>
         <p>
-          El proyecto está dividido en cinco etapas. Hoy les contamos la primera, que ya está
-          funcionando.
+          El proyecto está dividido en cinco etapas. Hoy les contamos la primera: ya cuenta
+          árboles en huertos de prueba, y la estamos poniendo a prueba con fotos reales.
         </p>
       </div>
     </article>
@@ -587,8 +589,8 @@
         <p class="flow">observar → caracterizar → detectar → predecir</p>
         <table>
           <tr><th>Fase</th><th>Qué resuelve</th><th>Estado</th></tr>
-          <tr><td>I · Conteo</td><td>Contar árboles en una imagen</td><td>en curso</td></tr>
-          <tr><td>II · Caracterización</td><td>Medir vigor y cobertura</td><td>backlog</td></tr>
+          <tr><td>I · Conteo</td><td>Contar árboles en una imagen</td><td>en revisión</td></tr>
+          <tr><td>II · Caracterización</td><td>Medir vigor y cobertura</td><td>hecha en sintético</td></tr>
           <tr><td>III · Maleza en arroz</td><td>Mapa de infestación</td><td>próximo hito (~12 meses)</td></tr>
           <tr><td>IV · Series temporales</td><td>Anticipar la evolución</td><td>backlog</td></tr>
         </table>
@@ -659,7 +661,7 @@
           <li><strong>Agrupar por similitud — DBSCAN</strong></li>
           <li>Contar</li>
         </ol>
-        <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y clusters de DBSCAN con 80 árboles." />
+        <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y el conteo final de 80 árboles." />
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
@@ -775,7 +777,8 @@
         </p>
         <p>
           Las redes profundas las vamos a necesitar en la Etapa III, cuando haya que segmentar
-          maleza píxel a píxel. Para contar objetos casi idénticos en una imagen, DBSCAN alcanza.
+          maleza píxel a píxel. Nuestra apuesta era que, para contar objetos casi idénticos en una
+          imagen, DBSCAN alcanzaba. Al probarlo con fotos reales encontramos algo.
         </p>
       </div>
     </article>
@@ -783,41 +786,49 @@
     <article class="slide">
       <div class="slide__head">
         <span class="slide__n">D7</span>
-        <h2>Resultados y cierre</h2>
-        <span class="slide__time">5:40 – 6:40</span>
+        <h2>Resultados, lo que encontramos y cierre</h2>
+        <span class="slide__time">5:40 – 7:00</span>
       </div>
       <div class="screen">
         <p class="screen__label">En pantalla</p>
         <div class="metrics">
           <div><span class="v">1.00</span><span class="k">F1 · sintético</span></div>
-          <div><span class="v">0 %</span><span class="k">error de conteo</span></div>
-          <div><span class="v">19 / 19</span><span class="k">pruebas</span></div>
-          <div><span class="v">1 → 110</span><span class="k">índice combo (imagen real)</span></div>
+          <div><span class="v">218 → 6</span><span class="k">manchas → contados · foto real</span></div>
+          <div><span class="v">6 → 190</span><span class="k">moviendo solo eps</span></div>
+          <div><span class="v">52 / 52</span><span class="k">pruebas</span></div>
         </div>
+        <img src="{{USDA_IMG}}" alt="Huerto real del USDA visto desde arriba: círculos verdes sobre los 6 árboles que cuenta el sistema y cruces rojas sobre las 212 manchas que descarta." />
         <ul style="margin-top: 16px">
-          <li>Falta probarlo sobre una foto real de copas separadas — depende del vuelo del dron</li>
-          <li>Código en repositorio público + página de adelanto</li>
+          <li>El 1.00 del sintético lo produjo la segmentación: DBSCAN no llegó a decidir</li>
+          <li>El sistema ahora avisa si su conteo es estable o depende de un ajuste</li>
+          <li>Siguiente: contar a mano dos fotos reales → primer F1 real</li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
           Resultados. Sobre un huerto sintético, con respuesta conocida, el sistema acierta los
-          ochenta árboles: precisión y exhaustividad de uno, error de conteo cero, y diecinueve
-          pruebas automáticas en verde.
+          ochenta árboles: F1 de uno y error de conteo cero.
         </p>
         <p>
-          El aporte técnico de esta etapa fue un índice de vegetación que llamamos
-          <em>combo</em>: sobre una imagen real difícil pasó de una a ciento diez detecciones.
+          Después lo probamos con una foto aérea real: un huerto con los árboles separados sobre
+          suelo, la condición ideal para el método. <span class="cue">[señalar la figura]</span>
+          La segmentación funciona: encuentra doscientas dieciocho manchas, casi todas sobre
+          copas. Y el sistema publica seis. DBSCAN descarta el resto como ruido. Si movemos un solo
+          parámetro, el radio <em>eps</em>, el conteo va de seis a ciento noventa. El parámetro no
+          elige el conteo: el parámetro <em>es</em> el conteo.
         </p>
         <p>
-          Falta probarlo sobre una foto real de copas separadas, y eso depende del primer vuelo
-          del dron.
+          Revisando eso descubrimos algo más incómodo: en el huerto sintético DBSCAN nunca llegó a
+          decidir. Con su ajuste no formaba ningún grupo y el sistema contaba todas las manchas.
+          El uno de F1 era de la segmentación. Lo corregimos: ahora el sistema dice quién tomó la
+          decisión y si su conteo es estable, y en las pruebas con respuesta conocida solo dijo
+          <em>estable</em> donde de verdad acertó.
         </p>
         <p>
-          El objetivo del proyecto, al final, es que un productor de Saravena sepa qué pasa en
-          su parcela sin tener que recorrerla entera. Vamos en la primera de cinco etapas. El
-          código está en un repositorio público. Gracias.
+          El siguiente paso es contar a mano dos fotos reales para tener el primer F1 real. El
+          objetivo, al final, es que un productor de Saravena sepa qué pasa en su parcela sin
+          tener que recorrerla entera. Gracias.
           <span class="cue">[dejar la última diapositiva en pantalla para preguntas]</span>
         </p>
       </div>
@@ -910,6 +921,17 @@
             cuyas coordenadas son sus descriptores. Aquí, ℝ⁷.</dd>
         </div>
         <div>
+          <dt>eps</dt>
+          <dd>El radio de vecindad de DBSCAN: qué tan cerca tienen que estar dos puntos para
+            contarse como vecinos. Es el parámetro que más cambia el resultado.</dd>
+        </div>
+        <div>
+          <dt>meseta / estabilidad</dt>
+          <dd>Si hay un grupo real en los datos, el conteo casi no cambia al mover <em>eps</em> un
+            poco: forma una meseta. Si no lo hay, cada <em>eps</em> da un número distinto. El
+            sistema mide esto y lo reporta en cada corrida.</dd>
+        </div>
+        <div>
           <dt>ruido</dt>
           <dd><span class="en">noise.</span> En DBSCAN, los puntos que no pertenecen a ninguna
             región densa. Aquí: sombras, maleza, suelo.</dd>
@@ -964,7 +986,9 @@
         <div>
           <dt>¿Por qué no una red que ya detecta árboles?</dt>
           <dd>Necesitaría datos etiquetados propios, más de una imagen y GPU, y su entrenamiento
-            usa matemática que aún no vemos. DBSCAN resuelve esta etapa sin nada de eso.</dd>
+            usa matemática que aún no vemos. Primero queríamos medir hasta dónde llega el método
+            clásico. Con las fotos reales ya sabemos que no alcanza: el salto a un detector
+            entrenado está justificado, y se hará con datos propios.</dd>
         </div>
         <div>
           <dt>¿Funciona con cualquier foto?</dt>
@@ -977,8 +1001,9 @@
         </div>
         <div>
           <dt>¿Qué tan preciso es en la vida real?</dt>
-          <dd>Todavía no lo sabemos. Esa medición es el siguiente paso y depende de tener la
-            foto del dron.</dd>
+          <dd>Todavía no hay un F1 real: falta contar a mano las dos fotos de control. Lo que sí
+            sabemos es que, sobre foto real, el conteo de DBSCAN depende de un ajuste, y el
+            sistema lo avisa.</dd>
         </div>
       </dl>
     </div>
@@ -988,9 +1013,11 @@
     <div class="wrap">
       <p class="sec-title">Antes de exponer</p>
       <ul class="check">
-        <li>Tener abierta la página de adelanto en otra pestaña, por si piden ver más.</li>
-        <li>Memorizar los tres números del cierre: F1 = 1.00 · error 0 % · 19 pruebas.</li>
-        <li>Practicar en voz alta una vez con cronómetro — apuntar a 6:40.</li>
+        <li>Tener abierta la página de adelanto en otra pestaña, y la demo
+          (<span class="mono">demo\iniciar.bat</span>) por si piden verlo en vivo.</li>
+        <li>Memorizar los números del cierre: F1 1.00 en sintético · 218 manchas → 6 contados en
+          foto real · de 6 a 190 moviendo eps.</li>
+        <li>Practicar en voz alta una vez con cronómetro — apuntar a 7:00.</li>
         <li>Preparar la figura de la diapositiva 4 en grande; es la que más se mira.</li>
         <li>Decir "DBSCAN" siempre igual (de-bi-scan) y "clustering" sin traducir.</li>
         <li>No leer el guion palabra por palabra: son ideas, no un libreto.</li>

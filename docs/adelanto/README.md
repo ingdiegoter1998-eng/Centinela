@@ -1,24 +1,34 @@
 # Adelanto y exposición
 
-Páginas de presentación del proyecto (Etapa I). Fuentes en HTML; las imágenes se
-embeben en base64 al publicar.
+Páginas de presentación del proyecto. Fuentes en HTML; las imágenes se embeben en base64 al
+publicar. Actualizadas el 2026-09-22 con los resultados sobre imagen real
+(`docs/resultados-imagen-real.md` §5).
 
 | Archivo | Qué es | Publicado |
 |---|---|---|
-| `index.html` | Página de adelanto — qué plantea el proyecto, cómo funciona la Etapa I, su matemática y la hoja de ruta | <https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b> |
-| `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario | <https://claude.ai/code/artifact/d67e235c-c71f-467f-b498-5f984b31d7e5> |
-| `diapositivas.html` | 9 diapositivas navegables con flechas (← →), imprimibles a PDF | <https://claude.ai/code/artifact/e3383052-337c-4258-b676-6a3b4c110034> |
+| `index.html` | Página de adelanto — el problema, el método, su matemática, los resultados (sintético y foto real) y la hoja de ruta | <https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6> |
+| `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario y preguntas probables | <https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC> |
+| `diapositivas.html` | 12 diapositivas navegables con flechas (← →) | <https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT> |
+
+El guion de la **demo en vivo** (la app de `demo/`) es otro documento: `docs/demo-en-vivo.md`.
 
 ## Imágenes
 
-- `metodo.jpg` — panel de 4 vistas del pipeline sobre huerto sintético
-  (de `centinela count data/samples/huerto_demo.png --debug`, redimensionado).
-- `real.jpg` — panel sobre la imagen real de cítricos
-  (de `centinela count data/samples/sep_topright.png --debug`, redimensionado).
-- `sintetico.jpg` — overlay del resultado sintético.
+| Archivo | Marcador | De dónde sale |
+|---|---|---|
+| `metodo.jpg` | `{{METODO_IMG}}` | Panel de 4 vistas del pipeline sobre huerto sintético (`centinela count data/samples/huerto_demo.png --debug`, redimensionado) |
+| `real.jpg` | `{{REAL_IMG}}` | Panel sobre la imagen real de cítricos (`centinela count data/samples/sep_topright.png --debug`, redimensionado) |
+| `real_usda.jpg` | `{{USDA_IMG}}` | Foto real del USDA con el conteo por defecto: ○ los 6 árboles contados, ✕ las 212 manchas descartadas |
+| `sintetico.jpg` | — | Overlay del resultado sintético (no lo usa ninguna página hoy) |
+
+La gráfica de meseta contra rampa (diapositiva 10 y sección 04 del adelanto) es SVG en línea,
+dibujado a partir de `stability.barrido_eps` sobre `huerto_maleza.png` y `huerto_reticula_usda.jpg`.
 
 ## Cómo se arma
 
-El HTML usa marcadores `{{METODO_IMG}}` / `{{REAL_IMG}}` que se sustituyen por
-`data:image/jpeg;base64,<contenido>` de las imágenes de esta carpeta. El resultado
-se guarda como `*.build.html` (no versionado) y ese es el que se publica.
+```bash
+python docs/adelanto/armar.py
+```
+
+Sustituye cada marcador `{{..._IMG}}` por `data:image/jpeg;base64,…` y escribe
+`*.build.html` junto a cada fuente (no versionados). Esos son los que se publican.

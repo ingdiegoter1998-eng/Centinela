@@ -323,6 +323,26 @@
     white-space: nowrap;
   }
 
+  /* gráfica meseta vs rampa (diapositiva 10) */
+  .eps-chart {
+    width: 100%;
+    max-width: 1100px;
+    height: auto;
+    max-height: 58vh;
+  }
+  .ec-t { font-family: var(--display); font-size: 21px; fill: var(--ink); }
+  .ec-s { font-family: var(--mono); font-size: 13px; fill: var(--ink-2); }
+  .ec-ax { font-family: var(--mono); font-size: 12px; fill: var(--ink-2); }
+  .ec-grid { stroke: var(--line); stroke-width: 1; }
+  .ec-band { fill: var(--canopy); opacity: 0.16; }
+  .ec-eps { stroke: var(--soil); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .ec-line { fill: none; stroke: var(--detect); stroke-width: 2; }
+  .ec-pt { fill: var(--detect); }
+  .ec-fb { fill: var(--paper); stroke: var(--soil); stroke-width: 1.5; }
+
+  table.cmp td.ok { color: var(--canopy-deep); font-weight: 600; }
+  table.cmp td.bad { color: var(--soil); }
+
   .metrics {
     display: flex;
     flex-wrap: wrap;
@@ -532,8 +552,8 @@
     <h2>Cinco etapas</h2>
     <table class="roadmap">
       <tbody>
-        <tr class="now"><td>Etapa I</td><td>Conteo de árboles en una imagen</td><td>en curso</td></tr>
-        <tr><td>Etapa II</td><td>Caracterización del cultivo</td><td>backlog</td></tr>
+        <tr class="now"><td>Etapa I</td><td>Conteo de árboles en una imagen</td><td>en revisión</td></tr>
+        <tr><td>Etapa II</td><td>Caracterización del cultivo</td><td>hecha en sintético</td></tr>
         <tr><td>Etapa III</td><td>Detección de maleza en arroz</td><td>próximo hito (~12 meses)</td></tr>
         <tr><td>Etapa IV</td><td>Series temporales y predicción</td><td>backlog</td></tr>
       </tbody>
@@ -566,7 +586,7 @@
         </ol>
         <p class="note">Visión por computador clásica. Sin modelos entrenados.</p>
       </div>
-      <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y clusters de DBSCAN con 80 árboles." />
+      <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y el conteo final de 80 árboles." />
     </div>
   </section>
 
@@ -624,15 +644,196 @@
     <div class="metrics">
       <div><span class="v">1.00</span><span class="k">F1 · sintético</span></div>
       <div><span class="v">0 %</span><span class="k">error de conteo</span></div>
-      <div><span class="v">19 / 19</span><span class="k">pruebas</span></div>
+      <div><span class="v">52 / 52</span><span class="k">pruebas</span></div>
       <div><span class="v">1 → 110</span><span class="k">índice combo · imagen real</span></div>
     </div>
     <p class="note">
-      Lo siguiente es probarlo sobre una foto real. Falta el primer vuelo del dron.
+      Pero al probarlo con fotos reales descubrimos quién producía ese 1.00: la segmentación, no
+      DBSCAN.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 9">
+    <p class="eyebrow">Al probarlo con una foto real</p>
+    <div class="split">
+      <div style="display: flex; flex-direction: column; gap: clamp(14px, 2.5vh, 26px)">
+        <h2>La segmentación acierta. El conteo, no.</h2>
+        <ul>
+          <li>218 manchas, casi todas sobre copas</li>
+          <li>DBSCAN descarta 212 y publica <strong>6</strong></li>
+          <li>Y en el sintético DBSCAN nunca decidió: con su ajuste no formaba ningún grupo y el
+            sistema contaba todo</li>
+        </ul>
+      </div>
+      <img src="{{USDA_IMG}}" alt="Huerto real del USDA visto desde arriba: círculos verdes sobre los 6 árboles que cuenta el sistema y cruces rojas sobre las 212 manchas que descarta, casi todas encima de copas." />
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 10">
+    <p class="eyebrow">¿Quién decide el conteo?</p>
+    <h2>Si hay un grupo real, el conteo se queda quieto</h2>
+<svg class="eps-chart" viewBox="0 0 920 400" preserveAspectRatio="xMinYMid meet" role="img" aria-label="Árboles contados según eps: en el huerto con maleza el conteo se queda en 80 entre eps 0.8 y 1.2; en la foto real sube de 6 a 218 sin estabilizarse.">
+<text class="ec-t" x="58" y="26">Huerto sintético con maleza</text>
+<text class="ec-s" x="58" y="50">meseta en 80 — hay un grupo real</text>
+<rect class="ec-band" x="119.6" y="78" width="41.1" height="250"/>
+<line class="ec-grid" x1="58" x2="448" y1="328.0" y2="328.0"/>
+<text class="ec-ax" x="50" y="332.0" text-anchor="end">0</text>
+<line class="ec-grid" x1="58" x2="448" y1="209.0" y2="209.0"/>
+<text class="ec-ax" x="50" y="213.0" text-anchor="end">58</text>
+<line class="ec-grid" x1="58" x2="448" y1="89.9" y2="89.9"/>
+<text class="ec-ax" x="50" y="93.9" text-anchor="end">116</text>
+<text class="ec-ax" x="58.0" y="348" text-anchor="middle">0.2</text>
+<text class="ec-ax" x="140.1" y="348" text-anchor="middle">1</text>
+<text class="ec-ax" x="242.7" y="348" text-anchor="middle">2</text>
+<text class="ec-ax" x="345.4" y="348" text-anchor="middle">3</text>
+<text class="ec-ax" x="448.0" y="348" text-anchor="middle">4</text>
+<text class="ec-ax" x="253.0" y="370" text-anchor="middle">eps</text>
+<line class="ec-eps" x1="119.6" x2="119.6" y1="78" y2="328"/>
+<polyline class="ec-line" points="68.3,295.2 78.5,233.6 88.8,219.2 99.1,163.8 109.3,163.8 119.6,163.8 129.8,163.8 140.1,163.8 150.4,163.8 160.6,163.8 170.9,163.8 181.2,94.0 191.4,89.9 201.7,89.9 211.9,89.9 222.2,89.9 232.5,89.9 242.7,89.9 253.0,89.9 263.3,89.9 273.5,89.9 283.8,89.9 294.1,89.9 304.3,89.9 314.6,89.9 324.8,89.9 335.1,89.9 345.4,89.9 355.6,89.9 365.9,89.9 376.2,89.9 386.4,89.9 396.7,89.9 406.9,89.9 417.2,89.9 427.5,89.9 437.7,89.9 448.0,89.9"/>
+<circle class="ec-fb" cx="58.0" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="68.3" cy="295.2" r="3.6"/>
+<circle class="ec-pt" cx="78.5" cy="233.6" r="3.6"/>
+<circle class="ec-pt" cx="88.8" cy="219.2" r="3.6"/>
+<circle class="ec-pt" cx="99.1" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="109.3" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="119.6" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="129.8" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="140.1" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="150.4" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="160.6" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="170.9" cy="163.8" r="3.6"/>
+<circle class="ec-pt" cx="181.2" cy="94.0" r="3.6"/>
+<circle class="ec-pt" cx="191.4" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="201.7" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="211.9" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="222.2" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="232.5" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="242.7" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="253.0" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="263.3" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="273.5" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="283.8" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="294.1" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="304.3" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="314.6" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="324.8" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="335.1" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="345.4" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="355.6" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="365.9" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="376.2" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="386.4" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="396.7" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="406.9" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="417.2" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="427.5" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="437.7" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="448.0" cy="89.9" r="3.6"/>
+<text class="ec-t" x="528" y="26">Foto real (USDA)</text>
+<text class="ec-s" x="528" y="50">rampa de 6 a 218 — no hay grupo</text>
+<line class="ec-grid" x1="528" x2="918" y1="328.0" y2="328.0"/>
+<text class="ec-ax" x="520" y="332.0" text-anchor="end">0</text>
+<line class="ec-grid" x1="528" x2="918" y1="209.0" y2="209.0"/>
+<text class="ec-ax" x="520" y="213.0" text-anchor="end">109</text>
+<line class="ec-grid" x1="528" x2="918" y1="89.9" y2="89.9"/>
+<text class="ec-ax" x="520" y="93.9" text-anchor="end">218</text>
+<text class="ec-ax" x="528.0" y="348" text-anchor="middle">0.2</text>
+<text class="ec-ax" x="610.1" y="348" text-anchor="middle">1</text>
+<text class="ec-ax" x="712.7" y="348" text-anchor="middle">2</text>
+<text class="ec-ax" x="815.4" y="348" text-anchor="middle">3</text>
+<text class="ec-ax" x="918.0" y="348" text-anchor="middle">4</text>
+<text class="ec-ax" x="723.0" y="370" text-anchor="middle">eps</text>
+<line class="ec-eps" x1="589.6" x2="589.6" y1="78" y2="328"/>
+<polyline class="ec-line" points="589.6,321.4 599.8,319.3 610.1,288.7 620.4,238.4 630.6,178.4 640.9,134.7 651.2,123.8 661.4,120.5 671.7,109.6 681.9,105.2 692.2,101.9 702.5,98.6 712.7,97.6 723.0,94.3 733.3,94.3 743.5,94.3 753.8,93.2 764.1,93.2 774.3,92.1 784.6,91.0 794.8,91.0 805.1,91.0 815.4,91.0 825.6,91.0 835.9,91.0 846.2,91.0 856.4,89.9 866.7,89.9 876.9,89.9 887.2,89.9 897.5,89.9 907.7,89.9 918.0,89.9"/>
+<circle class="ec-fb" cx="528.0" cy="89.9" r="3.6"/>
+<circle class="ec-fb" cx="538.3" cy="89.9" r="3.6"/>
+<circle class="ec-fb" cx="548.5" cy="89.9" r="3.6"/>
+<circle class="ec-fb" cx="558.8" cy="89.9" r="3.6"/>
+<circle class="ec-fb" cx="569.1" cy="89.9" r="3.6"/>
+<circle class="ec-fb" cx="579.3" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="589.6" cy="321.4" r="3.6"/>
+<circle class="ec-pt" cx="599.8" cy="319.3" r="3.6"/>
+<circle class="ec-pt" cx="610.1" cy="288.7" r="3.6"/>
+<circle class="ec-pt" cx="620.4" cy="238.4" r="3.6"/>
+<circle class="ec-pt" cx="630.6" cy="178.4" r="3.6"/>
+<circle class="ec-pt" cx="640.9" cy="134.7" r="3.6"/>
+<circle class="ec-pt" cx="651.2" cy="123.8" r="3.6"/>
+<circle class="ec-pt" cx="661.4" cy="120.5" r="3.6"/>
+<circle class="ec-pt" cx="671.7" cy="109.6" r="3.6"/>
+<circle class="ec-pt" cx="681.9" cy="105.2" r="3.6"/>
+<circle class="ec-pt" cx="692.2" cy="101.9" r="3.6"/>
+<circle class="ec-pt" cx="702.5" cy="98.6" r="3.6"/>
+<circle class="ec-pt" cx="712.7" cy="97.6" r="3.6"/>
+<circle class="ec-pt" cx="723.0" cy="94.3" r="3.6"/>
+<circle class="ec-pt" cx="733.3" cy="94.3" r="3.6"/>
+<circle class="ec-pt" cx="743.5" cy="94.3" r="3.6"/>
+<circle class="ec-pt" cx="753.8" cy="93.2" r="3.6"/>
+<circle class="ec-pt" cx="764.1" cy="93.2" r="3.6"/>
+<circle class="ec-pt" cx="774.3" cy="92.1" r="3.6"/>
+<circle class="ec-pt" cx="784.6" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="794.8" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="805.1" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="815.4" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="825.6" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="835.9" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="846.2" cy="91.0" r="3.6"/>
+<circle class="ec-pt" cx="856.4" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="866.7" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="876.9" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="887.2" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="897.5" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="907.7" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="918.0" cy="89.9" r="3.6"/>
+<circle class="ec-pt" cx="58" cy="386" r="4"/><text class="ec-ax" x="68" y="390">conteo de DBSCAN</text>
+<circle class="ec-fb" cx="228" cy="386" r="4"/><text class="ec-ax" x="238" y="390">sin cluster: cuenta todo</text>
+<line class="ec-eps" x1="428" x2="448" y1="386" y2="386"/><text class="ec-ax" x="456" y="390">eps por defecto (0.8)</text>
+</svg>
+    <p class="note">
+      Moviendo un solo parámetro, la foto real va de 6 a 218 árboles: el parámetro <em>es</em> el
+      conteo. Con un grupo real hay meseta.
+    </p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 11">
+    <p class="eyebrow">Qué cambió</p>
+    <h2>El sistema ahora sabe cuándo no confiar en sí mismo</h2>
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Huerto limpio</th>
+          <th>Con maleza</th>
+          <th>Foto real</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Sin agrupar</th>
+          <td>F1 1.00</td>
+          <td class="bad">F1 0.82</td>
+          <td>218</td>
+        </tr>
+        <tr>
+          <th scope="row">DBSCAN · 7</th>
+          <td>F1 1.00 · no decide</td>
+          <td class="bad">F1 0.82 · inestable</td>
+          <td class="bad">6 · inestable</td>
+        </tr>
+        <tr>
+          <th scope="row">DBSCAN · forma</th>
+          <td class="bad">F1 0.14 · inestable</td>
+          <td class="ok">F1 1.00 · estable</td>
+          <td class="bad">176 · inestable</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      Solo dijo <em>estable</em> donde de verdad acertó. Siguiente paso: contar a mano dos fotos
+      reales para tener el primer F1 real.
+    </p>
+  </section>
+
+  <section class="slide" aria-label="Diapositiva 12">
     <p class="eyebrow">El objetivo</p>
     <p class="thesis-q">
       Que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.
@@ -640,7 +841,7 @@
     <p class="byline">Vamos en la primera de cinco etapas.<br />Gracias.</p>
     <div class="links">
       <span>Código: repositorio público</span>
-      <span>Adelanto completo: <a href="https://claude.ai/code/artifact/adb9ef22-b694-46af-8c5e-cc5a6457ad8b">claude.ai/code/artifact/adb9ef22…</a></span>
+      <span>Adelanto completo: <a href="https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6">claude.ai/artifact/NTF6K524…</a></span>
     </div>
   </section>
 
@@ -656,7 +857,7 @@
 <div class="bar">
   <span class="bar__track" id="track"></span>
   <span class="bar__name">Proyecto Centinela</span>
-  <span class="bar__count"><span id="cur">1</span> / <span id="total">9</span></span>
+  <span class="bar__count"><span id="cur">1</span> / <span id="total">12</span></span>
 </div>
 
 <script>
