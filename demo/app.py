@@ -62,6 +62,7 @@ ESCENAS = {
     "Palma de aceite · dron cenital": {
         "img": SAMPLES / "palma_lote.jpg",
         "gt": None,
+        "publica": False,  # procedencia no registrada (data/ATRIBUCIONES.md)
         "nota": "Copas grandes, bloque denso. El mejor resultado real hasta la fecha.",
     },
     "Banano · dosel cerrado": {
@@ -73,17 +74,21 @@ ESCENAS = {
     "Cítrico en seto · satélite 0,25 m/px": {
         "img": SAMPLES / "sep_topright.png",
         "gt": None,
+        "publica": False,  # Esri World Imagery, condiciones de uso sin verificar
         "nota": "Copas de ~15 px pegadas en hilera. Falta resolución.",
     },
 }
-# Una copia de la app puede llevar solo parte de las imágenes (el Space público lleva
-# únicamente las de licencia clara): se ofrecen las escenas cuyo archivo existe.
-ESCENAS = {nombre: e for nombre, e in ESCENAS.items() if e["img"].exists()}
-SUBIR = "Subir una imagen…"
+# Modo público: la copia en Streamlit Community Cloud (el repo se monta en /mount/src/)
+# o cualquier ejecución con CENTINELA_PUBLICO=1. Muestra el aviso de que es una demo de
+# laboratorio y oculta las escenas cuya imagen no tiene licencia clara para redistribuir.
+PUBLICO = os.environ.get("CENTINELA_PUBLICO") == "1" or ROOT.as_posix().startswith("/mount/src/")
 
-# CENTINELA_PUBLICO=1 en la copia pública (Hugging Face Spaces): muestra el aviso de
-# que es una demo de laboratorio, no una herramienta de conteo.
-PUBLICO = os.environ.get("CENTINELA_PUBLICO") == "1"
+ESCENAS = {
+    nombre: e
+    for nombre, e in ESCENAS.items()
+    if e["img"].exists() and (e.get("publica", True) or not PUBLICO)
+}
+SUBIR = "Subir una imagen…"
 
 DESCRIPTORES = {
     "todos": ("Los 7 (Etapa I)", FEATURE_COLS),
@@ -276,7 +281,7 @@ if PUBLICO:
         "(https://ingdiegoter1998-eng.github.io/Centinela/).** Sobre fotos reales el conteo "
         "todavía no es confiable, y la pestaña *¿Quién decide el conteo?* te dice cuándo. "
         "No lo uses para inventariar una finca. Las fotos que subas se procesan en este "
-        "servidor, se guardan temporalmente mientras el Space está encendido y se borran "
+        "servidor, se guardan temporalmente mientras la app está encendida y se borran "
         "cuando se reinicia. Código: "
         "[github.com/ingdiegoter1998-eng/Centinela](https://github.com/ingdiegoter1998-eng/Centinela)."
     )

@@ -73,6 +73,12 @@ pip install -e ".[demo]"                              # una vez
 streamlit run demo/app.py                             # demo en vivo (o demo\iniciar.bat)
 ```
 
+**Demo en línea.** La misma app se publica en Streamlit Community Cloud directo desde este
+repo (`demo/app.py`, dependencias en `demo/requirements.txt`, configuración en
+`.streamlit/config.toml`). Allá corre en modo público: muestra un aviso de que es una demo de
+laboratorio y oculta las escenas cuya imagen no tiene licencia clara. Se actualiza sola con
+cada push a `main`.
+
 El pipeline vive en `centinela_core/` como paquete **Python puro**, sin dependencia
 de ningún framework web, para que la Etapa III lo reutilice tal cual.
 

@@ -1,0 +1,12 @@
+# Dependencias de la demo en Streamlit Community Cloud (la busca junto a app.py).
+# centinela_core no se instala: app.py lo importa directo desde el repo.
+numpy>=1.26
+scipy>=1.12
+opencv-python-headless>=4.9
+scikit-image>=0.23
+scikit-learn>=1.4
+pandas>=2.2
+matplotlib>=3.8
+pyyaml>=6.0
+streamlit>=1.38
+altair>=5

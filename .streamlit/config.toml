@@ -1,0 +1,9 @@
+# Configuración de la demo (demo/app.py), local y en Streamlit Community Cloud.
+[server]
+maxUploadSize = 10  # MB; las fotos se reducen a 1600 px de lado igual
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
