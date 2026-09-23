@@ -1,0 +1,237 @@
+"""Laboratorio: el pipeline con todos sus controles, para ver quién decide el conteo."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import altair as alt
+import numpy as np
+import pandas as pd
+import streamlit as st
+from comun import (
+    ESCENAS,
+    MAX_LADO,
+    PUBLICO,
+    colorear_indice,
+    dibujar_detecciones,
+    guardar_subida,
+    procesar,
+)
+from skimage.color import label2rgb
+
+from centinela_core.cluster import FEATURE_COLS, SHAPE_COLS, cluster_blobs
+from centinela_core.evaluate import evaluate
+from centinela_core.io import load_ground_truth
+from centinela_core.stability import barrido_eps, veredicto
+
+SUBIR = "Subir una imagen…"
+
+DESCRIPTORES = {
+    "todos": ("Los 7 (Etapa I)", FEATURE_COLS),
+    "forma": ("Solo forma (4)", SHAPE_COLS),
+}
+
+DECISION = {
+    "dbscan": ("DBSCAN", "el cluster dominante es el conteo"),
+    "fallback": ("Watershed", "DBSCAN no formó ningún cluster; toda mancha cuenta"),
+    "watershed": ("Watershed", "método sin agrupar; toda mancha cuenta"),
+}
+
+
+@st.cache_data(show_spinner=False)
+def curva(ruta: str, mtime: float, min_samples: int, desc: str) -> pd.DataFrame:
+    """Barrido fino para la gráfica (el veredicto usa la grilla gruesa del CLI)."""
+    dets = procesar(ruta, mtime)[4]
+    grid = tuple(np.round(np.arange(0.2, 4.01, 0.1), 2))
+    return barrido_eps(dets, grid, min_samples=min_samples, features=DESCRIPTORES[desc][1])
+
+
+@st.cache_data(show_spinner=False)
+def estabilidad_cli(ruta: str, mtime: float, min_samples: int, desc: str):
+    dets = procesar(ruta, mtime)[4]
+    e = veredicto(barrido_eps(dets, min_samples=min_samples, features=DESCRIPTORES[desc][1]))
+    return e.veredicto, e.meseta, e.conteo_meseta, e.resumen()
+
+
+def grafica_eps(c: pd.DataFrame, eps: float, n_manchas: int, meseta) -> alt.Chart:
+    c = c.copy()
+    c["quién decide"] = c["decision"].map(
+        {"dbscan": "DBSCAN", "fallback": "fallback (watershed)", "watershed": "watershed"}
+    )
+    x = alt.X("eps:Q", title="eps de DBSCAN", scale=alt.Scale(domain=[0.2, 4.0], nice=False))
+    y = alt.Y("arboles:Q", title="árboles contados", scale=alt.Scale(domain=[0, n_manchas * 1.05]))
+    capas = []
+    if meseta:
+        capas.append(
+            alt.Chart(pd.DataFrame({"a": [meseta[0]], "b": [meseta[1]]}))
+            .mark_rect(opacity=0.15, color="#30d158")
+            .encode(x="a:Q", x2="b:Q")
+        )
+    capas += [
+        alt.Chart(pd.DataFrame({"y": [n_manchas]}))
+        .mark_rule(strokeDash=[2, 3], color="#888")
+        .encode(y="y:Q"),
+        alt.Chart(c).mark_line(color="#888", strokeWidth=1.5).encode(x=x, y=y),
+        alt.Chart(c)
+        .mark_circle(size=60)
+        .encode(
+            x=x,
+            y=y,
+            color=alt.Color(
+                "quién decide:N",
+                scale=alt.Scale(
+                    domain=["DBSCAN", "fallback (watershed)"], range=["#0a84ff", "#ff9f0a"]
+                ),
+                legend=alt.Legend(orient="bottom", title=None),
+            ),
+            tooltip=[
+                alt.Tooltip("eps:Q"),
+                alt.Tooltip("arboles:Q", title="árboles"),
+                alt.Tooltip("descartadas_pct:Q", title="% descartadas", format=".0f"),
+                alt.Tooltip("quién decide:N"),
+            ],
+        ),
+        alt.Chart(pd.DataFrame({"eps": [eps]}))
+        .mark_rule(color="#e5484d", strokeWidth=2)
+        .encode(x="eps:Q"),
+    ]
+    return alt.layer(*capas).properties(height=360)
+
+
+st.markdown(
+    "<style>[data-testid='stMetricValue']{font-size:2.6rem}</style>", unsafe_allow_html=True
+)
+
+with st.sidebar:
+    st.header("Escena")
+    nombre = st.selectbox("Imagen", [*ESCENAS, SUBIR], label_visibility="collapsed")
+    gt_path = None
+    if nombre == SUBIR:
+        subida = st.file_uploader("Imagen aérea cenital", type=["jpg", "jpeg", "png"])
+        if subida is None:
+            st.info("Sube una imagen para procesarla.")
+            st.stop()
+        try:
+            ruta, _ = guardar_subida(subida)
+        except ValueError as e:
+            st.error(str(e))
+            st.stop()
+        st.caption(f"Se reduce a {MAX_LADO} px de lado como máximo para que corra en vivo.")
+    else:
+        escena = ESCENAS[nombre]
+        ruta, gt_path = escena["img"], escena["gt"]
+        st.caption(escena["nota"])
+
+    st.header("Clustering")
+    metodo = st.radio(
+        "Método",
+        ["dbscan", "watershed"],
+        format_func={"dbscan": "DBSCAN (Etapa I)", "watershed": "Sin agrupar (watershed)"}.get,
+    )
+    eps = st.slider(
+        "eps", 0.2, 4.0, 0.8, 0.1, disabled=metodo != "dbscan",
+        help="Radio de vecindad de DBSCAN en el espacio de descriptores normalizados. "
+        "0.8 es el valor de config.yaml.",
+    )
+    desc = st.radio(
+        "Descriptores",
+        list(DESCRIPTORES),
+        format_func=lambda k: DESCRIPTORES[k][0],
+        disabled=metodo != "dbscan",
+        help="Sobre qué descriptores de cada mancha agrupa DBSCAN. Los 7 incluyen el "
+        "color medio en Lab; solo forma usa área, circularidad, excentricidad y extent.",
+    )
+    min_samples = st.slider("min_samples", 3, 15, 6, 1, disabled=metodo != "dbscan")
+
+mtime = Path(ruta).stat().st_mtime
+rgb, idx, mask, labels, dets0 = procesar(str(ruta), mtime)
+dets = cluster_blobs(
+    dets0, eps=eps, min_samples=min_samples, method=metodo, features=DESCRIPTORES[desc][1]
+)
+decision = dets.attrs["decision"]
+n_manchas = len(dets)
+n_arboles = int(dets["is_tree"].sum()) if n_manchas else 0
+
+st.title("Centinela · conteo de árboles en una imagen aérea")
+
+if PUBLICO:
+    st.info(
+        "**Demo de laboratorio del [Proyecto Centinela]"
+        "(https://ingdiegoter1998-eng.github.io/Centinela/).** Sobre fotos reales el conteo "
+        "todavía no es confiable, y la pestaña *¿Quién decide el conteo?* te dice cuándo. "
+        "No lo uses para inventariar una finca. Las fotos que subas se procesan en este "
+        "servidor, se guardan temporalmente mientras la app está encendida y se borran "
+        "cuando se reinicia. Código: "
+        "[github.com/ingdiegoter1998-eng/Centinela](https://github.com/ingdiegoter1998-eng/Centinela)."
+    )
+
+m = st.columns(4)
+m[0].metric("Árboles contados", n_arboles)
+m[1].metric("Manchas del watershed", n_manchas)
+m[2].metric("Descartadas", n_manchas - n_arboles)
+quien, porque = DECISION[decision]
+m[3].metric("Decidió el conteo", quien, help=porque)
+
+if gt_path is not None and n_manchas:
+    gt = load_ground_truth(gt_path)
+    ev = evaluate(dets.loc[dets["is_tree"], ["x_px", "y_px"]].to_numpy(), gt, 14.0)
+    g = st.columns(4)
+    g[0].metric("Verdad de terreno", ev.n_gt)
+    g[1].metric("Precisión", f"{ev.precision:.2f}")
+    g[2].metric("Exhaustividad", f"{ev.recall:.2f}")
+    g[3].metric("F1", f"{ev.f1:.2f}")
+
+if decision == "fallback":
+    st.warning(
+        f"**DBSCAN no formó ningún cluster con eps = {eps}.** El pipeline cae al modo "
+        "\"toda mancha cuenta\": el conteo lo está decidiendo el watershed, no el clustering."
+    )
+
+t1, t2, t3 = st.tabs(["Resultado", "Pipeline paso a paso", "¿Quién decide el conteo?"])
+
+with t1:
+    st.image(
+        dibujar_detecciones(rgb, dets),
+        caption="○ verde: contado como árbol   ✕ rojo: descartado por el clustering",
+        width="stretch",
+    )
+
+with t2:
+    a, b = st.columns(2)
+    a.image(rgb, caption="1 · Imagen original", width="stretch")
+    b.image(
+        colorear_indice(idx),
+        caption="2 · Índice de vegetación (combo: verde + oscuridad)",
+        width="stretch",
+    )
+    c, d = st.columns(2)
+    c.image(
+        (mask * 255).astype(np.uint8),
+        caption=f"3 · Máscara tras Otsu y morfología — {100 * mask.mean():.1f} % de la imagen",
+        width="stretch",
+    )
+    d.image(
+        (label2rgb(labels, bg_label=0) * 255).astype(np.uint8),
+        caption=f"4 · Watershed — {int(labels.max())} manchas separadas",
+        width="stretch",
+    )
+
+with t3:
+    if metodo != "dbscan":
+        st.info("Con el método sin agrupar no hay nada que barrer: el conteo es el del watershed.")
+    else:
+        ver, meseta, conteo_meseta, resumen = estabilidad_cli(
+            str(ruta), mtime, min_samples, desc
+        )
+        {"estable": st.success, "inestable": st.error, "sin_estructura": st.warning}[ver](
+            f"**{resumen}**"
+        )
+        st.altair_chart(
+            grafica_eps(curva(str(ruta), mtime, min_samples, desc), eps, n_manchas, meseta),
+            width="stretch",
+        )
+        st.caption(
+            "Cada punto es el conteo que publicaría el pipeline con ese eps. "
+            "Línea roja: eps actual. Línea punteada: total de manchas (tope). "
+            "Si hubiera una nube compacta de copas, la curva haría una meseta (franja verde)."
+        )
