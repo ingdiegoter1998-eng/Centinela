@@ -5,6 +5,6 @@ import { defineConfig } from 'vite'
 // Se puede sobrescribir con BASE_PATH si el repo cambia de nombre o se usa
 // dominio propio (BASE_PATH=/ en ese caso).
 export default defineConfig({
-  base: process.env.BASE_PATH ?? '/proyecto-centinela/',
+  base: process.env.BASE_PATH ?? '/Centinela/',
   plugins: [react()],
 })

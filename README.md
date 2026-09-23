@@ -6,7 +6,7 @@ computador + IA + análisis geoespacial, aplicados a los cultivos de la región.
 Proyecto de estudiantes de Ingeniería en Inteligencia Artificial, UIS — Sede Saravena.
 Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 
-- **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md)
+- **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md) · resumen visual para el equipo: <https://claude.ai/artifact/SF1jDjsshuLq9YmPrq1S9s>
 - **Etapa actual (I, reabierta) — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) · [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md)
 - **Presentación:** [adelanto](https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6) · [diapositivas](https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT) · [guion de exposición](https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC) — fuentes en `docs/adelanto/`
 - **Demo en vivo:** doble clic en `demo\iniciar.bat` · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
@@ -24,7 +24,7 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 ## Estructura
 
 ```
-proyecto-centinela/
+Centinela/
 ├── landing/              Landing pública — React + Vite (estática, sin backend)
 ├── centinela_core/       Pipeline de conteo — Python puro (OpenCV / skimage / sklearn)
 ├── tests/                Suite pytest (52 tests)
@@ -81,15 +81,17 @@ de ningún framework web, para que la Etapa III lo reutilice tal cual.
 ```bash
 cd landing
 npm install
-npm run dev          # desarrollo → http://localhost:5173/proyecto-centinela/
+npm run dev          # desarrollo → http://localhost:5173/Centinela/
 npm run build        # producción → landing/dist/
 ```
 
 Se despliega sola en **GitHub Pages** con cada push a `main`
 (`.github/workflows/pages.yml`). Hay que activarlo una vez en
-*Settings → Pages → Source: GitHub Actions*.
+*Settings → Pages → Source: GitHub Actions*. **Estado al 2026-09-22:** Pages todavía no está
+activado — el workflow compila la landing sin errores pero el paso de publicar falla con 404.
+Una vez activado, el sitio queda en <https://ingdiegoter1998-eng.github.io/Centinela/>.
 
-El `base` de Vite apunta a `/proyecto-centinela/` porque en Pages el sitio vive
+El `base` de Vite apunta a `/Centinela/` porque en Pages el sitio vive
 bajo la ruta del repositorio. Si cambia el nombre del repo o se usa dominio
 propio: `BASE_PATH=/ npm run build`.
 

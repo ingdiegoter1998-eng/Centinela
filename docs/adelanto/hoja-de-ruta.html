@@ -1,0 +1,794 @@
+<title>Hoja de ruta Centinela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --paper: #f4f2ea;
+    --paper-2: #eceadd;
+    --ink: #1b211a;
+    --ink-2: #565c4c;
+    --line: #d5d3c2;
+    --canopy: #3f6f3c;
+    --canopy-deep: #2c4f2b;
+    --soil: #a9743e;
+    --detect: #2f7fc4;
+    --ok-bg: rgba(63, 111, 60, 0.12);
+    --warn-bg: rgba(169, 116, 62, 0.14);
+    --info-bg: rgba(47, 127, 196, 0.12);
+
+    --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --body: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --measure: 64ch;
+    --wide: 980px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #10140f;
+      --paper-2: #171d16;
+      --ink: #e7ebe0;
+      --ink-2: #9aa38f;
+      --line: #2c3429;
+      --canopy: #74ac6c;
+      --canopy-deep: #9ccf92;
+      --soil: #cf9a5f;
+      --detect: #6fb2e6;
+      --ok-bg: rgba(116, 172, 108, 0.14);
+      --warn-bg: rgba(207, 154, 95, 0.16);
+      --info-bg: rgba(111, 178, 230, 0.14);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #10140f;
+    --paper-2: #171d16;
+    --ink: #e7ebe0;
+    --ink-2: #9aa38f;
+    --line: #2c3429;
+    --canopy: #74ac6c;
+    --canopy-deep: #9ccf92;
+    --soil: #cf9a5f;
+    --detect: #6fb2e6;
+    --ok-bg: rgba(116, 172, 108, 0.14);
+    --warn-bg: rgba(207, 154, 95, 0.16);
+    --info-bg: rgba(111, 178, 230, 0.14);
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--canopy);
+    text-underline-offset: 3px;
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--detect);
+    outline-offset: 2px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.84em;
+  }
+
+  .wrap {
+    max-width: var(--wide);
+    margin-inline: auto;
+    padding-inline: clamp(16px, 5vw, 48px);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--canopy);
+  }
+
+  /* ── cabecera ───────────────────────────────────── */
+
+  header {
+    padding-block: clamp(44px, 8vw, 80px) clamp(28px, 5vw, 44px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  header h1 {
+    font-size: clamp(2.3rem, 6.5vw, 3.8rem);
+    letter-spacing: -0.02em;
+    margin-top: 12px;
+  }
+
+  .lead {
+    margin-top: 18px;
+    font-size: clamp(1.02rem, 2vw, 1.18rem);
+    color: var(--ink-2);
+    max-width: 58ch;
+  }
+
+  .chips {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .chip--ok {
+    border-color: transparent;
+    background: var(--ok-bg);
+    color: var(--canopy-deep);
+  }
+
+  .chip--warn {
+    border-color: transparent;
+    background: var(--warn-bg);
+    color: var(--soil);
+  }
+
+  .chip--info {
+    border-color: transparent;
+    background: var(--info-bg);
+    color: var(--detect);
+  }
+
+  /* ── secciones ──────────────────────────────────── */
+
+  section {
+    padding-block: clamp(36px, 6vw, 60px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sec-title {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 26px;
+  }
+
+  .sec-title h2 {
+    font-size: clamp(1.5rem, 3.6vw, 2.1rem);
+  }
+
+  .sec-title p {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  /* ── el recorrido: transecto con estacas ─────────── */
+
+  ol.route {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    max-width: 760px;
+  }
+
+  .stop {
+    position: relative;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 18px;
+    padding-bottom: 26px;
+  }
+
+  /* el tramo de cinta que baja desde cada estaca hasta la siguiente */
+  .stop::before {
+    content: "";
+    position: absolute;
+    left: 27px;
+    top: 44px;
+    bottom: 0;
+    border-left: 2px dashed var(--line);
+  }
+
+  .stop:last-child::before {
+    display: none;
+  }
+
+  /* solo es continuo el tramo que ya se caminó: de la estaca a la siguiente alcanzada */
+  .stop--walked::before {
+    border-left-style: solid;
+    border-left-color: var(--canopy);
+  }
+
+  .stake {
+    width: 56px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 3px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stop--done .stake {
+    border-color: var(--canopy);
+    color: var(--canopy-deep);
+  }
+
+  .stop--now .stake {
+    border-color: var(--soil);
+    background: var(--soil);
+    color: var(--paper);
+  }
+
+  .stop__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 7px;
+  }
+
+  .stop__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+  }
+
+  .stop__head h3 {
+    font-size: 1.22rem;
+  }
+
+  .stop__body > p {
+    color: var(--ink-2);
+    max-width: 58ch;
+  }
+
+  .stop--now .stop__card {
+    margin-top: 8px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--soil);
+    border-radius: 3px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 60ch;
+  }
+
+  .here {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--soil);
+  }
+
+  .aside {
+    margin-top: 6px;
+    font-size: 0.92em;
+    color: var(--ink-2);
+    max-width: 60ch;
+    border-left: 2px solid var(--line);
+    padding-left: 14px;
+  }
+
+  /* ── la semana en tres números ──────────────────── */
+
+  .figures {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .figures > div {
+    background: var(--paper);
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .figures .v {
+    font-family: var(--display);
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .figures p {
+    color: var(--ink-2);
+    font-size: 0.94em;
+  }
+
+  @media (max-width: 680px) {
+    .figures {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── lo que sigue ───────────────────────────────── */
+
+  ol.next {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: n;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: var(--measure);
+  }
+
+  ol.next li {
+    counter-increment: n;
+    display: grid;
+    grid-template-columns: 2.2em minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  ol.next li::before {
+    content: counter(n);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--canopy);
+    padding-top: 3px;
+  }
+
+  ol.next .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+  }
+
+  ol.next b {
+    font-weight: 600;
+  }
+
+  ol.next p {
+    color: var(--ink-2);
+    margin-top: 2px;
+  }
+
+  /* ── dónde está cada cosa ───────────────────────── */
+
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  table.where {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 0.94em;
+  }
+
+  table.where th,
+  table.where td {
+    text-align: left;
+    padding: 10px 16px 10px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  table.where th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  table.where td:first-child {
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  table.where td:nth-child(2) {
+    color: var(--ink-2);
+  }
+
+  table.where tr.group td {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--soil);
+    padding-top: 22px;
+    font-weight: 500;
+  }
+
+  .fine {
+    margin-top: 14px;
+    font-size: 0.88em;
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  footer {
+    padding-block: 32px 44px;
+  }
+
+  footer p {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+    max-width: 70ch;
+  }
+
+  footer p + p {
+    margin-top: 8px;
+  }
+</style>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Proyecto Centinela · estado al 22 de septiembre de 2026</p>
+    <h1>Hoja de ruta</h1>
+    <p class="lead">
+      De contar árboles en una foto aérea a detectar maleza en arroz. Cada etapa resuelve un
+      problema completo y deja código y método que la siguiente reutiliza. Esta página resume
+      dónde estamos, qué aprendimos esta semana y qué sigue.
+    </p>
+    <div class="chips">
+      <span class="chip chip--warn">Etapa actual: I · en revisión</span>
+      <span class="chip chip--ok">52 pruebas pasando</span>
+      <span class="chip chip--ok">repositorio al día</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <div class="sec-title">
+        <p class="eyebrow">El recorrido</p>
+        <h2>De principio a fin</h2>
+        <p>
+          El orden es el de la hoja de ruta. Línea continua: tramo recorrido. Punteada: lo que
+          falta.
+        </p>
+      </div>
+
+      <ol class="route">
+        <li class="stop stop--done stop--walked">
+          <span class="stake">0.5</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Landing pública</h3>
+              <span class="chip chip--ok">hecha</span>
+            </div>
+            <p>
+              La página que presenta el proyecto a cualquiera. Está lista en el repositorio;
+              falta activar GitHub Pages para que quede en línea.
+            </p>
+          </div>
+        </li>
+
+        <li class="stop stop--now">
+          <span class="stake">I</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Conteo de árboles en una foto aérea</h3>
+              <span class="chip chip--warn">en revisión</span>
+            </div>
+            <p>
+              Cuenta las copas de una imagen tomada desde arriba y ubica cada una. Visión por
+              computador clásica más agrupamiento, sin modelos entrenados.
+            </p>
+            <div class="stop__card">
+              <span class="here">Estás aquí</span>
+              <p>
+                Reabierta el 22-sep. La segmentación funciona, pero el paso que decide qué
+                mancha es un árbol (DBSCAN) no da un conteo confiable sobre foto real.
+              </p>
+              <p>
+                <b>Para cerrarla:</b> contar a mano dos fotos de control, decidir con ese número
+                cómo se agrupa y reportar el primer F1 sobre imagen real. Ya no depende del dron.
+              </p>
+            </div>
+          </div>
+        </li>
+
+        <li class="stop">
+          <span class="stake">I-B</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Dron propio y georreferencia</h3>
+              <span class="chip">espera dron con GPS</span>
+            </div>
+            <p>
+              Vuelos propios, varias imágenes por parcela y coordenadas reales para cada árbol,
+              no solo píxeles.
+            </p>
+          </div>
+        </li>
+
+        <li class="stop stop--done">
+          <span class="stake">II</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Caracterización del cultivo</h3>
+              <span class="chip chip--ok">hecha en sintético</span>
+            </div>
+            <p>
+              Marca los árboles que se apartan del resto: más chicos, menos verdes o con huecos.
+              Sobre foto real hereda el estado de la Etapa I.
+            </p>
+          </div>
+        </li>
+
+        <li class="stop">
+          <span class="stake">III</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Maleza en arroz</h3>
+              <span class="chip chip--info">próximo reto · ~12 meses</span>
+            </div>
+            <p>
+              Separar cultivo, maleza y suelo píxel a píxel y producir un mapa del porcentaje de
+              maleza por sector. Aquí entra el aprendizaje profundo.
+            </p>
+          </div>
+        </li>
+
+        <li class="stop">
+          <span class="stake">IV</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Series temporales y predicción</h3>
+              <span class="chip">año 3</span>
+            </div>
+            <p>Seguir la misma parcela a lo largo de varios vuelos y anticipar cómo evoluciona.</p>
+          </div>
+        </li>
+
+        <li class="stop">
+          <span class="stake">V</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>Integración</h3>
+              <span class="chip">sin compromiso</span>
+            </div>
+            <p>Reunir los datos y modelos de todas las etapas en un lugar consultable.</p>
+          </div>
+        </li>
+
+        <li class="stop">
+          <span class="stake">tesis</span>
+          <div class="stop__body">
+            <div class="stop__head">
+              <h3>El reto final</h3>
+              <span class="chip">sale de los resultados</span>
+            </div>
+            <p>
+              No se decreta de antemano: será la línea que muestre más relevancia y viabilidad.
+              La Etapa III es candidata fuerte.
+            </p>
+            <p class="aside">
+              Aparte queda una línea de investigación especulativa sobre cacao y cadmio. No se
+              invierte en ella hasta tener datos de laboratorio que la respalden.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-title">
+        <p class="eyebrow">Lo que aprendimos esta semana</p>
+        <h2>La Etapa I, en tres números</h2>
+      </div>
+      <div class="figures">
+        <div>
+          <span class="v">218 → 6</span>
+          <p>
+            En una foto real de árboles separados, la segmentación encuentra 218 manchas sobre
+            copas. DBSCAN descarta 212 y el sistema publica 6.
+          </p>
+        </div>
+        <div>
+          <span class="v">F1 1,00</span>
+          <p>
+            El resultado del huerto sintético lo produjo la segmentación: con su ajuste, DBSCAN
+            nunca llegó a formar un grupo.
+          </p>
+        </div>
+        <div>
+          <span class="v">1 de 6</span>
+          <p>
+            Pruebas con respuesta conocida en las que el nuevo chequeo dijo «estable». Fue
+            justo la única que acertó.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-title">
+        <p class="eyebrow">En orden</p>
+        <h2>Lo que sigue</h2>
+      </div>
+      <ol class="next">
+        <li>
+          <div>
+            <div class="row"><b>Demo en vivo</b><span class="chip chip--ok">lista</span></div>
+            <p>
+              App interactiva en <code>demo/</code> (doble clic en <code>iniciar.bat</code>) y
+              guion de 7 minutos en <code>docs/demo-en-vivo.md</code>.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="row"><b>Contar a mano las dos fotos de control</b><span class="chip chip--warn">pendiente · bloquea el paso 3</span></div>
+            <p>
+              <code>huerto_reticula_usda</code> y <code>palma_aceite_rio</code>, con
+              <code>centinela annotate</code>. Es trabajo de clics sobre la imagen: tiene que
+              hacerlo una persona.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="row"><b>Decidir cómo se agrupa</b></div>
+            <p>
+              Normalizar con escalas fijas en vez de por imagen, o contar sin agrupar con un
+              filtro de área explícito. Se decide midiendo contra el conteo manual.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="row"><b>Cerrar la Etapa I con un F1 real</b></div>
+            <p>Precisión, exhaustividad y error de conteo sobre imagen real, no solo sintética.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="row"><b>Preparar lo siguiente</b></div>
+            <p>
+              Con un dron con GPS, la Etapa I-B. En paralelo, conseguir acceso a una parcela de
+              arroz para la Etapa III.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-title">
+        <p class="eyebrow">Para no perderse</p>
+        <h2>Dónde está cada cosa</h2>
+      </div>
+      <div class="table-scroll">
+        <table class="where">
+          <thead>
+            <tr><th>Qué</th><th>Para qué</th><th>Dónde</th></tr>
+          </thead>
+          <tbody>
+            <tr class="group"><td colspan="3">Repositorio</td></tr>
+            <tr>
+              <td>README</td>
+              <td>Punto de entrada: estado, estructura y comandos</td>
+              <td><a href="https://github.com/ingdiegoter1998-eng/Centinela#readme">GitHub</a></td>
+            </tr>
+            <tr>
+              <td>ROADMAP.md</td>
+              <td>La hoja de ruta completa; la fuente de verdad del proyecto</td>
+              <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/ROADMAP.md">GitHub</a></td>
+            </tr>
+            <tr>
+              <td>resultados-imagen-real.md</td>
+              <td>Qué pasó al probar con fotos reales (§5: lo de esta semana)</td>
+              <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/resultados-imagen-real.md">GitHub</a></td>
+            </tr>
+            <tr>
+              <td>resultados-fase-1 y -2</td>
+              <td>Resultados de las Etapas I y II</td>
+              <td>
+                <a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/resultados-fase-1.md">I</a> ·
+                <a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/resultados-fase-2.md">II</a>
+              </td>
+            </tr>
+            <tr>
+              <td>demo-en-vivo.md</td>
+              <td>Guion de la demo, con plan B y preguntas probables</td>
+              <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/demo-en-vivo.md">GitHub</a></td>
+            </tr>
+            <tr class="group"><td colspan="3">Presentación</td></tr>
+            <tr>
+              <td>Diapositivas</td>
+              <td>12 diapositivas, incluida la foto real y la gráfica de estabilidad</td>
+              <td><a href="https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT">abrir</a></td>
+            </tr>
+            <tr>
+              <td>Guion de exposición</td>
+              <td>7 minutos, con glosario y preguntas probables</td>
+              <td><a href="https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC">abrir</a></td>
+            </tr>
+            <tr>
+              <td>Adelanto</td>
+              <td>El proyecto explicado de punta a punta, con su matemática</td>
+              <td><a href="https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6">abrir</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fine">
+        Las páginas de presentación se abren con la cuenta de quien las publicó; para verlas,
+        hay que compartirlas desde su menú <i>Compartir</i>.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Repositorio: una sola rama (<code>main</code>) sincronizada con GitHub · 52 pruebas
+      pasando · documentos, landing y páginas de presentación actualizados el 22-sep-2026.
+    </p>
+    <p>Proyecto Centinela · UIS — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
+  </div>
+</footer>
