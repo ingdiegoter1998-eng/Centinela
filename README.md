@@ -9,7 +9,7 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 - **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md) · resumen visual para el equipo: <https://claude.ai/artifact/SF1jDjsshuLq9YmPrq1S9s>
 - **Etapa actual (I, reabierta) — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) · [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md)
 - **Presentación:** [adelanto](https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6) · [diapositivas](https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT) · [guion de exposición](https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC) — fuentes en `docs/adelanto/`
-- **Demo en vivo:** doble clic en `demo\iniciar.bat` · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
+- **Demo en vivo:** doble clic en `demo\iniciar.bat` · en línea: <https://centinela-demo.streamlit.app/> · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
 
 ## Estado
 
@@ -73,8 +73,8 @@ pip install -e ".[demo]"                              # una vez
 streamlit run demo/app.py                             # demo en vivo (o demo\iniciar.bat)
 ```
 
-**Demo en línea.** La misma app se publica en Streamlit Community Cloud directo desde este
-repo (`demo/app.py`, dependencias en `demo/requirements.txt`, configuración en
+**Demo en línea: <https://centinela-demo.streamlit.app/>.** La misma app se publica en
+Streamlit Community Cloud directo desde este repo (`demo/app.py`, dependencias en `demo/requirements.txt`, configuración en
 `.streamlit/config.toml`). Allá corre en modo público: muestra un aviso de que es una demo de
 laboratorio y oculta las escenas cuya imagen no tiene licencia clara. Se actualiza sola con
 cada push a `main`.

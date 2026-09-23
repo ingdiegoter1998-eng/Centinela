@@ -197,6 +197,14 @@ export default function App() {
                 <p key={i}>{p}</p>
               ))}
             </div>
+            {dondeEstamos.demo && (
+              <p className="ahora__demo">
+                <a href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
+                  {dondeEstamos.demo.texto} →
+                </a>
+                <span>{dondeEstamos.demo.nota}</span>
+              </p>
+            )}
           </div>
         </Seccion>
 

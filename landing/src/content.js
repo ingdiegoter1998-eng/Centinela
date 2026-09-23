@@ -92,6 +92,11 @@ export const dondeEstamos = {
     'El programa toma una imagen aérea de una parcela, separa la vegetación del suelo, cuenta las copas de árbol y marca dónde está cada una. Sobre huertos de prueba con respuesta conocida acierta todos los árboles.',
     'Al probarlo con fotografías aéreas reales encontramos que el paso que decide qué mancha es un árbol y cuál no depende demasiado de un solo ajuste. Ahora el programa avisa cuándo su propio conteo no es confiable, y el siguiente paso es contar a mano los árboles de dos fotografías reales para medirlo con precisión.',
   ],
+  demo: {
+    texto: 'Probar la demo en el navegador',
+    url: 'https://centinela-demo.streamlit.app/',
+    nota: 'Es una demo de laboratorio: muestra cómo cuenta el método y cuándo no hay que confiar en su número.',
+  },
 }
 
 export const quienesSomos = [

@@ -134,6 +134,12 @@ junto a la imagen (`huerto_reticula_usda_debug.png`). El tercero imprime la tabl
 `*_manifest.yaml`, `*_debug.png`). Git las ignora, así que no ensucian el repo; se pueden borrar
 cuando quieras.
 
+**Si el PC falla del todo:** la misma app está en línea en
+<https://centinela-demo.streamlit.app/>, desde cualquier computador con internet. Si nadie la
+ha abierto en unos días puede estar dormida: la primera carga tarda. Ábrela antes de
+presentar para despertarla. En línea no están las escenas de palma del lote ni del cítrico
+satelital (licencia sin verificar); el recorrido del guion no las usa.
+
 **Si el puerto 8501 está ocupado:** cierra la otra ventana de consola de Streamlit, o edita el
 `8501` en `demo\iniciar.bat`.
 
