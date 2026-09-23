@@ -6,9 +6,9 @@ computador + IA + análisis geoespacial, aplicados a los cultivos de la región.
 Proyecto de estudiantes de Ingeniería en Inteligencia Artificial, UIS — Sede Saravena.
 Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 
-- **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md) · resumen visual para el equipo: <https://claude.ai/artifact/SF1jDjsshuLq9YmPrq1S9s>
+- **Hoja de ruta completa:** [`ROADMAP.md`](ROADMAP.md) · resumen visual: [hoja de ruta en el sitio](https://ingdiegoter1998-eng.github.io/Centinela/hoja-de-ruta.html)
 - **Etapa actual (I, reabierta) — plan y resultados:** [`docs/plan-fase-1.md`](docs/plan-fase-1.md) · [`docs/resultados-fase-1.md`](docs/resultados-fase-1.md) · [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) · [`docs/resultados-centros.md`](docs/resultados-centros.md) (método nuevo, plátano y palma)
-- **Presentación:** [adelanto](https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6) · [diapositivas](https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT) · [guion de exposición](https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC) — fuentes en `docs/adelanto/`
+- **Presentación:** [adelanto](https://ingdiegoter1998-eng.github.io/Centinela/adelanto.html) · [diapositivas](https://ingdiegoter1998-eng.github.io/Centinela/diapositivas.html) — en el sitio público, fuentes en `docs/adelanto/`
 - **Demo en vivo:** doble clic en `demo\iniciar.bat` · en línea: <https://centinela-demo.streamlit.app/> · guion en [`docs/demo-en-vivo.md`](docs/demo-en-vivo.md)
 
 ## Estado

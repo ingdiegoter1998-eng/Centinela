@@ -138,9 +138,9 @@ export const paginas = [
 export const dondeEstamos = {
   titulo: 'Etapa I · Validación del método de conteo',
   parrafos: [
-    'La versión actual procesa imágenes aéreas para separar vegetación y suelo, identificar copas de árboles y determinar su distribución espacial.',
+    'La versión actual procesa imágenes aéreas para distinguir la vegetación del suelo, localizar cada planta y determinar su distribución espacial.',
     'En imágenes de prueba con un número conocido de árboles, el método identifica correctamente cada ejemplar.',
-    'Las primeras pruebas sobre fotografías aéreas reales permitieron identificar una sensibilidad del método a determinadas condiciones de segmentación. Actualmente se está realizando una validación cuantitativa sobre imágenes reales mediante conteo manual y comparación con los resultados automáticos.',
+    'Las primeras pruebas sobre fotografías aéreas reales permitieron identificar una sensibilidad del método a determinadas condiciones de segmentación. A partir de ellas se incorporó un método de detección de centros de planta, que localiza el punto de convergencia de las hojas y permite contar cultivos como plátano y palma sobre fondos de pasto o con hojas en contacto. Actualmente se está realizando una validación cuantitativa sobre imágenes reales mediante conteo manual y comparación con los resultados automáticos.',
   ],
   demo: {
     texto: 'Probar la demo en el navegador',

@@ -32,13 +32,9 @@ PAGINAS = {
 }
 DEMO = "https://centinela-demo.streamlit.app/"
 
-# Enlaces a las páginas de Claude que, en el sitio, pasan a ser páginas propias.
-ARTEFACTOS = {
-    "https://claude.ai/artifact/SF1jDjsshuLq9YmPrq1S9s": "hoja-de-ruta.html",
-    "https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT": "diapositivas.html",
-    "https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC": "guion.html",
-    "https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6": "adelanto.html",
-}
+# Enlaces absolutos al sitio público que, dentro del propio sitio, pasan a ser relativos.
+SITIO_URL = "https://ingdiegoter1998-eng.github.io/Centinela/"
+ENLACES_SITIO = {SITIO_URL + archivo: archivo for archivo, _ in PAGINAS.values()}
 
 BARRA_CSS = """<style>
   .cn-barra { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 38px;
@@ -72,7 +68,7 @@ def data_uri(nombre: str) -> str:
 
 
 def para_sitio(html: str, archivo: str) -> str:
-    for url, local in ARTEFACTOS.items():
+    for url, local in ENLACES_SITIO.items():
         html = html.replace(url, local)
     # Las diapositivas ocupan toda la pantalla: la barra flota sobre su margen superior.
     espacio = "" if archivo == "diapositivas.html" else '<div class="cn-espacio"></div>'

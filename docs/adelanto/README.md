@@ -6,10 +6,10 @@ publicar. Actualizadas el 2026-09-22 con los resultados sobre imagen real
 
 | Archivo | Qué es | Publicado |
 |---|---|---|
-| `index.html` | Página de adelanto — el problema, el método, su matemática, los resultados (sintético y foto real) y la hoja de ruta | <https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6> |
-| `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario y preguntas probables | <https://claude.ai/artifact/TVDWNvUEYSyEWpGnyHVMzC> |
-| `diapositivas.html` | 12 diapositivas navegables con flechas (← →) | <https://claude.ai/artifact/V4NDYPXa7zK4qqJAeULorT> |
-| `hoja-de-ruta.html` | Hoja de ruta de principio a fin, estado actual y qué sigue — para compartir con el equipo. Sin imágenes: se publica tal cual | <https://claude.ai/artifact/SF1jDjsshuLq9YmPrq1S9s> |
+| `index.html` | Página de adelanto — el problema, el método, su matemática, los resultados (sintético y foto real) y la hoja de ruta | `adelanto.html` del sitio |
+| `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario y preguntas probables | `guion.html` del sitio |
+| `diapositivas.html` | 12 diapositivas navegables con flechas (← →) | `diapositivas.html` del sitio |
+| `hoja-de-ruta.html` | Hoja de ruta de principio a fin, estado actual y qué sigue — para compartir con el equipo. Sin imágenes: se publica tal cual | `hoja-de-ruta.html` del sitio |
 
 El guion de la **demo en vivo** (la app de `demo/`) es otro documento: `docs/demo-en-vivo.md`.
 
@@ -32,4 +32,5 @@ python docs/adelanto/armar.py
 ```
 
 Sustituye cada marcador `{{..._IMG}}` por `data:image/jpeg;base64,…` y escribe
-`*.build.html` junto a cada fuente (no versionados). Esos son los que se publican.
+`*.build.html` junto a cada fuente (no versionados), que son las copias para páginas de Claude
+(no se enlazan desde el repositorio), y las copias del sitio en `landing/public/`.
