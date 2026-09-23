@@ -116,12 +116,6 @@ export const paginas = [
     accion: 'Ver diapositivas',
   },
   {
-    nombre: 'Guion de exposición',
-    url: 'guion.html',
-    nota: 'Guion de presentación de aproximadamente 7 minutos, con términos técnicos y conceptos principales.',
-    accion: 'Ver guion',
-  },
-  {
     nombre: 'Adelanto',
     url: 'adelanto.html',
     nota: 'Descripción del método de conteo y fundamentos matemáticos utilizados en la etapa actual.',

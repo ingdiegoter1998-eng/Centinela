@@ -27,10 +27,12 @@ IMAGENES = {
 PAGINAS = {
     "hoja-de-ruta.html": ("hoja-de-ruta.html", "Hoja de ruta"),
     "diapositivas.html": ("diapositivas.html", "Diapositivas"),
-    "exposicion.html": ("guion.html", "Guion de exposición"),
     "index.html": ("adelanto.html", "Adelanto"),
 }
 DEMO = "https://centinela-demo.streamlit.app/"
+
+# Páginas que solo se arman como copia para Claude: no se publican en el sitio ni se enlazan.
+SOLO_CLAUDE = ["exposicion.html"]
 
 # Enlaces absolutos al sitio público que, dentro del propio sitio, pasan a ser relativos.
 SITIO_URL = "https://ingdiegoter1998-eng.github.io/Centinela/"
@@ -92,6 +94,12 @@ def main() -> None:
         build.write_text(armada, encoding="utf-8")
         (SITIO / archivo).write_text(para_sitio(armada, archivo), encoding="utf-8")
         print(f"{build.name:<26} y landing/public/{archivo:<18} {len(armada) // 1024:>5} KB")
+    for fuente in SOLO_CLAUDE:
+        texto = (AQUI / fuente).read_text(encoding="utf-8")
+        armada = re.sub(r"\{\{([A-Z_]+)\}\}", lambda m: uris[m.group(1)], texto)
+        build = AQUI / fuente.replace(".html", ".build.html")
+        build.write_text(armada, encoding="utf-8")
+        print(f"{build.name:<26} (solo copia para Claude)  {len(armada) // 1024:>5} KB")
 
 
 if __name__ == "__main__":

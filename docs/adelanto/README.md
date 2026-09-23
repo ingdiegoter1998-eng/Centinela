@@ -7,7 +7,7 @@ publicar. Actualizadas el 2026-09-22 con los resultados sobre imagen real
 | Archivo | Qué es | Publicado |
 |---|---|---|
 | `index.html` | Página de adelanto — el problema, el método, su matemática, los resultados (sintético y foto real) y la hoja de ruta | `adelanto.html` del sitio |
-| `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario y preguntas probables | `guion.html` del sitio |
+| `exposicion.html` | Guion de exposición de ~7 min para compañeros de clase, con glosario y preguntas probables | No se publica en el sitio (solo copia privada) |
 | `diapositivas.html` | 12 diapositivas navegables con flechas (← →) | `diapositivas.html` del sitio |
 | `hoja-de-ruta.html` | Hoja de ruta de principio a fin, estado actual y qué sigue — para compartir con el equipo. Sin imágenes: se publica tal cual | `hoja-de-ruta.html` del sitio |
 
