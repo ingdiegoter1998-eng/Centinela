@@ -568,16 +568,16 @@
   <div class="wrap">
     <p class="eyebrow">Proyecto de investigación · Primer semestre</p>
     <h1 class="hero__name">Proyecto Centinela</h1>
-    <p class="hero__sub">Agricultura de precisión para Saravena, Arauca</p>
+    <p class="hero__sub">Plataforma de agricultura de precisión · Saravena, Arauca</p>
     <p class="hero__lead">
-      Ver los cultivos de la región desde el aire y traducir esa imagen en información
-      concreta: cuántos árboles hay, dónde, cómo están y qué los amenaza. Se construye por
-      etapas — la complejidad crece al ritmo de la carrera.
+      Centinela desarrolla métodos de visión por computador e inteligencia artificial para
+      analizar cultivos mediante imágenes aéreas obtenidas con drones. Esta página describe el
+      método de conteo de la etapa actual y sus fundamentos matemáticos.
     </p>
     <div class="hero__meta">
-      <span class="tag tag--live">Etapa I · en revisión con fotos reales</span>
+      <span class="tag tag--live">Etapa I · en validación con fotografías reales</span>
       <span class="tag">UIS Saravena</span>
-      <span class="tag">Ingeniería en IA</span>
+      <span class="tag">Ingeniería en Inteligencia Artificial</span>
       <span class="tag">visión por computador + DBSCAN</span>
     </div>
   </div>
@@ -588,25 +588,25 @@
     <div class="wrap">
       <div class="sec-head">
         <span class="sec-head__n">01</span>
-        <h2>El problema de la Etapa I</h2>
+        <h2>Planteamiento del problema</h2>
       </div>
       <div class="stack col">
         <p>
-          <strong>Entra</strong> una foto aérea cenital de una parcela de cítricos.
-          <strong>Sale</strong> el número de árboles, la posición de cada copa dentro de la
-          imagen, y la foto con las detecciones marcadas.
+          <strong>Entrada:</strong> una fotografía aérea cenital de una parcela de cítricos.
+          <strong>Salida:</strong> el número de árboles, la posición de cada copa dentro de la
+          imagen y la fotografía con las detecciones marcadas.
         </p>
         <p>
-          Es un problema de <strong>inventario</strong>: no "qué especie es" sino "cuántas
-          copas hay y dónde". En una plantación todas las copas se parecen mucho entre sí y
-          hay cientos — esa uniformidad es lo que hace el problema abordable sin un modelo
-          entrenado.
+          Se trata de un problema de <strong>inventario</strong>: no se busca identificar la
+          especie, sino determinar cuántas copas hay y dónde se ubican. Una plantación contiene
+          cientos de copas de apariencia muy similar, y esa uniformidad permite abordar el
+          problema sin un modelo entrenado.
         </p>
         <div class="note">
-          <b>Alcance acotado a propósito.</b> Una sola imagen (sin mosaico ni GPS), copas
-          separadas con suelo visible entre ellas, sin georreferencia. El dron disponible es
-          de gama baja y solo transmite video: en vez de bloquear la etapa, se recortó al
-          núcleo. La georreferencia y el dosel cerrado quedan para etapas siguientes.
+          <b>Alcance delimitado.</b> Una sola imagen (sin mosaico ni GPS), copas separadas con
+          suelo visible entre ellas y sin georreferenciación. El dron disponible es de gama
+          baja y solo transmite video, por lo que la etapa se concentró en el problema central.
+          La georreferenciación y el dosel cerrado se abordan en etapas posteriores.
         </div>
       </div>
     </div>
@@ -619,36 +619,37 @@
         <h2>El método</h2>
       </div>
       <p class="col" style="margin-bottom: 30px">
-        Visión por computador clásica. <strong>Ningún modelo entrenado ni descargado.</strong>
+        Visión por computador clásica, <strong>sin modelos entrenados ni descargados.</strong>
       </p>
       <ol class="steps">
         <li>
           <span>
-            <b>Separar vegetación del suelo.</b> La copa es más verde <em>y</em> más oscura
+            <b>Separación de vegetación y suelo.</b> La copa es más verde <em>y</em> más oscura
             que el suelo seco; el índice <code>combo</code> combina ambas señales.
           </span>
         </li>
         <li>
           <span>
-            <b>Limpiar y separar copas pegadas.</b> Operaciones morfológicas + <em>watershed</em>
-            sobre la transformada de distancia (metáfora: inundar un terreno desde los valles).
+            <b>Depuración y separación de copas en contacto.</b> Operaciones morfológicas y
+            <em>watershed</em> sobre la transformada de distancia, que trata la imagen como un
+            relieve inundado desde sus mínimos.
           </span>
         </li>
         <li>
           <span>
-            <b>Describir cada mancha</b> por área, color medio, circularidad y excentricidad.
+            <b>Descripción de cada región</b> por área, color medio, circularidad y excentricidad.
           </span>
         </li>
         <li>
           <span>
-            <b>Agrupar por similitud — DBSCAN.</b> El grupo grande y compacto de manchas
-            parecidas entre sí = los árboles del cultivo. El resto (sombras, maleza, suelo)
-            se descarta como ruido. Así está diseñado; la sección 04 muestra cuándo lo logra
-            y cuándo no.
+            <b>Agrupamiento por similitud — DBSCAN.</b> El grupo principal y compacto de
+            regiones similares corresponde a los árboles del cultivo; el resto (sombras, maleza,
+            suelo) se descarta como ruido. La sección 04 muestra en qué condiciones se cumple
+            este comportamiento.
           </span>
         </li>
         <li>
-          <span><b>Contar y dibujar.</b></span>
+          <span><b>Conteo y visualización.</b></span>
         </li>
       </ol>
     </div>
@@ -659,10 +660,10 @@
       <figure>
         <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: imagen original, índice de vegetación, watershed con 80 instancias, y el conteo final de 80 árboles." />
         <figcaption>
-          El pipeline paso a paso sobre un huerto sintético de 80 árboles. 1 · original ·
-          2 · índice de vegetación · 3 · watershed (80 instancias) · 4 · conteo final
-          (80 árboles). En este huerto DBSCAN no llega a formar grupo y el conteo es el del
-          watershed — ver la sección 04.
+          El <em>pipeline</em> paso a paso sobre un huerto sintético de 80 árboles. 1 · original
+          · 2 · índice de vegetación · 3 · watershed (80 instancias) · 4 · conteo final
+          (80 árboles). En este huerto DBSCAN no forma ningún grupo y el conteo corresponde al
+          watershed (sección 04).
         </figcaption>
       </figure>
     </div>
@@ -672,17 +673,17 @@
     <div class="wrap">
       <div class="sec-head">
         <span class="sec-head__n">03</span>
-        <h2>La matemática</h2>
+        <h2>Fundamentos matemáticos</h2>
       </div>
       <div class="stack col">
         <p>
-          Casi todo es <strong>álgebra lineal de primer semestre</strong>: producto punto,
-          norma euclidiana y promedios de vectores — lo mismo que se ve en clase, generalizado
-          a más dimensiones.
+          El método se apoya principalmente en <strong>álgebra lineal de primer
+          semestre</strong>: producto punto, norma euclidiana y promedios de vectores,
+          generalizados a espacios de mayor dimensión.
         </p>
 
-        <p><strong>Un píxel es un vector en ℝ³.</strong> El "cuán copa" de un píxel se
-          calcula con un producto punto:</p>
+        <p><strong>Un píxel es un vector en ℝ³.</strong> La pertenencia de un píxel a una copa
+          se estima mediante un producto punto:</p>
       </div>
 
       <div class="eq col" style="margin: 6px 0 22px">
@@ -692,7 +693,7 @@
 
       <div class="stack col">
         <p>
-          <strong>Cada mancha es un vector en ℝ⁷.</strong> Los siete descriptores forman un
+          <strong>Cada región es un vector en ℝ⁷.</strong> Sus siete descriptores definen un
           punto en un espacio de características:
         </p>
       </div>
@@ -703,9 +704,10 @@
 
       <div class="stack col">
         <p>
-          <strong>DBSCAN mide cercanía en ℝ⁷</strong> con la misma norma euclidiana de ℝ².
-          Dos manchas son vecinas si están a distancia ≤ ε; una mancha con suficientes vecinos
-          "arrastra" a su grupo. Lo que no cae en ningún grupo denso es ruido.
+          <strong>DBSCAN mide la cercanía en ℝ⁷</strong> con la misma norma euclidiana de ℝ².
+          Dos regiones son vecinas si su distancia es ≤ ε; una región con suficientes vecinos
+          extiende su grupo a ellos. Los puntos que no pertenecen a ningún grupo denso se
+          consideran ruido.
         </p>
       </div>
 
@@ -723,7 +725,7 @@
           <circle cx="92" cy="74" r="5" fill="var(--canopy)" />
           <line x1="0" y1="150" x2="92" y2="74" stroke="var(--canopy)" stroke-width="1" stroke-dasharray="3 3" />
           <text class="lbl" x="0" y="182" font-size="15">ℝ²</text>
-          <text x="0" y="200" font-size="10">vectores en clase</text>
+          <text x="0" y="200" font-size="10">vectores en el plano</text>
         </g>
         <text x="192" y="115" font-size="16" fill="var(--ink-2)">→</text>
         <!-- R3 -->
@@ -747,15 +749,16 @@
           <line x1="150" y1="80" x2="202" y2="80" stroke="var(--canopy)" stroke-width="1" />
           <text x="176" y="74" font-size="11" fill="var(--canopy-deep)">ε</text>
           <text class="lbl" x="70" y="188" font-size="15">ℝ⁷</text>
-          <text x="70" y="206" font-size="10">cada mancha · ruido aparte</text>
+          <text x="70" y="206" font-size="10">cada región · ruido aparte</text>
         </g>
       </svg>
 
       <div class="note" style="margin-top: 26px">
-        <b>El aprendizaje aquí es no supervisado.</b> DBSCAN es machine learning — clustering
-        por densidad — pero no es un modelo entrenado: no necesita ejemplos etiquetados, no
-        ajusta pesos, se ejecuta directo sobre los datos. El deep learning (redes tipo U-Net
-        o YOLO) entra en la Etapa III, cuando el problema y los datos lo exijan.
+        <b>Aprendizaje no supervisado.</b> DBSCAN pertenece al aprendizaje automático
+        —agrupamiento por densidad—, pero no es un modelo entrenado: no requiere ejemplos
+        etiquetados ni ajuste de pesos y se ejecuta directamente sobre los datos. El
+        aprendizaje profundo (redes tipo U-Net o YOLO) se incorpora en la Etapa III, cuando
+        el problema y los datos lo requieran.
       </div>
     </div>
   </section>
@@ -778,39 +781,43 @@
         </div>
         <div>
           <div class="k">Pruebas automáticas</div>
-          <div class="v">52 / 52</div>
+          <div class="v">67 / 67</div>
         </div>
       </div>
 
       <div class="stack col">
         <p>
-          Sobre <strong>huerto sintético</strong> (80 árboles, respuesta conocida) el pipeline
-          acierta los 80, con precisión y recall de 1.00. Ese resultado valida la
-          <strong>segmentación</strong>: al revisarlo después se vio que DBSCAN no llegaba a
-          formar ningún grupo y el sistema contaba todas las manchas.
+          Sobre un <strong>huerto sintético</strong> (80 árboles, respuesta conocida) el
+          <em>pipeline</em> identifica los 80, con precisión y exhaustividad de 1.00. Ese
+          resultado valida la <strong>segmentación</strong>: un análisis posterior mostró que
+          DBSCAN no formaba ningún grupo y el sistema contaba todas las regiones.
         </p>
         <p>
-          <strong>Aporte técnico de la etapa:</strong> el índice <code>combo</code>. Con solo
-          "verde" (ExG) el pipeline fallaba en imágenes desaturadas de satélite — pasó de
-          <strong>1 a 110 detecciones</strong> al añadir la señal de oscuridad.
+          <strong>Aporte técnico de la etapa:</strong> el índice <code>combo</code>. Con el
+          índice de verde (ExG) como única señal, el <em>pipeline</em> fallaba en imágenes
+          satelitales desaturadas; al añadir la señal de oscuridad, las detecciones pasaron de
+          <strong>1 a 110</strong>.
         </p>
         <p>
-          <strong>Sobre una foto aérea real</strong> de árboles separados (USDA, dominio
-          público) la segmentación entrega 218 manchas, casi todas sobre copas, y DBSCAN
-          descarta 212: el sistema publica <strong>6</strong>. Moviendo solo su parámetro
-          <code>eps</code>, el conteo va de 6 a 218 sin estabilizarse. En un huerto sintético
-          con maleza, en cambio, el conteo se queda quieto en los 80 árboles reales: esa meseta
-          es la firma de un grupo real en los datos.
+          <strong>Sobre una fotografía aérea real</strong> de árboles separados (USDA, dominio
+          público), la segmentación detecta 218 regiones, casi todas sobre copas, y DBSCAN
+          descarta 212: el sistema reporta <strong>6</strong>. Al variar únicamente el parámetro
+          <code>eps</code>, el conteo pasa de 6 a 218 sin estabilizarse. En un huerto sintético
+          con maleza, en cambio, el conteo se mantiene en los 80 árboles reales: esa meseta
+          indica la existencia de un grupo real en los datos.
         </p>
         <p>
-          <strong>Lo que cambió:</strong> el sistema ahora dice quién decidió cada conteo y si
-          es estable. En las pruebas con respuesta conocida solo dijo <em>estable</em> donde de
-          verdad acertó.
+          <strong>Mejora incorporada:</strong> el sistema informa qué componente decidió cada
+          conteo y si este es estable. En las pruebas con respuesta conocida, el veredicto
+          <em>estable</em> coincidió con el único caso correcto.
         </p>
         <div class="note">
-          <b>Etapa I reabierta (22-sep).</b> Para cerrarla: contar a mano las dos fotos públicas
-          del banco que sirven como control, y con ese número decidir cómo se agrupa. Ya no
-          depende del dron.
+          <b>Método de detección de centros (23 de septiembre).</b> Para plantaciones sobre
+          pasto verde o con hojas en contacto, como el plátano, se incorporó un método que no
+          segmenta regiones: localiza el punto de convergencia de las hojas de cada planta, con
+          una escala estimada por autocorrelación de la imagen. Alcanza un F1 de 0,96 en un
+          platanal sintético y ubica 224 plantas en una fotografía real de platanal. El cierre
+          de la Etapa I requiere el conteo manual de fotografías reales de control.
         </div>
       </div>
     </div>
@@ -821,8 +828,8 @@
       <figure>
         <img src="{{USDA_IMG}}" alt="Huerto real del USDA visto desde arriba: círculos verdes sobre los 6 árboles que cuenta el sistema y cruces rojas sobre las 212 manchas que descarta, casi todas encima de copas." />
         <figcaption>
-          Foto real (USDA): ○ los 6 árboles que publica el sistema con su ajuste por defecto ·
-          ✕ las 212 manchas que DBSCAN descarta como ruido.
+          Fotografía real (USDA): ○ los 6 árboles que reporta el sistema con su configuración
+          por defecto · ✕ las 212 regiones que DBSCAN descarta como ruido.
         </figcaption>
       </figure>
       <figure style="margin-top: 36px">
@@ -943,8 +950,8 @@
 <line class="ec-eps" x1="428" x2="448" y1="386" y2="386"/><text class="ec-ax" x="456" y="390">eps por defecto (0.8)</text>
 </svg>
         <figcaption>
-          Árboles contados según <code>eps</code>. Con un grupo real (izquierda) hay meseta; en
-          la foto real (derecha) cada valor da un número distinto.
+          Árboles contados según <code>eps</code>. Con un grupo real (izquierda) se forma una
+          meseta; en la fotografía real (derecha) cada valor produce un conteo distinto.
         </figcaption>
       </figure>
     </div>
@@ -955,9 +962,9 @@
       <figure>
         <img src="{{REAL_IMG}}" alt="El pipeline sobre una imagen real de cítricos de satélite: el índice de vegetación capta el dosel, pero el watershed subsegmenta donde las copas se tocan." />
         <figcaption>
-          Sobre cítricos reales (satélite, Lindsay CA): el índice <code>combo</code> ya capta
-          el dosel, pero el <em>watershed</em> no separa copa por copa donde el seto se cierra
-          — el caso de dosel cerrado, fuera del alcance de la Etapa I.
+          Sobre cítricos reales (satélite, Lindsay CA): el índice <code>combo</code> capta el
+          dosel, pero el <em>watershed</em> no separa las copas donde el seto se cierra. Es el
+          caso de dosel cerrado, fuera del alcance de la Etapa I.
         </figcaption>
       </figure>
     </div>
@@ -967,66 +974,67 @@
     <div class="wrap">
       <div class="sec-head">
         <span class="sec-head__n">05</span>
-        <h2>La hoja de ruta</h2>
+        <h2>Hoja de ruta</h2>
       </div>
       <p class="col" style="margin-bottom: 28px">
-        Cada etapa resuelve un problema concreto y deja código y método que la siguiente
-        reutiliza. <strong>La tesis de grado no está fijada</strong> — surgirá de la línea que,
-        tras experimentar, demuestre más relevancia y viabilidad.
+        Cada etapa aborda un problema concreto e incorpora código y procedimientos que se
+        reutilizan en las siguientes. <strong>El trabajo de grado no está definido</strong>:
+        se elegirá la línea que, a partir de los resultados, muestre mayor relevancia y
+        viabilidad.
       </p>
       <div class="table-scroll">
         <table class="roadmap">
-          <caption>estado al 22 de septiembre de 2026</caption>
+          <caption>estado al 23 de septiembre de 2026</caption>
           <thead>
             <tr>
-              <th>Fase</th>
+              <th>Etapa</th>
               <th>Nombre</th>
-              <th>Qué resuelve</th>
+              <th>Objetivo</th>
               <th>Estado</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>0.5</td>
-              <td>Landing pública</td>
+              <td>Sitio público</td>
               <td>Presentación del proyecto</td>
-              <td><span class="st st--now">hecha</span></td>
+              <td><span class="st st--now">completada</span></td>
             </tr>
             <tr data-now>
               <td>I</td>
-              <td>Conteo</td>
-              <td>Contar árboles en una imagen aérea</td>
-              <td><span class="st st--now">en revisión</span></td>
+              <td>Inventario y conteo</td>
+              <td>Identificación y conteo de plantas en imágenes aéreas</td>
+              <td><span class="st st--now">en validación</span></td>
             </tr>
             <tr>
               <td>I-B</td>
-              <td>Georreferencia</td>
-              <td>Ubicar cada árbol en coordenadas reales</td>
-              <td><span class="st st--wait">espera dron con GPS</span></td>
+              <td>Georreferenciación</td>
+              <td>Asignación de coordenadas geográficas a cada planta</td>
+              <td><span class="st st--wait">requiere dron con GPS</span></td>
             </tr>
             <tr>
               <td>II</td>
-              <td>Caracterización</td>
-              <td>Medir vigor y cobertura del cultivo</td>
-              <td><span class="st st--now">hecha en sintético</span></td>
+              <td>Caracterización del cultivo</td>
+              <td>Análisis de vigor, cobertura y variación espacial</td>
+              <td><span class="st st--now">en desarrollo</span></td>
             </tr>
             <tr>
               <td>III</td>
-              <td>Maleza en arroz</td>
-              <td>Mapa de infestación cultivo / maleza / suelo</td>
-              <td><span class="st st--next">próximo boss (~12 meses)</span></td>
+              <td>Detección de maleza en arroz</td>
+              <td>Mapas de distribución de maleza (cultivo / maleza / suelo)</td>
+              <td><span class="st st--next">próxima (~12 meses)</span></td>
             </tr>
             <tr>
               <td>IV</td>
-              <td>Series temporales</td>
-              <td>Anticipar la evolución de la parcela</td>
-              <td><span class="st st--back">backlog</span></td>
+              <td>Análisis temporal y predicción</td>
+              <td>Estimación de la evolución de la parcela</td>
+              <td><span class="st st--back">futura</span></td>
             </tr>
             <tr>
               <td>V</td>
               <td>Integración</td>
-              <td>Plataforma consultable</td>
-              <td><span class="st st--back">backlog</span></td>
+              <td>Plataforma de consulta</td>
+              <td><span class="st st--back">futura</span></td>
             </tr>
           </tbody>
         </table>
@@ -1042,32 +1050,34 @@
       </div>
       <div class="decisions">
         <div>
-          <h3>La tecnología subordinada al problema</h3>
+          <h3>Tecnología subordinada al problema</h3>
           <p>
-            Nada de bases de datos geoespaciales ni modelos grandes antes de necesitarlos.
-            Se añade complejidad solo cuando una etapa demuestra que hace falta.
+            No se incorporan bases de datos geoespaciales ni modelos de gran escala antes de
+            que sean necesarios. La complejidad aumenta solo cuando una etapa lo justifica.
           </p>
         </div>
         <div>
-          <h3>Una imagen, sin georreferencia</h3>
+          <h3>Una imagen, sin georreferenciación</h3>
           <p>
-            El dron es de $40 y sin GPS. Recortar el alcance a "contar en una imagen" hace la
-            etapa alcanzable ya; la georreferencia espera al hardware.
+            El dron disponible es de bajo costo y no tiene GPS. Limitar el alcance al conteo en
+            una imagen permite avanzar desde ahora; la georreferenciación depende del equipo.
           </p>
         </div>
         <div>
-          <h3>Primero clustering, después deep learning</h3>
+          <h3>Primero métodos clásicos, después aprendizaje profundo</h3>
           <p>
-            La apuesta era que DBSCAN bastaba para contar objetos muy parecidos entre sí, sin
-            dataset y con matemática de primer semestre. Las fotos reales mostraron que no
-            alcanza solo: el salto a un detector entrenado ahora tiene justificación medida.
+            La hipótesis inicial era que DBSCAN bastaba para contar objetos muy similares, sin
+            conjunto de datos etiquetado y con matemática de primer semestre. Las fotografías
+            reales mostraron sus límites y llevaron al método de detección de centros, que
+            obtiene resultados comparables a un detector preentrenado sin entrenamiento.
           </p>
         </div>
         <div>
           <h3>Núcleo reutilizable</h3>
           <p>
-            El pipeline es Python puro, corre en cualquier portátil, y la Etapa III hereda el
-            mismo procesamiento cambiando solo el paso final.
+            El <em>pipeline</em> está escrito en Python puro, se ejecuta en cualquier
+            computador portátil, y la Etapa III reutiliza el mismo procesamiento modificando
+            únicamente el paso final.
           </p>
         </div>
       </div>
@@ -1078,8 +1088,8 @@
 <footer>
   <div class="wrap">
     <p class="big">
-      No se construye primero la tesis y después el camino. Se construye el camino que
-      permite descubrir cuál debe ser la tesis.
+      El proyecto no parte de una tesis definida: construye progresivamente el camino que
+      permitirá determinarla.
     </p>
     <p>Proyecto Centinela · Universidad Industrial de Santander — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
   </div>

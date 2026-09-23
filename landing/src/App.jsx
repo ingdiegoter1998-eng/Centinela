@@ -4,11 +4,11 @@ import {
   queEs,
   queSera,
   fases,
+  fasesTitulo,
   notaFases,
   dondeEstamos,
   paginas,
   quienesSomos,
-  cierre,
 } from './content'
 
 /* Fondo del hero: retícula de siembra vista a nadir, con algunas copas
@@ -145,14 +145,18 @@ export default function App() {
             <p className="hero__sub">
               {proyecto.subtitulo} · <strong>{proyecto.lugar}</strong>
             </p>
-            <p className="hero__pitch">{proyecto.pitch}</p>
+            {proyecto.pitch.map((p, i) => (
+              <p className="hero__pitch" key={i}>
+                {p}
+              </p>
+            ))}
             <div className="hero__meta">
               <span className="chip">
                 <span className="chip__dot" />
                 Etapa I en curso
               </span>
               <span className="chip">UIS Saravena</span>
-              <span className="chip">Ingeniería en IA</span>
+              <span className="chip">Ingeniería en Inteligencia Artificial</span>
             </div>
             <a className="hero__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
               Probar la demo en el navegador →
@@ -162,9 +166,9 @@ export default function App() {
       </header>
 
       <main>
-        <Seccion id="proyecto" eyebrow="Qué es" titulo="Mirar el cultivo desde arriba y entender lo que se ve">
+        <Seccion id="proyecto" eyebrow="Qué es" titulo={queEs.titulo}>
           <div className="prose">
-            {queEs.map((p, i) => (
+            {queEs.parrafos.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>
@@ -182,17 +186,17 @@ export default function App() {
 
         <Seccion
           eyebrow="Hacia dónde va"
-          titulo="Construir el camino, no solo el destino"
+          titulo={queSera.titulo}
           className="vision"
         >
           <div className="prose">
-            {queSera.map((p, i) => (
+            {queSera.parrafos.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>
         </Seccion>
 
-        <Seccion id="fases" eyebrow="Las fases" titulo="Una etapa a la vez, cada una apoyada en la anterior">
+        <Seccion id="fases" eyebrow="Las fases" titulo={fasesTitulo}>
           <div className="fases">
             {fases.map((f) => (
               <article className={`fase fase--${f.estado}`} key={f.n}>
@@ -205,12 +209,14 @@ export default function App() {
               </article>
             ))}
           </div>
-          <p className="fases__nota">{notaFases}</p>
+          <div className="fases__nota">
+            <h3 className="fases__nota-titulo">{notaFases.titulo}</h3>
+            <p>{notaFases.texto}</p>
+          </div>
         </Seccion>
 
-        <Seccion id="ahora" eyebrow="Dónde estamos" titulo="El estado real del proyecto, hoy" className="ahora">
+        <Seccion id="ahora" eyebrow="Dónde estamos" titulo={dondeEstamos.titulo} className="ahora">
           <div className="ahora__card">
-            <p className="ahora__fase">{dondeEstamos.fase}</p>
             <div className="prose">
               {dondeEstamos.parrafos.map((p, i) => (
                 <p key={i}>{p}</p>
@@ -227,24 +233,27 @@ export default function App() {
           </div>
         </Seccion>
 
-        <Seccion id="nosotros" eyebrow="Quiénes somos" titulo="Un proyecto de la región, hecho desde la región">
+        <Seccion id="nosotros" eyebrow="Quiénes somos" titulo={quienesSomos.titulo}>
           <div className="prose">
-            {quienesSomos.map((p, i) => (
+            {quienesSomos.parrafos.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
+          </div>
+          <div className="colabora">
+            <h3 className="colabora__titulo">{quienesSomos.colaboracion.titulo}</h3>
+            <p>{quienesSomos.colaboracion.texto}</p>
           </div>
         </Seccion>
       </main>
 
       <footer className="pie">
         <div className="wrap">
-          <h2 className="pie__titulo">{cierre.titulo}</h2>
-          <p className="pie__texto">{cierre.texto}</p>
           <nav className="pie__paginas" aria-label="Más páginas del proyecto">
             {paginas.map((p) => (
               <a key={p.url} href={p.url}>
                 <strong>{p.nombre}</strong>
                 <span>{p.nota}</span>
+                <em className="pie__accion">{p.accion} →</em>
               </a>
             ))}
           </nav>

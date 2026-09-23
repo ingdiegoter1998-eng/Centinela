@@ -501,17 +501,18 @@
 
 <header>
   <div class="wrap">
-    <p class="eyebrow">Proyecto Centinela · estado al 22 de septiembre de 2026</p>
+    <p class="eyebrow">Proyecto Centinela · estado al 23 de septiembre de 2026</p>
     <h1>Hoja de ruta</h1>
     <p class="lead">
-      De contar árboles en una foto aérea a detectar maleza en arroz. Cada etapa resuelve un
-      problema completo y deja código y método que la siguiente reutiliza. Esta página resume
-      dónde estamos, qué aprendimos esta semana y qué sigue.
+      El proyecto avanza desde el conteo de plantas en imágenes aéreas hasta la detección de
+      maleza en cultivos de arroz. Cada etapa aborda un problema completo e incorpora datos,
+      código y procedimientos que se reutilizan en las siguientes. Esta página resume el estado
+      actual, los resultados recientes y los pasos previstos.
     </p>
     <div class="chips">
-      <span class="chip chip--warn">Etapa actual: I · en revisión</span>
-      <span class="chip chip--ok">52 pruebas pasando</span>
-      <span class="chip chip--ok">repositorio al día</span>
+      <span class="chip chip--warn">Etapa actual: I · en validación</span>
+      <span class="chip chip--ok">67 pruebas automáticas</span>
+      <span class="chip chip--ok">repositorio actualizado</span>
     </div>
   </div>
 </header>
@@ -520,11 +521,11 @@
   <section>
     <div class="wrap">
       <div class="sec-title">
-        <p class="eyebrow">El recorrido</p>
-        <h2>De principio a fin</h2>
+        <p class="eyebrow">Desarrollo</p>
+        <h2>Etapas del proyecto</h2>
         <p>
-          El orden es el de la hoja de ruta. Línea continua: tramo recorrido. Punteada: lo que
-          falta.
+          Las etapas se presentan en el orden de la hoja de ruta. La línea continua indica el
+          tramo completado; la punteada, el trabajo pendiente.
         </p>
       </div>
 
@@ -533,13 +534,13 @@
           <span class="stake">0.5</span>
           <div class="stop__body">
             <div class="stop__head">
-              <h3>Landing pública</h3>
-              <span class="chip chip--ok">hecha</span>
+              <h3>Sitio público</h3>
+              <span class="chip chip--ok">completada</span>
             </div>
             <p>
-              La página que presenta el proyecto a cualquiera. En línea en
-              <a href="https://ingdiegoter1998-eng.github.io/Centinela/">ingdiegoter1998-eng.github.io/Centinela</a>;
-              se actualiza sola con cada cambio.
+              Página de presentación del proyecto, disponible en
+              <a href="https://ingdiegoter1998-eng.github.io/Centinela/">ingdiegoter1998-eng.github.io/Centinela</a>.
+              Se actualiza automáticamente con cada cambio del repositorio.
             </p>
           </div>
         </li>
@@ -548,22 +549,27 @@
           <span class="stake">I</span>
           <div class="stop__body">
             <div class="stop__head">
-              <h3>Conteo de árboles en una foto aérea</h3>
-              <span class="chip chip--warn">en revisión</span>
+              <h3>Inventario y conteo</h3>
+              <span class="chip chip--warn">en validación</span>
             </div>
             <p>
-              Cuenta las copas de una imagen tomada desde arriba y ubica cada una. Visión por
-              computador clásica más agrupamiento, sin modelos entrenados.
+              Identificación y conteo automático de plantas en imágenes aéreas cenitales, con
+              localización individual de cada ejemplar. Visión por computador clásica, sin
+              modelos entrenados.
             </p>
             <div class="stop__card">
-              <span class="here">Estás aquí</span>
+              <span class="here">Etapa actual</span>
               <p>
-                Reabierta el 22-sep. La segmentación funciona, pero el paso que decide qué
-                mancha es un árbol (DBSCAN) no da un conteo confiable sobre foto real.
+                El método de segmentación y agrupamiento (DBSCAN) no produjo conteos confiables
+                sobre fotografías reales. Se incorporó un método de detección de centros de
+                planta, que localiza el punto de convergencia de las hojas en plátano y palma y
+                el centro de la copa en árboles de copa redonda. En un platanal sintético
+                alcanza un F1 de 0,96 y sobre una fotografía real de platanal ubica 224 plantas.
               </p>
               <p>
-                <b>Para cerrarla:</b> contar a mano dos fotos de control, decidir con ese número
-                cómo se agrupa y reportar el primer F1 sobre imagen real. Ya no depende del dron.
+                <b>Pendiente para el cierre:</b> conteo manual de fotografías reales de control
+                y cálculo del F1 y del error de conteo del método sobre esas imágenes. Este
+                paso no depende de disponer de un dron propio.
               </p>
             </div>
           </div>
@@ -573,12 +579,12 @@
           <span class="stake">I-B</span>
           <div class="stop__body">
             <div class="stop__head">
-              <h3>Dron propio y georreferencia</h3>
-              <span class="chip">espera dron con GPS</span>
+              <h3>Vuelos propios y georreferenciación</h3>
+              <span class="chip">requiere dron con GPS</span>
             </div>
             <p>
-              Vuelos propios, varias imágenes por parcela y coordenadas reales para cada árbol,
-              no solo píxeles.
+              Adquisición de imágenes propias, varias por parcela, y asignación de coordenadas
+              geográficas a cada planta detectada.
             </p>
           </div>
         </li>
@@ -588,11 +594,12 @@
           <div class="stop__body">
             <div class="stop__head">
               <h3>Caracterización del cultivo</h3>
-              <span class="chip chip--ok">hecha en sintético</span>
+              <span class="chip chip--ok">en desarrollo</span>
             </div>
             <p>
-              Marca los árboles que se apartan del resto: más chicos, menos verdes o con huecos.
-              Sobre foto real hereda el estado de la Etapa I.
+              Identificación de las plantas que se apartan del comportamiento general de la
+              parcela por tamaño, vigor o cobertura. Validada sobre datos sintéticos; sobre
+              imágenes reales depende de los resultados de la Etapa I.
             </p>
           </div>
         </li>
@@ -601,12 +608,13 @@
           <span class="stake">III</span>
           <div class="stop__body">
             <div class="stop__head">
-              <h3>Maleza en arroz</h3>
-              <span class="chip chip--info">próximo reto · ~12 meses</span>
+              <h3>Detección de maleza en arroz</h3>
+              <span class="chip chip--info">próxima · ~12 meses</span>
             </div>
             <p>
-              Separar cultivo, maleza y suelo píxel a píxel y producir un mapa del porcentaje de
-              maleza por sector. Aquí entra el aprendizaje profundo.
+              Clasificación de cultivo, maleza y suelo a nivel de píxel para generar mapas de
+              distribución de maleza por sector. En esta etapa se incorporan modelos de
+              aprendizaje profundo.
             </p>
           </div>
         </li>
@@ -615,10 +623,13 @@
           <span class="stake">IV</span>
           <div class="stop__body">
             <div class="stop__head">
-              <h3>Series temporales y predicción</h3>
-              <span class="chip">año 3</span>
+              <h3>Análisis temporal y predicción</h3>
+              <span class="chip">futura</span>
             </div>
-            <p>Seguir la misma parcela a lo largo de varios vuelos y anticipar cómo evoluciona.</p>
+            <p>
+              Comparación de observaciones sucesivas de una misma parcela para analizar su
+              evolución y desarrollar modelos predictivos.
+            </p>
           </div>
         </li>
 
@@ -627,9 +638,12 @@
           <div class="stop__body">
             <div class="stop__head">
               <h3>Integración</h3>
-              <span class="chip">sin compromiso</span>
+              <span class="chip">futura</span>
             </div>
-            <p>Reunir los datos y modelos de todas las etapas en un lugar consultable.</p>
+            <p>
+              Integración de los datos y modelos de las distintas etapas en una plataforma de
+              consulta.
+            </p>
           </div>
         </li>
 
@@ -637,16 +651,18 @@
           <span class="stake">tesis</span>
           <div class="stop__body">
             <div class="stop__head">
-              <h3>El reto final</h3>
-              <span class="chip">sale de los resultados</span>
+              <h3>Trabajo de grado</h3>
+              <span class="chip">según resultados</span>
             </div>
             <p>
-              No se decreta de antemano: será la línea que muestre más relevancia y viabilidad.
-              La Etapa III es candidata fuerte.
+              El tema se definirá a partir de la línea que muestre mayor relevancia y
+              viabilidad. La Etapa III es una candidata principal.
             </p>
             <p class="aside">
-              Aparte queda una línea de investigación especulativa sobre cacao y cadmio. No se
-              invierte en ella hasta tener datos de laboratorio que la respalden.
+              Se mantiene además una línea de investigación futura orientada al análisis de
+              cultivos de cacao y a la detección de condiciones asociadas a la presencia de
+              metales pesados. Su desarrollo depende de contar con datos de laboratorio que la
+              respalden.
             </p>
           </div>
         </li>
@@ -657,29 +673,29 @@
   <section>
     <div class="wrap">
       <div class="sec-title">
-        <p class="eyebrow">Lo que aprendimos esta semana</p>
-        <h2>La Etapa I, en tres números</h2>
+        <p class="eyebrow">Resultados recientes</p>
+        <h2>La Etapa I en tres cifras</h2>
       </div>
       <div class="figures">
         <div>
           <span class="v">218 → 6</span>
           <p>
-            En una foto real de árboles separados, la segmentación encuentra 218 manchas sobre
-            copas. DBSCAN descarta 212 y el sistema publica 6.
+            En una fotografía real de árboles separados, la segmentación encontró 218 regiones
+            sobre copas; el agrupamiento con DBSCAN descartó 212 y reportó 6.
           </p>
         </div>
         <div>
-          <span class="v">F1 1,00</span>
+          <span class="v">~1.000 → 224</span>
           <p>
-            El resultado del huerto sintético lo produjo la segmentación: con su ajuste, DBSCAN
-            nunca llegó a formar un grupo.
+            En una fotografía real de platanal, el método de segmentación marcó del orden de mil
+            regiones entre hojas. El método de detección de centros ubica 224 plantas.
           </p>
         </div>
         <div>
-          <span class="v">1 de 6</span>
+          <span class="v">F1 0,96</span>
           <p>
-            Pruebas con respuesta conocida en las que el nuevo chequeo dijo «estable». Fue
-            justo la única que acertó.
+            Resultado del método de centros en un platanal sintético con fondo de pasto, frente
+            a 0,95 de DeepForest, un detector preentrenado, y 0,00 del método de segmentación.
           </p>
         </div>
       </div>
@@ -689,52 +705,54 @@
   <section>
     <div class="wrap">
       <div class="sec-title">
-        <p class="eyebrow">En orden</p>
-        <h2>Lo que sigue</h2>
+        <p class="eyebrow">Próximos pasos</p>
+        <h2>Trabajo previsto</h2>
       </div>
       <ol class="next">
         <li>
           <div>
-            <div class="row"><b>Demo en vivo</b><span class="chip chip--ok">lista</span></div>
+            <div class="row"><b>Demo en línea</b><span class="chip chip--ok">disponible</span></div>
             <p>
-              App interactiva en <code>demo/</code> (doble clic en <code>iniciar.bat</code>),
-              también en línea en
-              <a href="https://centinela-demo.streamlit.app/">centinela-demo.streamlit.app</a>, y
-              guion de 7 minutos en <code>docs/demo-en-vivo.md</code>.
+              Aplicación interactiva en <code>demo/</code> (ejecutable con
+              <code>iniciar.bat</code>), publicada en
+              <a href="https://centinela-demo.streamlit.app/">centinela-demo.streamlit.app</a>,
+              con guion de presentación de 7 minutos en <code>docs/demo-en-vivo.md</code>.
             </p>
           </div>
         </li>
         <li>
           <div>
-            <div class="row"><b>Contar a mano las dos fotos de control</b><span class="chip chip--warn">pendiente · bloquea el paso 3</span></div>
+            <div class="row"><b>Conteo manual de las fotografías de control</b><span class="chip chip--warn">pendiente · requisito del paso 3</span></div>
             <p>
-              <code>huerto_reticula_usda</code> y <code>palma_aceite_rio</code>, con
-              <code>centinela annotate</code>. Es trabajo de clics sobre la imagen: tiene que
-              hacerlo una persona.
+              Marcado manual de las plantas en la fotografía de platanal y en
+              <code>palma_aceite_rio</code> con <code>centinela annotate</code>. La herramienta
+              parte de los centros detectados, de modo que solo se corrigen los errores.
             </p>
           </div>
         </li>
         <li>
           <div>
-            <div class="row"><b>Decidir cómo se agrupa</b></div>
+            <div class="row"><b>Calibración del método de centros</b></div>
             <p>
-              Normalizar con escalas fijas en vez de por imagen, o contar sin agrupar con un
-              filtro de área explícito. Se decide midiendo contra el conteo manual.
+              Ajuste, con el conteo manual, de los parámetros del método, que hoy están
+              calibrados sobre datos sintéticos.
             </p>
           </div>
         </li>
         <li>
           <div>
-            <div class="row"><b>Cerrar la Etapa I con un F1 real</b></div>
-            <p>Precisión, exhaustividad y error de conteo sobre imagen real, no solo sintética.</p>
+            <div class="row"><b>Cierre de la Etapa I</b></div>
+            <p>
+              Reporte de precisión, exhaustividad y error de conteo sobre imágenes reales.
+            </p>
           </div>
         </li>
         <li>
           <div>
-            <div class="row"><b>Preparar lo siguiente</b></div>
+            <div class="row"><b>Preparación de las etapas siguientes</b></div>
             <p>
-              Con un dron con GPS, la Etapa I-B. En paralelo, conseguir acceso a una parcela de
-              arroz para la Etapa III.
+              Etapa I-B cuando se disponga de un dron con GPS y, en paralelo, gestión del acceso
+              a una parcela de arroz para la Etapa III.
             </p>
           </div>
         </li>
@@ -745,29 +763,34 @@
   <section>
     <div class="wrap">
       <div class="sec-title">
-        <p class="eyebrow">Para no perderse</p>
-        <h2>Dónde está cada cosa</h2>
+        <p class="eyebrow">Referencia</p>
+        <h2>Documentos y recursos</h2>
       </div>
       <div class="table-scroll">
         <table class="where">
           <thead>
-            <tr><th>Qué</th><th>Para qué</th><th>Dónde</th></tr>
+            <tr><th>Recurso</th><th>Contenido</th><th>Enlace</th></tr>
           </thead>
           <tbody>
             <tr class="group"><td colspan="3">Repositorio</td></tr>
             <tr>
               <td>README</td>
-              <td>Punto de entrada: estado, estructura y comandos</td>
+              <td>Estado, estructura del proyecto y comandos principales</td>
               <td><a href="https://github.com/ingdiegoter1998-eng/Centinela#readme">GitHub</a></td>
             </tr>
             <tr>
               <td>ROADMAP.md</td>
-              <td>La hoja de ruta completa; la fuente de verdad del proyecto</td>
+              <td>Hoja de ruta completa; documento de referencia del proyecto</td>
               <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/ROADMAP.md">GitHub</a></td>
             </tr>
             <tr>
+              <td>resultados-centros.md</td>
+              <td>Método de detección de centros: plátano, palma y comparación con DeepForest</td>
+              <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/resultados-centros.md">GitHub</a></td>
+            </tr>
+            <tr>
               <td>resultados-imagen-real.md</td>
-              <td>Qué pasó al probar con fotos reales (§5: lo de esta semana)</td>
+              <td>Pruebas del método de segmentación sobre fotografías reales</td>
               <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/resultados-imagen-real.md">GitHub</a></td>
             </tr>
             <tr>
@@ -780,40 +803,40 @@
             </tr>
             <tr>
               <td>demo-en-vivo.md</td>
-              <td>Guion de la demo, con plan B y preguntas probables</td>
+              <td>Guion de la demostración, con plan alternativo y preguntas frecuentes</td>
               <td><a href="https://github.com/ingdiegoter1998-eng/Centinela/blob/main/docs/demo-en-vivo.md">GitHub</a></td>
             </tr>
             <tr class="group"><td colspan="3">Presentación</td></tr>
             <tr>
               <td>Demo en línea</td>
-              <td>La app interactiva, para probarla desde cualquier navegador</td>
+              <td>Aplicación interactiva, accesible desde el navegador</td>
               <td><a href="https://centinela-demo.streamlit.app/">abrir</a></td>
             </tr>
             <tr>
-              <td>Landing pública</td>
-              <td>El proyecto para cualquier persona, sin detalle técnico</td>
+              <td>Sitio público</td>
+              <td>Presentación general del proyecto</td>
               <td><a href="https://ingdiegoter1998-eng.github.io/Centinela/">abrir</a></td>
             </tr>
             <tr>
               <td>Diapositivas</td>
-              <td>12 diapositivas, incluida la foto real y la gráfica de estabilidad</td>
+              <td>Material utilizado para la presentación del proyecto</td>
               <td><a href="diapositivas.html">abrir</a></td>
             </tr>
             <tr>
               <td>Guion de exposición</td>
-              <td>7 minutos, con glosario y preguntas probables</td>
+              <td>Presentación de aproximadamente 7 minutos, con términos técnicos y conceptos principales</td>
               <td><a href="guion.html">abrir</a></td>
             </tr>
             <tr>
               <td>Adelanto</td>
-              <td>El proyecto explicado de punta a punta, con su matemática</td>
+              <td>Descripción del método de conteo y sus fundamentos matemáticos</td>
               <td><a href="adelanto.html">abrir</a></td>
             </tr>
           </tbody>
         </table>
       </div>
       <p class="fine">
-        Todas estas páginas son públicas en el sitio del proyecto,
+        Todas las páginas están disponibles en el sitio del proyecto,
         <a href="https://ingdiegoter1998-eng.github.io/Centinela/">ingdiegoter1998-eng.github.io/Centinela</a>.
       </p>
     </div>
@@ -823,11 +846,11 @@
 <footer>
   <div class="wrap">
     <p>
-      Repositorio: una sola rama (<code>main</code>) sincronizada con GitHub · 52 pruebas
-      pasando · landing en línea en GitHub Pages · documentos y páginas de presentación
-      actualizados el 22-sep-2026.
+      Repositorio en una sola rama (<code>main</code>) sincronizada con GitHub · 67 pruebas
+      automáticas · sitio publicado en GitHub Pages · documentos actualizados el
+      23 de septiembre de 2026.
     </p>
-    <p>Proyecto Centinela · UIS — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
+    <p>Proyecto Centinela · Universidad Industrial de Santander — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
   </div>
 </footer>
 

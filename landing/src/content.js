@@ -7,61 +7,74 @@ export const proyecto = {
   nombre: 'Proyecto Centinela',
   subtitulo: 'Plataforma de agricultura de precisión',
   lugar: 'Saravena, Arauca',
-  pitch:
-    'Usamos drones e inteligencia artificial para ver lo que ocurre dentro de los cultivos de la región: cuántas plantas hay, cómo están y qué las amenaza. Información concreta, parcela por parcela.',
+  pitch: [
+    'Centinela desarrolla métodos de visión por computador e inteligencia artificial para analizar cultivos mediante imágenes aéreas obtenidas con drones.',
+    'El proyecto busca extraer información sobre la distribución, características y condiciones del cultivo a escala de parcela.',
+  ],
+}
+
+export const queEs = {
+  titulo: 'Análisis de cultivos mediante imágenes aéreas',
+  parrafos: [
+    'Las imágenes obtenidas desde drones permiten observar una parcela completa y analizar su distribución espacial.',
+    'Centinela procesa estas imágenes mediante técnicas de visión por computador para identificar patrones de vegetación, localizar plantas y generar información cuantificable sobre el cultivo.',
+    'El desarrollo se estructura en etapas sucesivas, desde la identificación de plantas hasta el análisis temporal de una misma parcela.',
+  ],
 }
 
 export const pilares = [
   {
     verbo: 'Observar',
-    texto: 'Capturar el cultivo desde el aire con vuelos de dron sobre parcelas reales.',
+    texto: 'Capturar imágenes aéreas de parcelas mediante vuelos de dron.',
   },
   {
     verbo: 'Caracterizar',
-    texto: 'Traducir esas imágenes en medidas: cuántas plantas, dónde, en qué estado.',
+    texto: 'Extraer variables del cultivo y analizar su distribución dentro de la parcela.',
   },
   {
     verbo: 'Detectar',
-    texto: 'Encontrar lo que no debería estar ahí — maleza, anomalías, zonas en problemas.',
+    texto:
+      'Identificar maleza, anomalías y otras condiciones relevantes a partir de patrones presentes en las imágenes.',
   },
   {
     verbo: 'Predecir',
-    texto: 'Con suficiente historia, anticipar cómo va a evolucionar la parcela.',
+    texto: 'Utilizar series históricas de observaciones para estimar la evolución del cultivo.',
   },
 ]
 
-export const queEs = [
-  'Un cultivo visto desde arriba dice mucho más de lo que parece. Cada vuelo captura cientos de imágenes que, procesadas con visión por computador e inteligencia artificial, se convierten en información concreta sobre el terreno: cuántas plantas hay y dónde está cada una, qué sectores crecen mejor que otros, en qué zonas aparece la maleza.',
-  'Proyecto Centinela construye, paso a paso, la capacidad de responder esas preguntas en los cultivos de Saravena.',
-]
+export const queSera = {
+  titulo: 'Construcción progresiva del sistema',
+  parrafos: [
+    'Cada etapa incorpora datos, modelos y procedimientos que pueden reutilizarse en las siguientes.',
+    'El objetivo es construir una base de información georreferenciada que permita analizar la evolución de los cultivos de la región a partir de observaciones realizadas en distintos momentos.',
+    'A largo plazo, Centinela busca convertir ese análisis en una herramienta de consulta para productores e investigadores.',
+  ],
+}
 
-export const queSera = [
-  'Cada etapa resuelve un problema completo y deja datos, código y métodos que la siguiente reutiliza. Con el tiempo eso se acumula en algo que hoy no existe para la región: un registro detallado y georreferenciado de cómo se comportan sus cultivos.',
-  'El objetivo final es que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.',
-]
+export const fasesTitulo = 'Desarrollo por etapas'
 
 export const fases = [
   {
     n: 'I',
     nombre: 'Inventario y conteo',
     resumen:
-      'Contar automáticamente cuántas plantas hay en una imagen aérea de la parcela y ubicar cada una.',
+      'Identificación y conteo automático de plantas en imágenes aéreas, con localización individual de cada ejemplar.',
     estado: 'en-curso',
-    etiqueta: 'En revisión',
+    etiqueta: 'En validación',
   },
   {
     n: 'II',
     nombre: 'Caracterización del cultivo',
     resumen:
-      'Medir cómo está el cultivo: vigor, cobertura y diferencias entre sectores de una misma parcela.',
+      'Análisis de variables como vigor, cobertura y variación espacial dentro de una misma parcela.',
     estado: 'paralelo',
-    etiqueta: 'En paralelo',
+    etiqueta: 'En desarrollo',
   },
   {
     n: 'III',
     nombre: 'Detección de maleza en arroz',
     resumen:
-      'Distinguir cultivo, maleza y suelo para producir un mapa de infestación sector por sector.',
+      'Clasificación de cultivo, maleza y suelo para generar mapas de distribución de maleza.',
     estado: 'proxima',
     etiqueta: 'Próxima',
   },
@@ -69,7 +82,7 @@ export const fases = [
     n: 'IV',
     nombre: 'Análisis temporal y predicción',
     resumen:
-      'Seguir la misma parcela a lo largo de varios vuelos para anticipar cómo evoluciona.',
+      'Comparación de observaciones sucesivas de una misma parcela para analizar su evolución y desarrollar modelos predictivos.',
     estado: 'futura',
     etiqueta: 'Futura',
   },
@@ -77,43 +90,75 @@ export const fases = [
     n: 'V',
     nombre: 'Integración',
     resumen:
-      'Reunir los datos y modelos de todas las etapas en una plataforma consultable.',
+      'Integración de los datos y modelos desarrollados en las distintas etapas dentro de una plataforma de consulta.',
     estado: 'futura',
     etiqueta: 'Futura',
   },
 ]
 
-export const notaFases =
-  'Además mantenemos abierta una línea de investigación futura sobre cacao y presencia de metales pesados.'
+export const notaFases = {
+  titulo: 'Línea de investigación',
+  texto:
+    'Se mantiene una línea de investigación futura orientada al análisis de cultivos de cacao y a la detección de condiciones asociadas a la presencia de metales pesados.',
+}
 
 export const paginas = [
-  { nombre: 'Hoja de ruta', url: 'hoja-de-ruta.html', nota: 'Las etapas de principio a fin' },
-  { nombre: 'Diapositivas', url: 'diapositivas.html', nota: 'Para exponer, con ← →' },
-  { nombre: 'Guion de exposición', url: 'guion.html', nota: '7 minutos, con glosario' },
-  { nombre: 'Adelanto', url: 'adelanto.html', nota: 'El método y su matemática' },
-  { nombre: 'Código', url: 'https://github.com/ingdiegoter1998-eng/Centinela', nota: 'Repositorio en GitHub' },
+  {
+    nombre: 'Hoja de ruta',
+    url: 'hoja-de-ruta.html',
+    nota: 'Desarrollo completo del proyecto',
+    accion: 'Ver etapas',
+  },
+  {
+    nombre: 'Diapositivas',
+    url: 'diapositivas.html',
+    nota: 'Material utilizado para la presentación del proyecto.',
+    accion: 'Ver diapositivas',
+  },
+  {
+    nombre: 'Guion de exposición',
+    url: 'guion.html',
+    nota: 'Guion de presentación de aproximadamente 7 minutos, con términos técnicos y conceptos principales.',
+    accion: 'Ver guion',
+  },
+  {
+    nombre: 'Adelanto',
+    url: 'adelanto.html',
+    nota: 'Descripción del método de conteo y fundamentos matemáticos utilizados en la etapa actual.',
+    accion: 'Ver adelanto',
+  },
+  {
+    nombre: 'Código',
+    url: 'https://github.com/ingdiegoter1998-eng/Centinela',
+    nota: 'Repositorio del proyecto y código fuente disponible en GitHub.',
+    accion: 'Ver repositorio',
+  },
 ]
 
 export const dondeEstamos = {
-  fase: 'Etapa I — en revisión',
+  titulo: 'Etapa I · Validación del método de conteo',
   parrafos: [
-    'El programa toma una imagen aérea de una parcela, separa la vegetación del suelo, cuenta las copas de árbol y marca dónde está cada una. Sobre huertos de prueba con respuesta conocida acierta todos los árboles.',
-    'Al probarlo con fotografías aéreas reales encontramos que el paso que decide qué mancha es un árbol y cuál no depende demasiado de un solo ajuste. Ahora el programa avisa cuándo su propio conteo no es confiable, y el siguiente paso es contar a mano los árboles de dos fotografías reales para medirlo con precisión.',
+    'La versión actual procesa imágenes aéreas para separar vegetación y suelo, identificar copas de árboles y determinar su distribución espacial.',
+    'En imágenes de prueba con un número conocido de árboles, el método identifica correctamente cada ejemplar.',
+    'Las primeras pruebas sobre fotografías aéreas reales permitieron identificar una sensibilidad del método a determinadas condiciones de segmentación. Actualmente se está realizando una validación cuantitativa sobre imágenes reales mediante conteo manual y comparación con los resultados automáticos.',
   ],
   demo: {
     texto: 'Probar la demo en el navegador',
     url: 'https://centinela-demo.streamlit.app/',
-    nota: 'Es una demo de laboratorio: muestra cómo cuenta el método y cuándo no hay que confiar en su número.',
+    nota: 'La demo corresponde a una versión experimental del método de conteo y permite visualizar su funcionamiento sobre imágenes de prueba.',
   },
 }
 
-export const quienesSomos = [
-  'Somos estudiantes de Ingeniería en Inteligencia Artificial de la UIS, sede Saravena. El proyecto crece en paralelo a la carrera: cada etapa exige matemáticas, estadística, visión por computador y análisis de datos un poco más avanzados que la anterior.',
-  'Trabajamos sobre cultivos de nuestra propia región porque las herramientas de agricultura de precisión casi nunca se diseñan pensando en ella.',
-]
-
-export const cierre = {
-  titulo: '¿Te interesa el proyecto?',
-  texto:
-    'Estamos abiertos a conversar con productores, instituciones y grupos de investigación de la región.',
+export const quienesSomos = {
+  titulo: 'Un proyecto desarrollado en Saravena',
+  parrafos: [
+    'Centinela es desarrollado por estudiantes de Ingeniería en Inteligencia Artificial de la Universidad Industrial de Santander, sede Saravena.',
+    'El proyecto combina programación, matemáticas, estadística, visión por computador y análisis de datos para abordar problemas relacionados con los cultivos de la región.',
+    'El trabajo se desarrolla a partir de datos e imágenes obtenidos en el contexto local, con el propósito de estudiar la aplicación de técnicas de inteligencia artificial a condiciones agrícolas propias de Saravena.',
+  ],
+  colaboracion: {
+    titulo: 'Colaboración',
+    texto:
+      'Estamos abiertos a establecer contacto con productores, instituciones y grupos de investigación interesados en agricultura de precisión y análisis de datos agrícolas.',
+  },
 }

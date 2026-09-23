@@ -312,10 +312,15 @@ a {
 }
 
 .hero__pitch {
-  font-size: clamp(19px, 2.4vw, 25px);
+  font-size: clamp(18px, 2vw, 22px);
   line-height: 1.5;
-  max-width: 30ch;
+  max-width: 44ch;
   color: #dfe8e0;
+}
+
+.hero__pitch + .hero__pitch {
+  margin-top: 14px;
+  color: var(--tx-onDark-soft);
 }
 
 .hero__meta {
@@ -491,10 +496,30 @@ a {
 }
 
 .fases__nota {
-  margin-top: 26px;
-  font-size: 15px;
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
   color: var(--tx-soft);
   max-width: var(--text);
+}
+
+.fases__nota-titulo,
+.colabora__titulo {
+  font-family: var(--display);
+  font-size: 22px;
+  color: var(--tx);
+  margin-bottom: 8px;
+}
+
+.colabora {
+  margin-top: 36px;
+  max-width: var(--text);
+  padding: 22px 26px;
+  border-left: 3px solid var(--green);
+  background: var(--paper-2);
+  color: var(--tx-soft);
+  font-size: clamp(16px, 1.4vw, 18px);
 }
 
 @media (max-width: 640px) {
@@ -529,14 +554,6 @@ a {
   padding: clamp(28px, 4vw, 40px);
 }
 
-.ahora__fase {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--amber);
-  margin-bottom: 18px;
-}
 
 .ahora__card .prose {
   margin-top: 0;
@@ -577,9 +594,8 @@ a {
 
 .pie__paginas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
-  margin-top: 40px;
 }
 
 .pie__paginas a {
@@ -606,18 +622,17 @@ a {
 .pie__paginas span {
   font-size: 14px;
   color: var(--tx-onDark-soft);
+  flex: 1;
 }
 
-.pie__titulo {
-  font-size: clamp(26px, 3.4vw, 36px);
-  color: var(--tx-onDark);
+.pie__accion {
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green-bright);
 }
 
-.pie__texto {
-  margin-top: 16px;
-  max-width: 46ch;
-  color: var(--tx-onDark-soft);
-}
 
 .pie__base {
   margin-top: 56px;

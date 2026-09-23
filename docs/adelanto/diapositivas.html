@@ -530,7 +530,7 @@
   <section class="slide current" aria-label="Diapositiva 1">
     <p class="eyebrow">Proyecto de investigación · Primer semestre</p>
     <h1>Proyecto Centinela</h1>
-    <p class="sub">Agricultura de precisión para Saravena, Arauca</p>
+    <p class="sub">Plataforma de agricultura de precisión · Saravena, Arauca</p>
     <p class="byline">
       Ingeniería en Inteligencia Artificial · UIS — Sede Saravena<br />
       [ nombres de los integrantes ]
@@ -539,36 +539,36 @@
 
   <section class="slide" aria-label="Diapositiva 2">
     <p class="eyebrow">Qué es</p>
-    <h2>Ver el cultivo desde el aire y convertir la imagen en datos</h2>
+    <h2>Análisis de cultivos mediante imágenes aéreas</h2>
     <p class="flow">observar → caracterizar → detectar → predecir</p>
     <p class="note">
-      Un dron sobrevuela la parcela. El software cuenta las plantas, mide cómo están y señala
-      dónde hay problemas.
+      Las imágenes obtenidas con dron se procesan mediante visión por computador para localizar
+      plantas, caracterizar el cultivo e identificar condiciones relevantes en la parcela.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 3">
     <p class="eyebrow">Hacia dónde va</p>
-    <h2>Cinco etapas</h2>
+    <h2>Desarrollo por etapas</h2>
     <table class="roadmap">
       <tbody>
-        <tr class="now"><td>Etapa I</td><td>Conteo de árboles en una imagen</td><td>en revisión</td></tr>
-        <tr><td>Etapa II</td><td>Caracterización del cultivo</td><td>hecha en sintético</td></tr>
-        <tr><td>Etapa III</td><td>Detección de maleza en arroz</td><td>próximo hito (~12 meses)</td></tr>
-        <tr><td>Etapa IV</td><td>Series temporales y predicción</td><td>backlog</td></tr>
+        <tr class="now"><td>Etapa I</td><td>Inventario y conteo</td><td>en validación</td></tr>
+        <tr><td>Etapa II</td><td>Caracterización del cultivo</td><td>en desarrollo</td></tr>
+        <tr><td>Etapa III</td><td>Detección de maleza en arroz</td><td>próxima (~12 meses)</td></tr>
+        <tr><td>Etapa IV</td><td>Análisis temporal y predicción</td><td>futura</td></tr>
       </tbody>
     </table>
-    <p class="note">El arroz es el cultivo grande de Arauca. La Etapa III es la que más nos interesa.</p>
+    <p class="note">El arroz es el principal cultivo de Arauca; por ello la Etapa III constituye el objetivo central del proyecto.</p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 4">
     <p class="eyebrow">Dónde estamos</p>
-    <h2>Etapa I — contar árboles en una foto aérea</h2>
-    <p class="flow">imagen cenital &nbsp;→&nbsp; conteo + posición de cada copa</p>
+    <h2>Etapa I · Inventario y conteo</h2>
+    <p class="flow">imagen cenital &nbsp;→&nbsp; conteo y localización de cada planta</p>
     <ul>
-      <li>Un huerto tiene cientos de copas casi idénticas entre sí</li>
-      <li>Esa regularidad es la que hace que el conteo funcione</li>
-      <li>Por ahora: una imagen · sin GPS · copas separadas</li>
+      <li>Una plantación contiene cientos de plantas de apariencia muy similar</li>
+      <li>Esa regularidad es la base del método de conteo</li>
+      <li>Alcance actual: una imagen · sin GPS · plantas identificables individualmente</li>
     </ul>
   </section>
 
@@ -578,37 +578,37 @@
       <div style="display: flex; flex-direction: column; gap: clamp(14px, 2.5vh, 26px)">
         <h2>El método</h2>
         <ol class="steps">
-          <li>Vegetación vs. suelo — verde y oscuridad</li>
-          <li>Separar copas pegadas — <em>watershed</em></li>
-          <li>Describir cada mancha: área, color, forma</li>
-          <li class="key">Agrupar por similitud — DBSCAN</li>
-          <li>Contar</li>
+          <li>Separación de vegetación y suelo — color y luminosidad</li>
+          <li>Separación de copas en contacto — <em>watershed</em></li>
+          <li>Descripción de cada región: área, color y forma</li>
+          <li class="key">Agrupamiento por similitud — DBSCAN</li>
+          <li>Conteo</li>
         </ol>
-        <p class="note">Visión por computador clásica. Sin modelos entrenados.</p>
+        <p class="note">Visión por computador clásica, sin modelos entrenados.</p>
       </div>
       <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y el conteo final de 80 árboles." />
     </div>
   </section>
 
   <section class="slide" aria-label="Diapositiva 6">
-    <p class="eyebrow">El corazón del método</p>
+    <p class="eyebrow">Componente central del método</p>
     <h2>¿Qué es <span class="mono">DBSCAN</span>?</h2>
     <ul>
       <li><em>Density-Based Spatial Clustering of Applications with Noise</em></li>
       <li>1996 — Ester, Kriegel, Sander y Xu</li>
       <li>Premio <em>Test of Time</em> de KDD, 2014</li>
-      <li>Cada mancha es un punto en <span class="mono">ℝ⁷</span></li>
-      <li>La región densa de puntos parecidos son los árboles; lo disperso es <strong>ruido</strong></li>
+      <li>Cada región se representa como un punto en <span class="mono">ℝ⁷</span></li>
+      <li>Las zonas densas de puntos similares corresponden a los árboles; los puntos dispersos se tratan como <strong>ruido</strong></li>
     </ul>
     <p class="note">
-      Corre directo sobre los datos, sin ejemplos etiquetados. Solo hace falta distancia
-      euclidiana y contar vecinos.
+      Opera directamente sobre los datos, sin ejemplos etiquetados. Se basa únicamente en la
+      distancia euclidiana y en el conteo de vecinos.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 7">
-    <p class="eyebrow">La diferencia</p>
-    <h2>DBSCAN frente a un modelo de Hugging Face</h2>
+    <p class="eyebrow">Comparación</p>
+    <h2>DBSCAN frente a un modelo preentrenado</h2>
     <table class="cmp">
       <thead>
         <tr>
@@ -620,49 +620,49 @@
       <tbody>
         <tr>
           <th scope="row">Qué es</th>
-          <td class="hf">red con millones de parámetros ya ajustados</td>
-          <td class="db">un procedimiento, no un objeto entrenado</td>
+          <td class="hf">red con millones de parámetros ajustados previamente</td>
+          <td class="db">un procedimiento, no un modelo entrenado</td>
         </tr>
         <tr>
           <th scope="row">Necesita</th>
-          <td class="hf">datos etiquetados · GPU · reajuste propio</td>
+          <td class="hf">datos etiquetados · GPU · ajuste al cultivo</td>
           <td class="db">solo los datos</td>
         </tr>
         <tr>
-          <th scope="row">Su matemática</th>
-          <td class="hf">cálculo multivariable — aún no lo vemos</td>
-          <td class="db">distancia euclidiana + contar — primer semestre</td>
+          <th scope="row">Fundamento matemático</th>
+          <td class="hf">cálculo multivariable — cursos posteriores</td>
+          <td class="db">distancia euclidiana y conteo — primer semestre</td>
         </tr>
       </tbody>
     </table>
-    <p class="note">El aprendizaje profundo lo vamos a necesitar en la Etapa III, para segmentar maleza píxel a píxel.</p>
+    <p class="note">El aprendizaje profundo se incorporará en la Etapa III, para la segmentación de maleza a nivel de píxel.</p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 8">
-    <p class="eyebrow">Qué llevamos</p>
+    <p class="eyebrow">Resultados obtenidos</p>
     <h2>Resultados</h2>
     <div class="metrics">
       <div><span class="v">1.00</span><span class="k">F1 · sintético</span></div>
       <div><span class="v">0 %</span><span class="k">error de conteo</span></div>
-      <div><span class="v">52 / 52</span><span class="k">pruebas</span></div>
+      <div><span class="v">67 / 67</span><span class="k">pruebas automáticas</span></div>
       <div><span class="v">1 → 110</span><span class="k">índice combo · imagen real</span></div>
     </div>
     <p class="note">
-      Pero al probarlo con fotos reales descubrimos quién producía ese 1.00: la segmentación, no
-      DBSCAN.
+      Las pruebas con fotografías reales mostraron que ese resultado lo producía la
+      segmentación, no DBSCAN.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 9">
-    <p class="eyebrow">Al probarlo con una foto real</p>
+    <p class="eyebrow">Prueba con fotografía real</p>
     <div class="split">
       <div style="display: flex; flex-direction: column; gap: clamp(14px, 2.5vh, 26px)">
-        <h2>La segmentación acierta. El conteo, no.</h2>
+        <h2>La segmentación es correcta; el conteo, no</h2>
         <ul>
-          <li>218 manchas, casi todas sobre copas</li>
-          <li>DBSCAN descarta 212 y publica <strong>6</strong></li>
-          <li>Y en el sintético DBSCAN nunca decidió: con su ajuste no formaba ningún grupo y el
-            sistema contaba todo</li>
+          <li>218 regiones detectadas, casi todas sobre copas</li>
+          <li>DBSCAN descarta 212 y reporta <strong>6</strong></li>
+          <li>En los datos sintéticos DBSCAN no intervenía: con su configuración no formaba ningún
+            grupo y el sistema contaba todas las regiones</li>
         </ul>
       </div>
       <img src="{{USDA_IMG}}" alt="Huerto real del USDA visto desde arriba: círculos verdes sobre los 6 árboles que cuenta el sistema y cruces rojas sobre las 212 manchas que descarta, casi todas encima de copas." />
@@ -670,8 +670,8 @@
   </section>
 
   <section class="slide" aria-label="Diapositiva 10">
-    <p class="eyebrow">¿Quién decide el conteo?</p>
-    <h2>Si hay un grupo real, el conteo se queda quieto</h2>
+    <p class="eyebrow">Estabilidad del conteo</p>
+    <h2>Cuando existe un grupo real, el conteo se mantiene estable</h2>
 <svg class="eps-chart" viewBox="0 0 920 400" preserveAspectRatio="xMinYMid meet" role="img" aria-label="Árboles contados según eps: en el huerto con maleza el conteo se queda en 80 entre eps 0.8 y 1.2; en la foto real sube de 6 a 218 sin estabilizarse.">
 <text class="ec-t" x="58" y="26">Huerto sintético con maleza</text>
 <text class="ec-s" x="58" y="50">meseta en 80 — hay un grupo real</text>
@@ -789,14 +789,14 @@
 <line class="ec-eps" x1="428" x2="448" y1="386" y2="386"/><text class="ec-ax" x="456" y="390">eps por defecto (0.8)</text>
 </svg>
     <p class="note">
-      Moviendo un solo parámetro, la foto real va de 6 a 218 árboles: el parámetro <em>es</em> el
-      conteo. Con un grupo real hay meseta.
+      Al variar un solo parámetro, el conteo de la fotografía real pasa de 6 a 218 árboles: el
+      resultado depende del parámetro. Cuando existe un grupo real, el conteo forma una meseta.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 11">
-    <p class="eyebrow">Qué cambió</p>
-    <h2>El sistema ahora sabe cuándo no confiar en sí mismo</h2>
+    <p class="eyebrow">Mejora incorporada</p>
+    <h2>El sistema identifica cuándo su conteo no es confiable</h2>
     <table class="cmp">
       <thead>
         <tr>
@@ -828,19 +828,20 @@
       </tbody>
     </table>
     <p class="note">
-      Solo dijo <em>estable</em> donde de verdad acertó. Siguiente paso: contar a mano dos fotos
-      reales para tener el primer F1 real.
+      El veredicto <em>estable</em> coincidió con el único caso correcto. Siguiente paso: conteo
+      manual de fotografías reales para obtener el primer F1 sobre imagen real.
     </p>
   </section>
 
   <section class="slide" aria-label="Diapositiva 12">
-    <p class="eyebrow">El objetivo</p>
+    <p class="eyebrow">Objetivo</p>
     <p class="thesis-q">
-      Que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.
+      Convertir el análisis de imágenes aéreas en una herramienta de consulta para productores e
+      investigadores de la región.
     </p>
-    <p class="byline">Vamos en la primera de cinco etapas.<br />Gracias.</p>
+    <p class="byline">El proyecto se encuentra en la primera de cinco etapas.<br />Gracias.</p>
     <div class="links">
-      <span>Código: repositorio público</span>
+      <span>Código: repositorio público en GitHub</span>
       <span>Adelanto completo: <a href="https://claude.ai/artifact/NTF6K524ypXfsVZiqbGdk6">claude.ai/artifact/NTF6K524…</a></span>
     </div>
   </section>

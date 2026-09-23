@@ -501,16 +501,16 @@
 
 <header>
   <div class="wrap">
-    <p class="eyebrow">Guion de exposición · ≈ 7 minutos · para compañeros de clase</p>
+    <p class="eyebrow">Guion de exposición · ≈ 7 minutos · presentación académica</p>
     <h1>Proyecto Centinela</h1>
     <p class="thesis">
-      Contar árboles en una imagen aérea con visión por computador y agrupamiento no
+      Conteo de plantas en imágenes aéreas mediante visión por computador y agrupamiento no
       supervisado. Etapa I de cinco.
     </p>
     <div class="meta">
       <span>7 diapositivas</span>
-      <span>≈ 1 000 palabras habladas</span>
-      <span>actualizado el 22-sep</span>
+      <span>≈ 1 000 palabras</span>
+      <span>actualizado el 23 de septiembre</span>
       <span>registro académico</span>
       <span>glosario incluido</span>
     </div>
@@ -527,18 +527,18 @@
         </thead>
         <tbody>
           <tr><td>1</td><td>El proyecto</td><td>0:40</td><td>0:40</td></tr>
-          <tr><td>2</td><td>La hoja de ruta</td><td>0:45</td><td>1:25</td></tr>
-          <tr><td>3</td><td>Etapa I — el problema</td><td>0:50</td><td>2:15</td></tr>
-          <tr><td>4</td><td>El método (el <em>pipeline</em>)</td><td>1:05</td><td>3:20</td></tr>
+          <tr><td>2</td><td>Desarrollo por etapas</td><td>0:45</td><td>1:25</td></tr>
+          <tr><td>3</td><td>Etapa I · planteamiento del problema</td><td>0:50</td><td>2:15</td></tr>
+          <tr><td>4</td><td>El método (<em>pipeline</em>)</td><td>1:05</td><td>3:20</td></tr>
           <tr><td>5</td><td>¿Qué es DBSCAN?</td><td>1:10</td><td>4:30</td></tr>
-          <tr><td>6</td><td>DBSCAN frente a modelos de Hugging Face</td><td>1:10</td><td>5:40</td></tr>
-          <tr><td>7</td><td>Resultados, lo que encontramos y cierre</td><td>1:20</td><td>7:00</td></tr>
+          <tr><td>6</td><td>DBSCAN frente a modelos preentrenados</td><td>1:10</td><td>5:40</td></tr>
+          <tr><td>7</td><td>Resultados, hallazgos y cierre</td><td>1:20</td><td>7:00</td></tr>
         </tbody>
       </table>
       <p style="margin-top: 16px; color: var(--ink-2); font-size: 0.9em; max-width: 60ch">
-        Sin margen para transiciones. Si el tiempo aprieta, la diapositiva 2 se puede abreviar a
-        dos frases y la 6 a su último párrafo. Si además hay demo en vivo, su guion está en
-        <span class="mono">docs/demo-en-vivo.md</span>.
+        El tiempo no deja margen para transiciones. Si es necesario abreviar, la diapositiva 2
+        puede reducirse a dos frases y la 6 a su último párrafo. El guion de la demostración en
+        vivo se encuentra en <span class="mono">docs/demo-en-vivo.md</span>.
       </p>
     </div>
   </section>
@@ -555,25 +555,27 @@
         <p class="screen__label">En pantalla</p>
         <h3>Proyecto Centinela</h3>
         <ul>
-          <li>Agricultura de precisión para Saravena, Arauca</li>
-          <li>Dron · visión por computador · análisis de datos</li>
+          <li>Plataforma de agricultura de precisión · Saravena, Arauca</li>
+          <li>Drones · visión por computador · análisis de datos</li>
           <li>Ingeniería en Inteligencia Artificial — UIS Saravena</li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          Buenos días. Presentamos <em>Proyecto Centinela</em>: una plataforma de agricultura
-          de precisión para los cultivos de Saravena y del resto de Arauca.
+          Buenos días. Se presenta el <em>Proyecto Centinela</em>, una plataforma de agricultura
+          de precisión orientada a los cultivos de Saravena, Arauca.
         </p>
         <p>
-          La idea es esta: un dron sobrevuela la parcela y el software convierte esas imágenes
-          en datos concretos —cuántas plantas hay, cómo están, dónde hay problemas—. Eso es
-          agricultura de precisión, y hoy prácticamente no existe para esta región.
+          Centinela desarrolla métodos de visión por computador e inteligencia artificial para
+          analizar cultivos mediante imágenes aéreas obtenidas con drones. El propósito es
+          extraer información sobre la distribución, las características y las condiciones del
+          cultivo a escala de parcela.
         </p>
         <p>
-          El proyecto está dividido en cinco etapas. Hoy les contamos la primera: ya cuenta
-          árboles en huertos de prueba, y la estamos poniendo a prueba con fotos reales.
+          El desarrollo se organiza en cinco etapas. Esta exposición se centra en la primera,
+          que realiza el conteo de plantas en imágenes de prueba y se encuentra en validación
+          con fotografías reales.
         </p>
       </div>
     </article>
@@ -581,32 +583,34 @@
     <article class="slide">
       <div class="slide__head">
         <span class="slide__n">D2</span>
-        <h2>La hoja de ruta</h2>
+        <h2>Desarrollo por etapas</h2>
         <span class="slide__time">0:40 – 1:25</span>
       </div>
       <div class="screen">
         <p class="screen__label">En pantalla</p>
         <p class="flow">observar → caracterizar → detectar → predecir</p>
         <table>
-          <tr><th>Fase</th><th>Qué resuelve</th><th>Estado</th></tr>
-          <tr><td>I · Conteo</td><td>Contar árboles en una imagen</td><td>en revisión</td></tr>
-          <tr><td>II · Caracterización</td><td>Medir vigor y cobertura</td><td>hecha en sintético</td></tr>
-          <tr><td>III · Maleza en arroz</td><td>Mapa de infestación</td><td>próximo hito (~12 meses)</td></tr>
-          <tr><td>IV · Series temporales</td><td>Anticipar la evolución</td><td>backlog</td></tr>
+          <tr><th>Etapa</th><th>Objetivo</th><th>Estado</th></tr>
+          <tr><td>I · Inventario y conteo</td><td>Contar y localizar plantas</td><td>en validación</td></tr>
+          <tr><td>II · Caracterización</td><td>Analizar vigor y cobertura</td><td>en desarrollo</td></tr>
+          <tr><td>III · Maleza en arroz</td><td>Mapa de distribución de maleza</td><td>próxima (~12 meses)</td></tr>
+          <tr><td>IV · Análisis temporal</td><td>Estimar la evolución del cultivo</td><td>futura</td></tr>
         </table>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          El proyecto avanza en cuatro capacidades: observar, caracterizar, detectar y, con
-          suficiente historia, predecir. Cada etapa resuelve un problema completo y deja código
-          que la siguiente reutiliza.
+          El proyecto se estructura en cuatro capacidades: observar, caracterizar, detectar y,
+          a partir de series históricas de observaciones, predecir. Cada etapa aborda un
+          problema completo e incorpora datos, modelos y procedimientos que se reutilizan en las
+          siguientes.
         </p>
         <p>
-          Hoy estamos en la Etapa I, el conteo. La que más nos interesa es la Etapa III:
-          detectar maleza en arroz y producir un mapa de dónde está. El arroz es el cultivo
-          grande de Arauca, y hoy la fumigación se hace pareja sobre todo el lote; con un mapa
-          se podría aplicar solo donde hace falta.
+          La etapa actual es la I, de conteo. El objetivo central del proyecto es la Etapa III:
+          la detección de maleza en cultivos de arroz y la generación de mapas de su
+          distribución. El arroz es el principal cultivo de Arauca y el control de maleza suele
+          aplicarse de manera uniforme sobre todo el lote; un mapa de distribución permitiría
+          focalizar la aplicación en las zonas afectadas.
         </p>
       </div>
     </article>
@@ -614,33 +618,33 @@
     <article class="slide">
       <div class="slide__head">
         <span class="slide__n">D3</span>
-        <h2>Etapa I — el problema</h2>
+        <h2>Etapa I · planteamiento del problema</h2>
         <span class="slide__time">1:25 – 2:15</span>
       </div>
       <div class="screen">
         <p class="screen__label">En pantalla</p>
-        <p class="flow">una imagen aérea cenital &nbsp;→&nbsp; conteo + posición de cada copa</p>
+        <p class="flow">imagen aérea cenital &nbsp;→&nbsp; conteo y localización de cada planta</p>
         <ul>
-          <li>Un huerto tiene cientos de copas casi idénticas entre sí</li>
-          <li>Esa regularidad es la que hace que el conteo funcione</li>
-          <li>Por ahora: una imagen · sin GPS · copas separadas con suelo visible</li>
+          <li>Una plantación contiene cientos de plantas de apariencia muy similar</li>
+          <li>Esa regularidad es la base del método de conteo</li>
+          <li>Alcance actual: una imagen · sin GPS · plantas identificables individualmente</li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          La Etapa I resuelve un problema de inventario: cuántos árboles hay en una parcela y
-          dónde está cada uno. Entra una fotografía aérea tomada en vista cenital —la cámara
-          apuntando directo hacia abajo— de un huerto de cítricos. Sale el conteo y la posición
-          de cada copa dentro de la imagen.
+          La Etapa I aborda un problema de inventario: determinar cuántas plantas hay en una
+          parcela y dónde se encuentra cada una. La entrada es una fotografía aérea en vista
+          cenital, es decir, con la cámara perpendicular al suelo. La salida es el conteo y la
+          posición de cada planta dentro de la imagen.
         </p>
         <p>
-          Lo que hace el problema abordable es que un huerto tiene cientos de copas casi
-          idénticas entre sí. Esa regularidad es la que vamos a aprovechar.
+          El problema es abordable porque una plantación contiene cientos de plantas de
+          apariencia muy similar. El método aprovecha esa regularidad.
         </p>
         <p>
-          El alcance de esta etapa es una sola imagen, sin GPS, con copas separadas y suelo
-          visible entre ellas.
+          El alcance de esta etapa se limita a una sola imagen, sin información de GPS, con
+          plantas que pueden distinguirse individualmente.
         </p>
       </div>
     </article>
@@ -653,33 +657,34 @@
       </div>
       <div class="screen">
         <p class="screen__label">En pantalla</p>
-        <h3>Visión por computador clásica — sin modelos entrenados</h3>
+        <h3>Visión por computador clásica, sin modelos entrenados</h3>
         <ol style="margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px">
-          <li>Vegetación vs. suelo — verde y oscuridad</li>
-          <li>Separar copas pegadas — <em>watershed</em></li>
-          <li>Describir cada mancha: área, color, forma</li>
-          <li><strong>Agrupar por similitud — DBSCAN</strong></li>
-          <li>Contar</li>
+          <li>Separación de vegetación y suelo — color y luminosidad</li>
+          <li>Separación de copas en contacto — <em>watershed</em></li>
+          <li>Descripción de cada región: área, color y forma</li>
+          <li><strong>Agrupamiento por similitud — DBSCAN</strong></li>
+          <li>Conteo</li>
         </ol>
         <img src="{{METODO_IMG}}" alt="Cuatro vistas del pipeline sobre un huerto sintético: original, índice de vegetación, watershed con 80 instancias, y el conteo final de 80 árboles." />
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          El método es visión por computador clásica, sin ningún modelo entrenado. Son cinco
-          pasos. <span class="cue">[señalar la figura]</span>
+          El método se basa en visión por computador clásica y no utiliza modelos entrenados.
+          Consta de cinco pasos. <span class="cue">[señalar la figura]</span>
         </p>
         <p>
-          Primero, separamos la vegetación del suelo: la copa es más verde y más oscura que el
-          suelo seco, y combinamos ambas señales en un solo índice. Segundo, limpiamos esa
-          máscara y separamos las copas que se tocan con un algoritmo llamado <em>watershed</em>,
-          que funciona como inundar un relieve desde los valles hasta que las aguas se
-          encuentran. Tercero, describimos cada mancha por su área, su color y su forma.
+          En primer lugar, se separa la vegetación del suelo: la copa es más verde y más oscura
+          que el suelo seco, y ambas señales se combinan en un único índice. En segundo lugar,
+          se depura esa máscara y se separan las copas en contacto mediante el algoritmo
+          <em>watershed</em>, que trata la imagen como un relieve y la inunda desde los mínimos
+          hasta que las cuencas se encuentran. En tercer lugar, cada región se describe por su
+          área, su color y su forma.
         </p>
         <p>
-          Cuarto —y este es el corazón del método— agrupamos esas manchas por similitud con un
-          algoritmo llamado DBSCAN. Y quinto, contamos. En la figura: la imagen original, el
-          índice de vegetación, la separación de copas, y el resultado final sobre un huerto de
+          El cuarto paso, componente central del método, agrupa esas regiones por similitud con
+          el algoritmo DBSCAN. El quinto es el conteo. La figura muestra la imagen original, el
+          índice de vegetación, la separación de copas y el resultado final sobre un huerto de
           prueba de ochenta árboles.
         </p>
       </div>
@@ -698,30 +703,31 @@
           <li><em>Density-Based Spatial Clustering of Applications with Noise</em></li>
           <li>1996 — Ester, Kriegel, Sander y Xu</li>
           <li>Premio <em>Test of Time</em> de KDD, 2014</li>
-          <li>Cada mancha es un punto en ℝ⁷ (sus 7 descriptores)</li>
-          <li>La región densa de puntos parecidos son los árboles; lo disperso es <strong>ruido</strong></li>
+          <li>Cada región se representa como un punto en ℝ⁷ (sus 7 descriptores)</li>
+          <li>Las zonas densas de puntos similares corresponden a los árboles; los puntos dispersos se tratan como <strong>ruido</strong></li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
           DBSCAN es la sigla de <em>Density-Based Spatial Clustering of Applications with
-          Noise</em>: agrupamiento espacial basado en densidad, tolerante al ruido. Lo
-          propusieron cuatro investigadores en 1996, y en 2014 recibió el premio <em>Test of
-          Time</em> de la conferencia KDD, que reconoce los trabajos cuyo impacto perdura.
+          Noise</em>: agrupamiento espacial basado en densidad, tolerante al ruido. Fue propuesto
+          en 1996 por cuatro investigadores y en 2014 recibió el premio <em>Test of Time</em> de
+          la conferencia KDD, que distingue trabajos de impacto duradero.
         </p>
         <p>
-          ¿Qué hace? Representamos cada mancha de la imagen como un punto en un espacio de
-          siete dimensiones —sus siete descriptores—. DBSCAN busca en ese espacio la región
-          <em>densa</em>: el grupo grande de puntos muy parecidos entre sí. Ese grupo son los
-          árboles del cultivo. Todo lo que queda disperso y aislado —sombras, maleza, suelo—
-          lo etiqueta como <em>ruido</em> y lo descarta.
+          Cada región de la imagen se representa como un punto en un espacio de siete
+          dimensiones, correspondientes a sus siete descriptores. DBSCAN identifica en ese
+          espacio la zona <em>densa</em>: el grupo principal de puntos muy similares entre sí,
+          que corresponde a los árboles del cultivo. Los puntos dispersos y aislados —sombras,
+          maleza, suelo— se etiquetan como <em>ruido</em> y se descartan.
         </p>
         <p>
-          Nunca le decimos al programa qué aspecto tiene una copa; la uniformidad del cultivo
-          hace el trabajo. Es un método <em>no supervisado</em>: corre directo sobre los datos,
-          sin ejemplos etiquetados y sin fase de entrenamiento. Su base matemática es la
-          distancia euclidiana —la norma que vemos en Álgebra Lineal— y contar vecinos.
+          El programa no recibe ninguna descripción previa de la apariencia de una copa; la
+          uniformidad del cultivo es la que permite separarlas. Se trata de un método <em>no
+          supervisado</em>: opera directamente sobre los datos, sin ejemplos etiquetados y sin
+          fase de entrenamiento. Su fundamento matemático es la distancia euclidiana, propia del
+          Álgebra Lineal, y el conteo de vecinos.
         </p>
       </div>
     </article>
@@ -729,7 +735,7 @@
     <article class="slide">
       <div class="slide__head">
         <span class="slide__n">D6</span>
-        <h2>DBSCAN frente a modelos de Hugging Face</h2>
+        <h2>DBSCAN frente a modelos preentrenados</h2>
         <span class="slide__time">4:30 – 5:40</span>
       </div>
       <div class="screen">
@@ -737,48 +743,49 @@
         <table>
           <tr>
             <th></th>
-            <th>Modelo entrenado (Hugging Face)</th>
+            <th>Modelo preentrenado (p. ej., Hugging Face)</th>
             <th>Algoritmo (DBSCAN)</th>
           </tr>
           <tr>
-            <td>Qué es</td>
-            <td>red neuronal con millones de parámetros ya ajustados</td>
-            <td>un procedimiento, no un objeto entrenado</td>
+            <td>Naturaleza</td>
+            <td>red neuronal con millones de parámetros ajustados previamente</td>
+            <td>un procedimiento, no un modelo entrenado</td>
           </tr>
           <tr>
-            <td>Necesita</td>
-            <td>datos etiquetados, GPU, reajuste con ejemplos propios</td>
-            <td>solo los datos; ni etiquetas ni entrenamiento</td>
+            <td>Requisitos</td>
+            <td>datos etiquetados, GPU, ajuste con ejemplos propios</td>
+            <td>solo los datos; sin etiquetas ni entrenamiento</td>
           </tr>
           <tr>
-            <td>Su matemática</td>
-            <td>cálculo multivariable (gradientes) — aún no la vemos</td>
-            <td>distancia euclidiana + contar — primer semestre</td>
+            <td>Fundamento matemático</td>
+            <td>cálculo multivariable (gradientes) — cursos posteriores</td>
+            <td>distancia euclidiana y conteo — primer semestre</td>
           </tr>
         </table>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          Vale la pena comparar DBSCAN con lo que hoy la mayoría asocia a inteligencia
-          artificial: los modelos de <em>Hugging Face</em>. Hugging Face es una plataforma donde
-          se publican modelos ya entrenados, casi todos redes neuronales profundas. Usar uno
-          significa descargar una función con millones de parámetros ya ajustados, que aprendió
-          de grandes conjuntos de imágenes etiquetadas a mano.
+          Resulta útil comparar DBSCAN con los modelos que hoy se asocian con mayor frecuencia a
+          la inteligencia artificial, como los publicados en <em>Hugging Face</em>. Hugging Face
+          es una plataforma donde se distribuyen modelos preentrenados, en su mayoría redes
+          neuronales profundas. Utilizar uno de ellos implica emplear una función con millones
+          de parámetros ajustados a partir de grandes conjuntos de imágenes etiquetadas.
         </p>
         <p>
-          Para nuestro caso habría que reajustarlo etiquetando cientos de copas nosotros
-          mismos. Y entender <em>cómo</em> aprende esa red exige cálculo de varias variables
-          —gradientes, retropropagación— que todavía no vemos.
+          Para este caso sería necesario ajustarlo con cientos de plantas etiquetadas a mano, y
+          comprender su funcionamiento exige cálculo multivariable —gradientes y
+          retropropagación—, que corresponde a cursos posteriores.
         </p>
         <p>
-          DBSCAN es otra cosa: es un algoritmo, no un modelo. No se entrena, no se descarga, no
-          necesita etiquetas. Corre directo sobre los datos.
+          DBSCAN es de naturaleza distinta: es un algoritmo, no un modelo. No requiere
+          entrenamiento, descarga ni etiquetas, y opera directamente sobre los datos.
         </p>
         <p>
-          Las redes profundas las vamos a necesitar en la Etapa III, cuando haya que segmentar
-          maleza píxel a píxel. Nuestra apuesta era que, para contar objetos casi idénticos en una
-          imagen, DBSCAN alcanzaba. Al probarlo con fotos reales encontramos algo.
+          Las redes profundas se incorporarán en la Etapa III, para la segmentación de maleza a
+          nivel de píxel. La hipótesis de trabajo era que, para contar objetos de apariencia
+          muy similar, DBSCAN resultaba suficiente. Las pruebas con fotografías reales
+          permitieron evaluar esa hipótesis.
         </p>
       </div>
     </article>
@@ -786,50 +793,52 @@
     <article class="slide">
       <div class="slide__head">
         <span class="slide__n">D7</span>
-        <h2>Resultados, lo que encontramos y cierre</h2>
+        <h2>Resultados, hallazgos y cierre</h2>
         <span class="slide__time">5:40 – 7:00</span>
       </div>
       <div class="screen">
         <p class="screen__label">En pantalla</p>
         <div class="metrics">
           <div><span class="v">1.00</span><span class="k">F1 · sintético</span></div>
-          <div><span class="v">218 → 6</span><span class="k">manchas → contados · foto real</span></div>
-          <div><span class="v">6 → 190</span><span class="k">moviendo solo eps</span></div>
-          <div><span class="v">52 / 52</span><span class="k">pruebas</span></div>
+          <div><span class="v">218 → 6</span><span class="k">regiones → conteo · foto real</span></div>
+          <div><span class="v">6 → 190</span><span class="k">al variar solo eps</span></div>
+          <div><span class="v">67 / 67</span><span class="k">pruebas automáticas</span></div>
         </div>
         <img src="{{USDA_IMG}}" alt="Huerto real del USDA visto desde arriba: círculos verdes sobre los 6 árboles que cuenta el sistema y cruces rojas sobre las 212 manchas que descarta." />
         <ul style="margin-top: 16px">
-          <li>El 1.00 del sintético lo produjo la segmentación: DBSCAN no llegó a decidir</li>
-          <li>El sistema ahora avisa si su conteo es estable o depende de un ajuste</li>
-          <li>Siguiente: contar a mano dos fotos reales → primer F1 real</li>
+          <li>El resultado de 1.00 en datos sintéticos lo produjo la segmentación: DBSCAN no intervino</li>
+          <li>El sistema informa si su conteo es estable o depende de un parámetro</li>
+          <li>Siguiente paso: conteo manual de fotografías reales → primer F1 sobre imagen real</li>
         </ul>
       </div>
       <div class="script">
         <p class="script__label">Guion</p>
         <p>
-          Resultados. Sobre un huerto sintético, con respuesta conocida, el sistema acierta los
-          ochenta árboles: F1 de uno y error de conteo cero.
+          En cuanto a los resultados, sobre un huerto sintético con respuesta conocida el
+          sistema identifica los ochenta árboles: F1 igual a uno y error de conteo nulo.
         </p>
         <p>
-          Después lo probamos con una foto aérea real: un huerto con los árboles separados sobre
-          suelo, la condición ideal para el método. <span class="cue">[señalar la figura]</span>
-          La segmentación funciona: encuentra doscientas dieciocho manchas, casi todas sobre
-          copas. Y el sistema publica seis. DBSCAN descarta el resto como ruido. Si movemos un solo
-          parámetro, el radio <em>eps</em>, el conteo va de seis a ciento noventa. El parámetro no
-          elige el conteo: el parámetro <em>es</em> el conteo.
+          A continuación se evaluó con una fotografía aérea real: un huerto con árboles
+          separados sobre suelo, la condición más favorable para el método.
+          <span class="cue">[señalar la figura]</span> La segmentación funciona: detecta
+          doscientas dieciocho regiones, casi todas sobre copas. Sin embargo, el sistema reporta
+          seis, porque DBSCAN descarta el resto como ruido. Al variar un solo parámetro, el
+          radio <em>eps</em>, el conteo pasa de seis a ciento noventa: el resultado depende del
+          parámetro y no de la estructura de los datos.
         </p>
         <p>
-          Revisando eso descubrimos algo más incómodo: en el huerto sintético DBSCAN nunca llegó a
-          decidir. Con su ajuste no formaba ningún grupo y el sistema contaba todas las manchas.
-          El uno de F1 era de la segmentación. Lo corregimos: ahora el sistema dice quién tomó la
-          decisión y si su conteo es estable, y en las pruebas con respuesta conocida solo dijo
-          <em>estable</em> donde de verdad acertó.
+          Este análisis reveló además que, en el huerto sintético, DBSCAN no intervenía en la
+          decisión: con su configuración no formaba ningún grupo y el sistema contaba todas las
+          regiones. El F1 de uno correspondía a la segmentación. Se incorporó una corrección: el
+          sistema indica ahora qué componente tomó la decisión y si el conteo es estable, y en
+          las pruebas con respuesta conocida el veredicto <em>estable</em> coincidió con el único
+          caso correcto.
         </p>
         <p>
-          El siguiente paso es contar a mano dos fotos reales para tener el primer F1 real. El
-          objetivo, al final, es que un productor de Saravena sepa qué pasa en su parcela sin
-          tener que recorrerla entera. Gracias.
-          <span class="cue">[dejar la última diapositiva en pantalla para preguntas]</span>
+          El siguiente paso es el conteo manual de fotografías reales, para obtener el primer F1
+          sobre imagen real. A largo plazo, el objetivo es convertir este análisis en una
+          herramienta de consulta para productores e investigadores de la región. Gracias.
+          <span class="cue">[mantener la última diapositiva en pantalla para preguntas]</span>
         </p>
       </div>
     </article>
@@ -902,8 +911,9 @@
         </div>
         <div>
           <dt>índice de vegetación</dt>
-          <dd>Fórmula sobre los canales de color que da, por píxel, un valor de "cuánta
-            vegetación hay". Usamos uno llamado <span class="mono">combo</span>.</dd>
+          <dd>Fórmula sobre los canales de color que asigna a cada píxel un valor
+            proporcional a la presencia de vegetación. El proyecto utiliza el índice
+            <span class="mono">combo</span>.</dd>
         </div>
         <div>
           <dt>ExG</dt>
@@ -927,9 +937,10 @@
         </div>
         <div>
           <dt>meseta / estabilidad</dt>
-          <dd>Si hay un grupo real en los datos, el conteo casi no cambia al mover <em>eps</em> un
-            poco: forma una meseta. Si no lo hay, cada <em>eps</em> da un número distinto. El
-            sistema mide esto y lo reporta en cada corrida.</dd>
+          <dd>Cuando existe un grupo real en los datos, el conteo apenas varía ante cambios
+            pequeños de <em>eps</em>: forma una meseta. En caso contrario, cada valor de
+            <em>eps</em> produce un conteo distinto. El sistema mide esta propiedad y la reporta
+            en cada ejecución.</dd>
         </div>
         <div>
           <dt>ruido</dt>
@@ -967,8 +978,8 @@
         </div>
         <div>
           <dt>scikit-learn</dt>
-          <dd>Biblioteca de Python para aprendizaje automático. De ahí tomamos la implementación
-            de DBSCAN.</dd>
+          <dd>Biblioteca de Python para aprendizaje automático. El proyecto utiliza su
+            implementación de DBSCAN.</dd>
         </div>
       </div>
     </div>
@@ -979,31 +990,33 @@
       <p class="sec-title">Preguntas probables</p>
       <dl class="qa">
         <div>
-          <dt>¿Entonces esto es inteligencia artificial?</dt>
-          <dd>Sí. DBSCAN es aprendizaje automático, de la rama no supervisada. El aprendizaje
-            profundo es otra rama, más pesada, y está planificada para la Etapa III.</dd>
+          <dt>¿Se trata de inteligencia artificial?</dt>
+          <dd>Sí. DBSCAN pertenece al aprendizaje automático, en su rama no supervisada. El
+            aprendizaje profundo es otra rama, de mayor costo computacional, prevista para la
+            Etapa III.</dd>
         </div>
         <div>
-          <dt>¿Por qué no una red que ya detecta árboles?</dt>
-          <dd>Necesitaría datos etiquetados propios, más de una imagen y GPU, y su entrenamiento
-            usa matemática que aún no vemos. Primero queríamos medir hasta dónde llega el método
-            clásico. Con las fotos reales ya sabemos que no alcanza: el salto a un detector
-            entrenado está justificado, y se hará con datos propios.</dd>
+          <dt>¿Por qué no utilizar una red que ya detecta árboles?</dt>
+          <dd>Requeriría datos etiquetados propios, varias imágenes y GPU, y su entrenamiento se
+            basa en matemática de cursos posteriores. El primer objetivo fue medir el alcance
+            del método clásico. Posteriormente se comparó con DeepForest, un detector
+            preentrenado, y se desarrolló un método de detección de centros que obtiene
+            resultados equivalentes sin entrenamiento.</dd>
         </div>
         <div>
-          <dt>¿Funciona con cualquier foto?</dt>
-          <dd>Con plantaciones uniformes de copas separadas. Con bosque mixto o dosel cerrado
-            todavía no; eso es Etapa III.</dd>
+          <dt>¿Funciona con cualquier fotografía?</dt>
+          <dd>Con plantaciones uniformes en hileras o cuadrícula. El bosque mixto y el dosel
+            completamente cerrado quedan fuera del alcance actual.</dd>
         </div>
         <div>
           <dt>¿Cuánto tarda en ejecutarse?</dt>
-          <dd>Segundos, en cualquier portátil. Sin GPU.</dd>
+          <dd>Pocos segundos en un computador portátil, sin necesidad de GPU.</dd>
         </div>
         <div>
-          <dt>¿Qué tan preciso es en la vida real?</dt>
-          <dd>Todavía no hay un F1 real: falta contar a mano las dos fotos de control. Lo que sí
-            sabemos es que, sobre foto real, el conteo de DBSCAN depende de un ajuste, y el
-            sistema lo avisa.</dd>
+          <dt>¿Qué precisión tiene sobre imágenes reales?</dt>
+          <dd>Aún no se dispone de un F1 sobre imagen real: está pendiente el conteo manual de
+            las fotografías de control. Se sabe que, sobre fotografía real, el conteo de DBSCAN
+            depende de un parámetro, y el sistema lo advierte.</dd>
         </div>
       </dl>
     </div>
@@ -1013,14 +1026,15 @@
     <div class="wrap">
       <p class="sec-title">Antes de exponer</p>
       <ul class="check">
-        <li>Tener abierta la página de adelanto en otra pestaña, y la demo
-          (<span class="mono">demo\iniciar.bat</span>) por si piden verlo en vivo.</li>
-        <li>Memorizar los números del cierre: F1 1.00 en sintético · 218 manchas → 6 contados en
-          foto real · de 6 a 190 moviendo eps.</li>
-        <li>Practicar en voz alta una vez con cronómetro — apuntar a 7:00.</li>
-        <li>Preparar la figura de la diapositiva 4 en grande; es la que más se mira.</li>
-        <li>Decir "DBSCAN" siempre igual (de-bi-scan) y "clustering" sin traducir.</li>
-        <li>No leer el guion palabra por palabra: son ideas, no un libreto.</li>
+        <li>Mantener abierta la página de adelanto en otra pestaña, junto con la demo
+          (<span class="mono">demo\iniciar.bat</span>), por si se solicita una demostración.</li>
+        <li>Tener presentes las cifras del cierre: F1 1.00 en sintético · 218 regiones → 6 en
+          fotografía real · de 6 a 190 al variar eps.</li>
+        <li>Ensayar en voz alta con cronómetro, con una duración objetivo de 7:00.</li>
+        <li>Mostrar la figura de la diapositiva 4 en tamaño grande; es la de mayor atención.</li>
+        <li>Pronunciar "DBSCAN" de forma consistente (de-bi-scan) y mantener "clustering" sin
+          traducir.</li>
+        <li>Usar el guion como referencia de ideas, no como texto para leer.</li>
       </ul>
     </div>
   </section>
@@ -1029,7 +1043,8 @@
 <footer>
   <div class="wrap">
     <p class="big">
-      Que un productor de Saravena sepa qué pasa en su parcela sin tener que recorrerla entera.
+      Convertir el análisis de imágenes aéreas en una herramienta de consulta para productores e
+      investigadores de la región.
     </p>
     <p>Proyecto Centinela · Universidad Industrial de Santander — Sede Saravena · Ingeniería en Inteligencia Artificial</p>
   </div>
