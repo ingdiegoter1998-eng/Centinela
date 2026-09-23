@@ -150,6 +150,71 @@ def _sow_weeds(img, yy, xx, n_rows, n_cols, spacing, pad, n_weeds, seed) -> None
         img[patch] = WEED_RGB + rng.normal(0, 9, 3)
 
 
+GRASS_RGB = np.array([72.0, 92.0, 44.0])
+LEAF_RGB = np.array([140.0, 186.0, 78.0])
+
+
+def make_plantain(
+    n_rows: int = 7,
+    n_cols: int = 9,
+    spacing: float = 80.0,
+    leaf_len: float = 40.0,
+    leaf_width: float = 11.0,
+    jitter: float = 7.0,
+    pad: float = 60.0,
+    noise_sigma: float = 8.0,
+    seed: int = 0,
+) -> tuple[np.ndarray, pd.DataFrame]:
+    """Platanal sintético: rosetas de hojas sobre pasto verde. Devuelve (RGB uint8, GT x, y).
+
+    Reproduce las dos cosas que rompen la segmentación de la Etapa I en un platanal real
+    (docs/resultados-centros.md): el fondo es pasto, tan verde como la planta, y las
+    hojas de matas vecinas se tocan. Lo que sí distingue a una mata es la forma: de 6 a 9
+    hojas alargadas que salen de un mismo punto.
+    """
+    import cv2
+
+    rng = np.random.default_rng(seed)
+    h = round(pad * 2 + (n_rows - 1) * spacing)
+    w = round(pad * 2 + (n_cols - 1) * spacing)
+
+    img = np.empty((h, w, 3), dtype=np.float32)
+    img[:] = GRASS_RGB
+    # Pasto: manchas suaves de claro/oscuro más ruido fino.
+    blotch = cv2.GaussianBlur(rng.normal(0, 1, (h, w)).astype(np.float32), (0, 0), 6)
+    img *= (1.0 + 0.9 * blotch / (np.abs(blotch).max() + 1e-6) * 0.25)[..., None]
+    img += rng.normal(0, noise_sigma, img.shape)
+
+    centers = []
+    for i in range(n_rows):
+        for j in range(n_cols):
+            cy = pad + i * spacing + rng.uniform(-jitter, jitter)
+            cx = pad + j * spacing + rng.uniform(-jitter, jitter)
+            centers.append((cx, cy))
+
+    # Orden aleatorio: las hojas de una mata tapan a las de otra al azar, como en campo.
+    for k in rng.permutation(len(centers)):
+        cx, cy = centers[k]
+        n_leaves = int(rng.integers(6, 10))
+        start = rng.uniform(0, 2 * np.pi)
+        for li in range(n_leaves):
+            ang = start + li * 2 * np.pi / n_leaves + rng.normal(0, 0.18)
+            length = leaf_len * rng.uniform(0.8, 1.2)
+            width = leaf_width * rng.uniform(0.8, 1.2)
+            color = LEAF_RGB * rng.uniform(0.85, 1.1) + rng.normal(0, 6, 3)
+            mid = (cx + np.cos(ang) * length / 2, cy + np.sin(ang) * length / 2)
+            cv2.ellipse(img, (round(mid[0]), round(mid[1])), (round(length / 2), round(width / 2)),
+                        float(np.degrees(ang)), 0, 360, color.tolist(), -1, cv2.LINE_AA)
+            # Nervadura central, un poco más clara.
+            tip = (round(cx + np.cos(ang) * length * 0.95), round(cy + np.sin(ang) * length * 0.95))
+            cv2.line(img, (round(cx), round(cy)), tip, (color * 1.15).tolist(), 2, cv2.LINE_AA)
+
+    img += rng.normal(0, noise_sigma * 0.6, img.shape)
+    img = np.clip(img, 0, 255).astype(np.uint8)
+    gt = pd.DataFrame(centers, columns=["x", "y"])
+    return img, gt
+
+
 def perturb(img: np.ndarray, kind: str, seed: int = 0) -> np.ndarray:
     """Variaciones para el chequeo de robustez."""
     rng = np.random.default_rng(seed)

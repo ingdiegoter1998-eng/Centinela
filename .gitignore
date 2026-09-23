@@ -53,7 +53,13 @@ data/**/*_manifest.yaml
 data/**/*_errores.png
 data/**/*_estado.csv
 data/**/*_estado.png
+data/**/*_centros.csv
+data/**/*_centros.png
+data/**/*_deepforest.csv
+data/**/*_comparacion.png
 !data/samples/salidas/**
+# Fotos aportadas por usuarios sin licencia registrada: se usan en local, no se redistribuyen.
+data/samples/usuario/
 
 # HTML de artefactos con imágenes embebidas (generado — se arma desde el .html fuente)
 *.build.html

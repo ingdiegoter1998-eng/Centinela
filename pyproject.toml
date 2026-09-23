@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "centinela-core"
-version = "0.1.0"
-description = "Conteo de árboles en una imagen aérea — Proyecto Centinela, Etapa I"
+version = "0.2.0"
+description = "Conteo de plantas en una imagen aérea — Proyecto Centinela, Etapa I"
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=1.26",
@@ -21,6 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
 demo = ["streamlit>=1.38"]  # demo/app.py — demo en vivo
+modelo = ["deepforest>=2"]  # scripts/comparar_deepforest.py — ~1 GB con PyTorch, solo local
 
 [project.scripts]
 centinela = "centinela_core.cli:main"

@@ -94,6 +94,18 @@ Cada boss resuelve un problema concreto y deja datos, código y metodología reu
 
 ## 5. 🟠 Etapa I — Conteo de árboles en una imagen (reabierta)
 
+> **Método nuevo, 2026-09-23: detección de centros.** Una foto real de platanal subida a la app
+> pública (~200 matas según quien la tomó) devolvió del orden de mil marcas y ninguna sobre una
+> mata: pasto verde de fondo y hojas que se tocan, los dos modos de fallo ya medidos, a la vez.
+> `centinela_core/centros.py` deja de segmentar y busca **un punto por planta**: convergencia de
+> hojas para plátano y palma, mancha a escala de copa para copas redondas, con el tamaño de planta
+> estimado por autocorrelación y el conteo publicado con su rango. F1 0,96 en platanal sintético
+> (el pipeline de manchas: 0,00), a la par de DeepForest sin afinar (0,95), y 224 matas bien
+> ubicadas en la foto real. Es el método de *Analizar mi foto*. Detalle y límites en
+> `docs/resultados-centros.md`. Esto amplía el alcance del §5.2: el dosel con hojas tocándose y el
+> fondo de pasto dejan de estar fuera para plátano y palma. El dosel **totalmente** cerrado sigue
+> fuera.
+>
 > **Reabierta el 2026-09-22.** Al confrontar el pipeline con imagen aérea real se encontró que el
 > F1 = 1,00 del sintético no pasaba por DBSCAN: con la config por defecto no forma ningún cluster y
 > el conteo lo decide el watershed solo. Sobre la única escena real que cumple la premisa, DBSCAN
@@ -218,6 +230,17 @@ Contra conteo manual de la misma imagen:
 
 Esto ya no depende del dron: las dos imágenes de control son públicas y están en el repo.
 
+**Actualización 2026-09-23 — método de centros** (`docs/resultados-centros.md`). Cambia el camino
+de cierre: la app ya no publica el conteo de manchas, así que la decisión del punto 2 pierde
+urgencia. Lo que cierra la etapa con el método nuevo:
+
+1. **Verdad de terreno de la foto real de platanal**, corrigiendo los centros detectados con
+   `centinela annotate FOTO --desde FOTO_centros.csv` (y de `palma_aceite_rio`, en modo copa).
+2. **F1 y error de conteo reales** del método de centros sobre esas fotos. Umbral: el mismo de
+   arriba, error de conteo < 10 %.
+3. Con eso, recalibrar los tres parámetros del modo estrella, que hoy están ajustados contra el
+   generador sintético (sesgo reconocido en el §3.1 del documento).
+
 La medición sobre imagen real de copas separadas se traslada a la **Etapa I-B**. El motivo: depende del vuelo del dron, que es precisamente la entrada de esa etapa. Mantener la I abierta a la espera de un insumo que pertenece a la siguiente no aporta nada. El arnés de evaluación ya está construido y corre sobre cualquier imagen con su conteo manual, así que la medición es un `centinela eval` el día que exista la foto.
 
 La validación de **generalización entre parcelas distintas** se aplaza a la Etapa I-B.
@@ -246,7 +269,8 @@ No se ataca ahora. Se deja mapeado para que las decisiones de hoy no lo bloqueen
 - **Validación sobre imagen real (heredada de la Etapa I):** con el primer frame del dron, `centinela annotate` para el conteo manual y `centinela eval` para obtener precision / recall / F1 y error de conteo. Umbral: <10 % de error de conteo. El arnés ya existe. *(2026-09-22: la primera validación sobre imagen real pública se adelanta a la Etapa I — ver §5.8. La del dron propio sigue aquí.)*
 - **Georreferenciación:** con un dron que escriba GPS en el EXIF, convertir centroides de píxel a coordenadas usando GSD + altura + orientación. `GSD = (altura × ancho_sensor) / (focal × ancho_px)`. Ojo: el GPS de consumo sin RTK tiene error de 1–3 m y la altitud barométrica deriva; no confiar el conteo final a deduplicación por GPS puro.
 - **Múltiples imágenes y solape:** ortomosaico con OpenDroneMap, o deduplicación por homografía (features SIFT/ORB entre frames). Recomendación: solape ~75 % frontal / ~65 % lateral desde el primer vuelo con GPS.
-- **Comparación con modelos pre-entrenados (zero-shot):** DeepForest (`weecology/deepforest-tree`, Hugging Face, MIT) y SAM/SAM2 como baselines contra la Ruta A, con el mismo arnés de evaluación. Mini-estudio defendible.
+- **Comparación con modelos pre-entrenados (zero-shot):** DeepForest (`weecology/deepforest-tree`, Hugging Face, MIT) y SAM/SAM2 como baselines contra la Ruta A, con el mismo arnés de evaluación. Mini-estudio defendible. *(2026-09-23: DeepForest ya se comparó, en local, con `scripts/comparar_deepforest.py`: F1 0,95 en platanal sintético contra 0,96 del método de centros, y coinciden en 192 matas de la foto real. Lo decisivo es pasarle la foto a la escala correcta — `docs/resultados-centros.md` §4.)*
+- **Datos públicos para entrenar:** `Project-AgML/tree_crown_segmentation` (Hugging Face, CC BY 4.0) son 595 recortes de *Camellia oleifera* con máscaras de copa. Es un dataset, no un modelo, y de otro cultivo; sirve para preentrenar segmentación de copas (Etapa III) o para medir el modo *copa*, no para plátano (`docs/resultados-centros.md` §5).
 - **Ruta B — detector entrenado:** YOLO o DeepForest afinado con ~200–500 copas etiquetadas a mano de los propios vuelos. Requiere varias imágenes para entrenar y validar con hold-out honesto. Es la evolución si la Ruta A no alcanza la precisión objetivo.
 - **Protocolo de vuelo** (cuando exista el dron): exposición y balance de blancos en manual bloqueados; volar 10–14 h o con nublado; registrar altura y GSD objetivo antes de despegar.
 

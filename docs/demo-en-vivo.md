@@ -107,6 +107,25 @@ meseta. Aquí no la hay.
    normalizar con escalas fijas en vez de por imagen; y con datos propios, pasar a un detector
    entrenado (Ruta B del ROADMAP).
 
+### 6 · Extra, si hay tiempo: el método nuevo — 1 min 30 s
+
+Añadido el 2026-09-23 (`docs/resultados-centros.md`). No cambia nada de los pasos 1 a 5.
+
+**Página:** *Analizar mi foto* (menú izquierdo) → *Usar una foto de ejemplo*.
+
+| Clic | Se ve |
+|---|---|
+| Laboratorio, escena *Platanal sintético · 63 matas sobre pasto verde* | El método de manchas no cuenta ni una mata: F1 0,00 |
+| *Analizar mi foto*, ejemplo *Platanal de prueba*, **Analizar foto** | **62 plantas, conteo consistente (58–63)**; un punto en el centro de cada mata |
+| Ejemplo *Palmas de aceite junto a un río* | 389 palmas con el tamaño fijado a mano; ninguna marca en el río |
+
+**Decir:** Un usuario nos mandó una foto de un platanal real y la app marcó mil cosas, ninguna era
+una mata: el pasto es tan verde como la planta y las hojas se tocan. Cambiamos la pregunta: en vez
+de "¿qué es mancha verde?", "¿dónde convergen las hojas?". Una mata de plátano es una estrella, y
+el centro de la estrella es la planta. El tamaño de planta lo mide la propia foto, porque la
+siembra se repite. Rinde igual que DeepForest, un detector entrenado con miles de árboles, sin
+entrenar nada.
+
 ---
 
 ## Plan B

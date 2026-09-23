@@ -49,8 +49,14 @@ condición de uso no quedó registrada en su momento; conviene verificarla antes
 cualquier figura derivada de ellas. `palma_lote.jpg` tampoco tiene procedencia registrada:
 mismo cuidado.
 
-Los archivos `huerto_demo*`, `huerto_maleza*` y `etapa2*` los genera `centinela make-synthetic`:
-son sintéticos, sin autor externo.
+Los archivos `huerto_demo*`, `huerto_maleza*`, `etapa2*` y `platanal_demo*` los genera
+`centinela make-synthetic` (el último con `--platanal`): son sintéticos, sin autor externo.
+
+## Fotos aportadas por usuarios
+
+`data/samples/usuario/` guarda en local las fotos que los usuarios comparten para probar el
+método (la primera, un platanal: `docs/resultados-centros.md` §1). Está en `.gitignore`: no se
+redistribuyen hasta tener el permiso y la licencia de quien las tomó.
 
 ## Cómo está organizado `data/samples/`
 

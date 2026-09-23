@@ -392,5 +392,9 @@ defaults no cambiaron: el sintético de las Etapas I y II da exactamente los mis
   §5.4, y se puede probar ya sobre el sintético con y sin maleza.
 - ~~Revisar el resto del banco imagen por imagen.~~ **Hecho — §2.** De 9 imágenes, 2 sirven como
   control (`huerto_reticula_usda`, `palma_aceite_rio`); 4 son oblicuas.
-- **Detección de centros por simetría radial** como alternativa clásica sin etiquetas: la roseta de
-  Musa y la copa de palma son radialmente simétricas y las nervaduras convergen en un punto.
+- ~~**Detección de centros por simetría radial** como alternativa clásica sin etiquetas: la roseta de
+  Musa y la copa de palma son radialmente simétricas y las nervaduras convergen en un punto.~~
+  **Hecho el 2026-09-23 — `docs/resultados-centros.md`.** Convergencia de hojas para plátano y
+  palma, mancha a escala de copa para copas redondas, escala por autocorrelación. Resuelve el modo
+  de fallo del §3.3 (Musa sobre pasto verde) en sintético y en una foto real de platanal; no
+  resuelve el del §3.2 (dosel totalmente cerrado) ni el huerto USDA sobre franjas de pasto.

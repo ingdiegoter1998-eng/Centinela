@@ -140,3 +140,21 @@ def health_overlay(result: PipelineResult, path: str | Path, dpi: int = 110) -> 
     ax.axis("off")
     fig.savefig(path, bbox_inches="tight", dpi=dpi)
     plt.close(fig)
+
+
+def centros_overlay(res, path: str | Path, dpi: int = 110) -> None:
+    """Un punto por planta (`centros.detectar`) y el tamaño de planta usado, como referencia."""
+    h, w = res.rgb.shape[:2]
+    fig, ax = plt.subplots(figsize=(w / dpi, h / dpi))
+    ax.imshow(res.rgb)
+    d = res.detecciones
+    ax.scatter(d["x_px"], d["y_px"], s=36, c="#ff2bd6", edgecolors="white", linewidths=0.8)
+    if res.escala.px:
+        r = res.escala.px / 2
+        ax.add_patch(plt.Circle((r + 8, r + 8), r, fill=False, ec="white", lw=1.5, ls="--"))
+    lo, hi = res.rango
+    rango = f" (entre {lo} y {hi})" if (lo, hi) != (res.n, res.n) else ""
+    ax.set_title(f"{res.n} plantas{rango} · forma {res.forma} · escala {res.escala.px} px")
+    ax.axis("off")
+    fig.savefig(path, bbox_inches="tight", dpi=dpi)
+    plt.close(fig)

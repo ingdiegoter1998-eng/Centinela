@@ -1,8 +1,10 @@
 """Analizar mi foto: la app para un usuario sin conocimientos técnicos.
 
-No muestra parámetros del método. Muestra lo que el método puede sostener: un conteo
-cuando es consistente, un conteo aproximado cuando no hay nada que separar, y un rango
-cuando el número depende del ajuste (docs/resultados-imagen-real.md §5.8).
+Usa la detección de centros (`centinela_core/centros.py`): un punto por planta, con el
+tamaño de planta estimado del periodo de la plantación o fijado a mano. El conteo se
+publica con su rango: lo que cambia si ese tamaño estuviera un 10 % corrido
+(docs/resultados-centros.md). El pipeline de manchas de la Etapa I sigue en el
+Laboratorio.
 """
 
 from __future__ import annotations
@@ -14,75 +16,65 @@ import cv2
 import numpy as np
 import pandas as pd
 import streamlit as st
-from comun import ESCENAS, MAX_LADO, VERDE, guardar_subida, procesar
+from comun import MAX_LADO, SAMPLES, VERDE, guardar_subida
 
-from centinela_core.cluster import cluster_blobs
-from centinela_core.health import characterize
-from centinela_core.stability import estabilidad
+from centinela_core.centros import detectar, revisar_vigor
+from centinela_core.io import load_image
 
 AMBAR = (255, 179, 64)
-AMARILLO = (255, 214, 10)
+BLANCO = (255, 255, 255)
 
-MOTIVOS = {
-    "area": "más pequeño que el resto",
-    "vigor": "menos verde que el resto",
-    "gap": "copa con huecos",
-    "solidity": "borde irregular o incompleto",
+FORMAS = {
+    "Hojas largas en estrella — plátano, banano, palma vista de cerca": "estrella",
+    "Copas redondas — cítricos, cacao, frutales, o palmas vistas desde muy alto": "copa",
 }
 
 EJEMPLOS = {
-    "Huerto real con árboles separados (USDA)": "Huerto real (USDA) · cenital, suelo visible",
-    "Palmas junto a un río": "Palma junto a un río (real) · segundo control",
-    "Huerto de prueba generado por computador": "Huerto sintético · 80 árboles, verdad de terreno exacta",
-    "Plátano con las hojas tocándose": "Banano · dosel cerrado",
+    "Platanal de prueba generado por computador": {
+        "img": SAMPLES / "platanal_demo.png",
+        "forma": "estrella",
+        "tamano": None,
+        "nota": "63 matas sobre pasto verde, con las hojas de matas vecinas tocándose. "
+        "Sabemos dónde está cada una, así que aquí sí se puede medir el acierto.",
+    },
+    "Palmas de aceite junto a un río": {
+        "img": SAMPLES / "banco" / "palma_aceite_rio.jpg",
+        "forma": "copa",
+        "tamano": 28,
+        "nota": "Foto real. Las palmas no están en cuadrícula, así que el tamaño no se puede "
+        "estimar solo: está fijado a mano en 28 px. DrLianPinKoh, CC BY 2.0.",
+    },
+    "Huerto de prueba generado por computador": {
+        "img": SAMPLES / "huerto_demo.png",
+        "forma": "copa",
+        "tamano": None,
+        "nota": "80 árboles de copa redonda sobre suelo.",
+    },
+    "Plátano con las hojas tocándose (dosel cerrado)": {
+        "img": SAMPLES / "platano_div8.png",
+        "forma": "estrella",
+        "tamano": 150,
+        "nota": "El caso más difícil: no hay suelo ni pasto entre matas. Tamaño fijado a mano "
+        "en 150 px; el conteo es poco confiable. The Roving Rokibul, CC BY-SA 4.0.",
+    },
 }
-EJEMPLOS = {k: v for k, v in EJEMPLOS.items() if v in ESCENAS}
+EJEMPLOS = {k: v for k, v in EJEMPLOS.items() if v["img"].exists()}
 
 
 # --------------------------------------------------------------------------- análisis
 
 
-def verde_real(rgb: np.ndarray) -> float:
-    a = rgb.astype(np.int16)
-    return float(((a[..., 1] > a[..., 0]) & (a[..., 1] > a[..., 2])).mean())
-
-
 @st.cache_data(show_spinner=False)
-def analizar(ruta: str, mtime: float) -> dict:
-    rgb, _, mask, _, dets0 = procesar(ruta, mtime)
-    n = len(dets0)
-    est = estabilidad(dets0) if n else None
-
-    if n == 0:
-        tipo, dets = "vacio", dets0
-    elif est.veredicto == "estable":
-        lo, hi = est.meseta
-        eps = 0.8 if lo <= 0.8 <= hi else lo
-        tipo, dets = "consistente", cluster_blobs(dets0, eps=eps)
-    elif est.veredicto == "sin_estructura":
-        tipo, dets = "aproximado", cluster_blobs(dets0, method="watershed")
-    else:
-        tipo, dets = "rango", cluster_blobs(dets0, method="watershed")
-
-    rango = None
-    if tipo == "rango":
-        b = est.barrido[est.barrido["informativo"]]
-        rango = (int(b["arboles"].min()), int(b["arboles"].max()))
-
-    revisar = None
-    if tipo in ("consistente", "aproximado") and int(dets["is_tree"].sum()) >= 5:
-        dets = characterize(dets)
-        revisar = dets[dets["flag"] == "revisar"]
-
+def contar(ruta: str, mtime: float, forma: str, tamano: int | None) -> dict:
+    res = detectar(load_image(ruta), forma, tamano)
     return {
-        "tipo": tipo,
-        "dets": dets,
-        "n_manchas": n,
-        "n_arboles": int(dets["is_tree"].sum()) if n else 0,
-        "rango": rango,
-        "revisar": revisar,
-        "cobertura": float(mask.mean()),
-        "verde": verde_real(rgb),
+        "rgb": res.rgb,
+        "dets": revisar_vigor(res),
+        "n": res.n,
+        "rango": res.rango,
+        "consistente": res.consistente,
+        "escala": res.escala.px,
+        "fuente": res.escala.fuente,
     }
 
 
@@ -90,64 +82,45 @@ def avisos_de_calidad(res: dict, original: tuple[int, int] | None) -> list[str]:
     avisos = []
     if original and min(original) < 500:
         avisos.append(
-            f"La foto es pequeña ({original[1]}×{original[0]} px). Con pocas píxeles por copa "
-            "es difícil separar un árbol de otro."
+            f"La foto es pequeña ({original[1]}×{original[0]} px). Con pocos píxeles por "
+            "planta es difícil distinguir una de otra."
         )
-    if res["cobertura"] < 0.02:
+    if res["escala"] and res["escala"] < 12:
         avisos.append(
-            "Casi no encontramos vegetación. ¿Es una foto aérea de un cultivo, tomada de día?"
+            "Las plantas se ven muy pequeñas en esta foto. Si puedes, vuela más bajo o "
+            "recorta la zona que te interesa."
         )
-    elif res["verde"] > 0.85:
-        avisos.append(
-            "Casi toda la foto es verde: parece un cultivo con las copas tocándose o con pasto "
-            "entre plantas. El método necesita ver suelo entre una planta y otra."
-        )
-    if 0 < res["n_manchas"] < 5:
-        avisos.append("Encontramos muy pocas plantas para poder comparar unas con otras.")
     return avisos
 
 
 # --------------------------------------------------------------------------- dibujo
 
 
-def dibujar(rgb: np.ndarray, res: dict) -> np.ndarray:
-    out = rgb.copy()
-    grosor = max(2, round(max(rgb.shape[:2]) / 400))
-    revisar = set(res["revisar"].index) if res["revisar"] is not None else set()
-    for i, d in res["dets"].iterrows():
-        if not d["is_tree"]:
-            continue
-        r = int(max(5, np.sqrt(d["area_px"] / np.pi)))
+def dibujar(res: dict) -> np.ndarray:
+    out = res["rgb"].copy()
+    grosor = max(2, round(max(out.shape[:2]) / 450))
+    r = max(4, int(0.28 * res["escala"]))
+    for _, d in res["dets"].iterrows():
         c = (int(d["x_px"]), int(d["y_px"]))
-        if res["tipo"] == "rango":
-            color = AMARILLO
-        else:
-            color = AMBAR if i in revisar else VERDE
+        color = AMBAR if d["revisar"] else VERDE
         cv2.circle(out, c, r, color, grosor, cv2.LINE_AA)
+        cv2.circle(out, c, max(2, grosor), color, -1, cv2.LINE_AA)
+    # Referencia: el tamaño de planta que se usó, en la esquina.
+    rr = res["escala"] // 2
+    cv2.circle(out, (rr + 10, rr + 10), rr, BLANCO, grosor, cv2.LINE_AA)
     return out
 
 
 def tabla_descarga(res: dict) -> pd.DataFrame:
     d = res["dets"]
-    estado = {
-        "consistente": "arbol",
-        "aproximado": "arbol",
-        "rango": "posible planta",
-    }.get(res["tipo"], "")
-    t = pd.DataFrame(
+    return pd.DataFrame(
         {
             "x_px": d["x_px"].round(1),
             "y_px": d["y_px"].round(1),
-            "area_px": d["area_px"].astype(int),
-            "estado": np.where(d["is_tree"], estado, "descartado"),
+            "revisar": np.where(d["revisar"], "si", "no"),
+            "motivo": np.where(d["revisar"], "menos verde que el resto", ""),
         }
     )
-    if "flag" in d:
-        t["revisar"] = d["flag"].eq("revisar").map({True: "si", False: "no"})
-        t["motivo"] = d["motivo"].map(
-            lambda m: ", ".join(MOTIVOS.get(x, x) for x in m.split(";") if x) if m else ""
-        )
-    return t
 
 
 def png(rgb: np.ndarray) -> bytes:
@@ -159,7 +132,7 @@ def png(rgb: np.ndarray) -> bytes:
 
 st.title("Analiza tu foto aérea")
 st.write(
-    "Sube una foto de tu cultivo tomada desde arriba. Te decimos cuántos árboles "
+    "Sube una foto de tu cultivo tomada desde arriba. Te decimos cuántas plantas "
     "encontramos, qué tan confiable es ese número y cuáles conviene revisar."
 )
 st.caption(
@@ -167,37 +140,32 @@ st.caption(
     "fotos reales: tómalo como una ayuda, no como un inventario."
 )
 
-hay_resultado = "analizada" in st.session_state
-with st.expander("Cómo tomar una foto que funcione", expanded=not hay_resultado):
+with st.expander("Cómo tomar una foto que funcione", expanded="analizada" not in st.session_state):
     a, b = st.columns(2)
     a.markdown(
         "**Funciona mejor con**\n\n"
         "- Foto **desde arriba**, con la cámara mirando al suelo\n"
-        "- **Suelo visible** entre una planta y otra\n"
-        "- Árboles o palmas **separados**, en hileras o en cuadrícula\n"
+        "- Plantas **en hileras o en cuadrícula**\n"
+        "- Algo de **suelo o pasto visible** entre una planta y otra\n"
         "- Luz del **mediodía** o día nublado: sombras cortas\n"
-        "- Foto de **buena resolución**, sin textos encima"
+        "- Cada planta ocupando **al menos 30 píxeles** de ancho"
     )
     b.markdown(
-        "**Todavía no funciona con**\n\n"
+        "**Todavía no funciona bien con**\n\n"
         "- Fotos **inclinadas**, donde se ve el horizonte\n"
-        "- Cultivos con las **hojas tocándose** (dosel cerrado)\n"
-        "- **Pasto o maleza** tapando el suelo entre plantas\n"
+        "- **Dosel cerrado**: hojas tapando todo el suelo\n"
+        "- Árboles sueltos **sobre franjas de pasto** que se repiten\n"
         "- Sombras muy largas de la tarde\n"
         "- Capturas de pantalla o fotos de muy baja resolución"
     )
 
 fuente = st.radio(
-    "¿Qué foto quieres analizar?",
-    ["Subir mi foto", "Usar una foto de ejemplo"],
-    horizontal=True,
+    "¿Qué foto quieres analizar?", ["Subir mi foto", "Usar una foto de ejemplo"], horizontal=True
 )
 
-ruta, original, nombre = None, None, None
+ruta, original, nombre, ejemplo = None, None, None, None
 if fuente == "Subir mi foto":
-    subida = st.file_uploader(
-        "Foto aérea (JPG o PNG, hasta 10 MB)", type=["jpg", "jpeg", "png"]
-    )
+    subida = st.file_uploader("Foto aérea (JPG o PNG, hasta 10 MB)", type=["jpg", "jpeg", "png"])
     if subida is not None:
         try:
             ruta, original = guardar_subida(subida)
@@ -205,54 +173,44 @@ if fuente == "Subir mi foto":
         except ValueError as e:
             st.error(str(e))
 else:
-    ejemplo = st.selectbox("Foto de ejemplo", list(EJEMPLOS))
-    ruta, nombre = ESCENAS[EJEMPLOS[ejemplo]]["img"], ejemplo
+    nombre = st.selectbox("Foto de ejemplo", list(EJEMPLOS))
+    ejemplo = EJEMPLOS[nombre]
+    ruta = ejemplo["img"]
+    st.caption(ejemplo["nota"])
 
 if ruta is None:
     st.stop()
 
 ruta = str(ruta)
 mtime = Path(ruta).stat().st_mtime
+
+forma_def = ejemplo["forma"] if ejemplo else "estrella"
+etiqueta = st.radio(
+    "¿Cómo se ven las plantas en tu foto?",
+    list(FORMAS),
+    index=list(FORMAS.values()).index(forma_def),
+    key=f"forma_{ruta}",
+)
+forma = FORMAS[etiqueta]
+
+clave_tam = f"tam_{ruta}_{forma}"
+tamano = st.session_state.get(clave_tam, ejemplo["tamano"] if ejemplo else None)
+
 if st.session_state.get("analizada") != ruta:
     st.image(ruta, caption=nombre, width=520)
-
-if st.button("Analizar foto", type="primary", disabled=st.session_state.get("analizada") == ruta):
-    with st.status("Analizando la foto…", expanded=True) as estado:
-        st.write("Buscando la vegetación y separando las copas…")
-        procesar(ruta, mtime)
-        st.write("Comprobando si el conteo es confiable…")
-        res = analizar(ruta, mtime)
-        st.write("Revisando el estado de cada árbol…")
-        estado.update(label="Análisis listo", state="complete", expanded=False)
-    st.session_state["analizada"] = ruta
-    historial = st.session_state.setdefault("historial", [])
-    resultado = (
-        f"entre {res['rango'][0]} y {res['rango'][1]}" if res["tipo"] == "rango"
-        else str(res["n_arboles"])
-    )
-    historial.append(
-        {
-            "Hora": datetime.now().strftime("%H:%M"),
-            "Foto": nombre,
-            "Árboles": resultado,
-            "Confianza": {
-                "consistente": "consistente",
-                "aproximado": "aproximado",
-                "rango": "no confiable",
-                "vacio": "sin plantas",
-            }[res["tipo"]],
-            "Para revisar": len(res["revisar"]) if res["revisar"] is not None else "—",
-        }
-    )
-    st.rerun()
-
-if st.session_state.get("analizada") != ruta:
+    if st.button("Analizar foto", type="primary"):
+        with st.status("Analizando la foto…", expanded=True) as estado:
+            st.write("Midiendo el tamaño de las plantas…")
+            st.write("Buscando el centro de cada planta…")
+            res = contar(ruta, mtime, forma, tamano)
+            estado.update(label="Análisis listo", state="complete", expanded=False)
+        st.session_state["analizada"] = ruta
+        st.rerun()
     st.stop()
 
 # ------------------------------------------------------------------ resultado
 
-rgb = procesar(ruta, mtime)[0]
-res = analizar(ruta, mtime)
+res = contar(ruta, mtime, forma, tamano)
 st.divider()
 
 for aviso in avisos_de_calidad(res, original):
@@ -263,66 +221,86 @@ if original and max(original) > MAX_LADO:
         f"{MAX_LADO} px de lado."
     )
 
-tipo = res["tipo"]
-if tipo == "vacio":
-    st.error("**No encontramos plantas en esta foto.**")
-    st.stop()
-
-izq, der = st.columns([1, 2])
-with izq:
-    if tipo == "rango":
-        st.metric("Árboles", f"{res['rango'][0]} – {res['rango'][1]}")
-        st.error("**No podemos darte un número confiable.**")
-        st.write(
-            f"Encontramos **{res['n_manchas']} manchas de vegetación**, pero no logramos "
-            "distinguir con seguridad cuáles son árboles y cuáles son pasto, maleza o "
-            "pedazos de una misma copa: según cómo se mire, el conteo va de "
-            f"{res['rango'][0]} a {res['rango'][1]}."
-        )
-        st.caption("En la foto están marcadas en amarillo todas las manchas: son posibles plantas.")
-    else:
-        st.metric("Árboles encontrados", res["n_arboles"])
-        if tipo == "consistente":
-            st.success("**Conteo consistente.**")
+sin_escala = res["escala"] is None
+if sin_escala:
+    st.warning(
+        "**No pudimos medir solos el tamaño de las plantas.** Pasa cuando no están en "
+        "hileras o cuadrícula. Indícalo abajo: mueve el control hasta que el círculo blanco "
+        "de la esquina cubra más o menos una planta."
+    )
+else:
+    lo, hi = res["rango"]
+    izq, der = st.columns([1, 2])
+    with izq:
+        st.metric("Plantas encontradas", res["n"])
+        if res["consistente"]:
+            st.success(f"**Conteo consistente** — entre {lo} y {hi}.")
             st.write(
-                "El resultado no cambia al variar el ajuste del método: los árboles se "
-                "distinguen claramente de lo demás."
+                "Si el tamaño de planta que medimos estuviera un poco corrido, el número "
+                "casi no cambiaría."
             )
         else:
-            st.warning("**Conteo aproximado.**")
+            st.warning(f"**Conteo aproximado** — entre {lo} y {hi}.")
             st.write(
-                "Contamos cada mancha de vegetación separada. No encontramos nada que parezca "
-                "maleza o sombra para descartar, así que si hay maleza, cuenta como árbol."
+                "El número depende bastante del tamaño de planta. Revisa en la foto que las "
+                "marcas caigan sobre las plantas y, si no, ajusta el tamaño abajo."
             )
-        if res["revisar"] is not None:
-            n_rev = len(res["revisar"])
-            st.metric("Para revisar", n_rev)
-            if n_rev:
-                st.caption("Marcados en ámbar en la foto: se ven peor que el resto del cultivo.")
+        n_rev = int(res["dets"]["revisar"].sum())
+        st.metric("Para revisar", n_rev)
+        if n_rev:
+            st.caption("Marcadas en ámbar: se ven mucho menos verdes que el resto de la foto.")
+        st.caption(
+            f"Tamaño de planta: {res['escala']} px "
+            + ("(medido en la foto)" if res["fuente"] == "autocorrelacion" else "(fijado a mano)")
+            + ". Es el círculo blanco de la esquina."
+        )
+    with der:
+        marcada = dibujar(res)
+        t1, t2 = st.tabs(["Tu foto marcada", "Foto original"])
+        t1.image(marcada, width="stretch")
+        t2.image(res["rgb"], width="stretch")
 
-with der:
-    marcada = dibujar(rgb, res)
-    t1, t2 = st.tabs(["Tu foto marcada", "Foto original"])
-    t1.image(marcada, width="stretch")
-    t2.image(rgb, width="stretch")
+with st.expander(
+    "¿Las marcas no caen sobre las plantas? Ajusta el tamaño", expanded=sin_escala
+):
+    h, w = res["rgb"].shape[:2]
+    actual = res["escala"] or tamano or max(12, min(h, w) // 15)
+    nuevo = st.slider(
+        "Distancia entre una planta y la vecina (píxeles)",
+        min_value=8,
+        max_value=max(60, min(h, w) // 3),
+        value=int(actual),
+        help="El círculo blanco de la esquina de la foto marcada tiene este tamaño.",
+    )
+    c1, c2 = st.columns(2)
+    if c1.button("Contar con este tamaño", type="primary"):
+        st.session_state[clave_tam] = nuevo
+        st.rerun()
+    if tamano is not None and c2.button("Volver al tamaño automático"):
+        st.session_state[clave_tam] = None
+        st.rerun()
+    if sin_escala:
+        muestra = res["rgb"].copy()
+        cv2.circle(muestra, (nuevo // 2 + 10, nuevo // 2 + 10), nuevo // 2, BLANCO, 3, cv2.LINE_AA)
+        st.image(muestra, width=520)
 
-if res["revisar"] is not None and len(res["revisar"]):
-    with st.expander(f"Árboles para revisar ({len(res['revisar'])})"):
+if sin_escala:
+    st.stop()
+
+revisar = res["dets"][res["dets"]["revisar"]]
+if len(revisar):
+    with st.expander(f"Plantas para revisar ({len(revisar)})"):
         st.write(
             "Se comparan con el resto de **esta misma foto**: no es un diagnóstico, es una "
             "señal de dónde mirar primero en campo."
         )
-        rev = res["revisar"].copy()
         st.dataframe(
             pd.DataFrame(
                 {
                     "Posición en la foto (x, y)": [
-                        f"{int(x)}, {int(y)}" for x, y in zip(rev["x_px"], rev["y_px"])
+                        f"{int(x)}, {int(y)}" for x, y in zip(revisar["x_px"], revisar["y_px"])
                     ],
-                    "Por qué": [
-                        ", ".join(MOTIVOS.get(m, m) for m in s.split(";") if m)
-                        for s in rev["motivo"]
-                    ],
+                    "Por qué": "menos verde que el resto",
                 }
             ),
             hide_index=True,
@@ -341,13 +319,27 @@ d2.download_button(
     "text/csv",
 )
 
-if len(st.session_state.get("historial", [])) > 1:
+historial = st.session_state.setdefault("historial", [])
+fila = {
+    "Hora": datetime.now().strftime("%H:%M"),
+    "Foto": nombre,
+    "Forma": "estrella" if forma == "estrella" else "copa",
+    "Plantas": res["n"],
+    "Rango": f"{lo}–{hi}",
+    "Para revisar": int(res["dets"]["revisar"].sum()),
+}
+if not historial or {k: v for k, v in historial[-1].items() if k != "Hora"} != {
+    k: v for k, v in fila.items() if k != "Hora"
+}:
+    historial.append(fila)
+if len(historial) > 1:
     st.subheader("Fotos analizadas en esta sesión")
-    st.dataframe(pd.DataFrame(st.session_state["historial"]), hide_index=True, width="stretch")
+    st.dataframe(pd.DataFrame(historial), hide_index=True, width="stretch")
 
 st.divider()
 st.caption(
     "Tus fotos se procesan en este servidor solo para analizarlas; no las compartimos. Se "
     "guardan temporalmente mientras la app está encendida y se borran cuando se reinicia. "
-    "¿Quieres ver cómo decide el método? Abre el **Laboratorio** en el menú de la izquierda."
+    "¿Quieres ver el método anterior, que segmenta manchas? Abre el **Laboratorio** en el "
+    "menú de la izquierda."
 )

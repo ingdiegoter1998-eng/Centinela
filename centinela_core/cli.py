@@ -1,10 +1,11 @@
 """Interfaz de línea de comandos.
 
     centinela count IMG.jpg [--config config.yaml] [--debug]
+    centinela centros IMG.jpg [--forma estrella|copa] [--tamano PX] [--gt GT.csv]
     centinela eval  IMG.jpg GT.csv [--config config.yaml] [--errors]
     centinela characterize IMG.jpg [--config config.yaml]
-    centinela make-synthetic OUT.png [--seed 0]
-    centinela annotate IMG.jpg
+    centinela make-synthetic OUT.png [--seed 0] [--platanal]
+    centinela annotate IMG.jpg [--desde PUNTOS.csv]
 """
 
 from __future__ import annotations
@@ -64,6 +65,40 @@ _DECISION = {
 }
 
 
+_FUENTE_ESCALA = {
+    "autocorrelacion": "estimada (periodo de la plantación)",
+    "manual": "fijada a mano",
+    "sin_periodo": "no se pudo estimar — la foto no tiene periodo claro; usa --tamano",
+}
+
+
+def _cmd_centros(args: argparse.Namespace) -> None:
+    from . import viz
+    from .centros import detectar
+    from .evaluate import evaluate
+    from .io import load_ground_truth, load_image, save_detections
+
+    res = detectar(load_image(args.image), args.forma, args.tamano)
+    stem = Path(args.image).with_suffix("")
+    save_detections(res.detecciones, f"{stem}_centros.csv")
+    viz.centros_overlay(res, f"{stem}_centros.png")
+
+    lo, hi = res.rango
+    print(f"Plantas detectadas: {res.n}")
+    if res.escala.px:
+        print(f"Con la escala ±10 %: entre {lo} y {hi}"
+              + (" — consistente" if res.consistente else " — el conteo depende de la escala"))
+    escala = f"{res.escala.px} px, " if res.escala.px else ""
+    print(f"Escala:             {escala}{_FUENTE_ESCALA[res.escala.fuente]}")
+    print(f"Forma:              {res.forma}")
+    if args.gt and res.escala.px:
+        r = evaluate(res.detecciones[["x_px", "y_px"]].to_numpy(), load_ground_truth(args.gt),
+                     0.4 * (res.escala.px or 0))
+        print(f"Contra {Path(args.gt).name}: P {r.precision:.3f} · R {r.recall:.3f} · "
+              f"F1 {r.f1:.3f} (radio {0.4 * (res.escala.px or 0):.0f} px)")
+    print(f"Salida:             {stem}_centros.csv, {stem}_centros.png")
+
+
 def _cmd_eval(args: argparse.Namespace) -> None:
     from . import viz
     from .config import Config
@@ -93,19 +128,22 @@ def _cmd_eval(args: argparse.Namespace) -> None:
 
 def _cmd_make_synthetic(args: argparse.Namespace) -> None:
     from .io import save_image
-    from .synthetic import make_orchard
+    from .synthetic import make_orchard, make_plantain
 
-    img, gt = make_orchard(seed=args.seed, n_anomalous=args.anomalous, n_weeds=args.weeds)
+    if args.platanal:
+        img, gt = make_plantain(seed=args.seed)
+    else:
+        img, gt = make_orchard(seed=args.seed, n_anomalous=args.anomalous, n_weeds=args.weeds)
     out = Path(args.out)
     save_image(out, img)
     gt[["x", "y"]].to_csv(out.with_name(out.stem + "_gt.csv"), index=False)
-    print(f"{len(gt)} árboles · {out} · {out.with_name(out.stem + '_gt.csv')}")
+    print(f"{len(gt)} plantas · {out} · {out.with_name(out.stem + '_gt.csv')}")
 
 
 def _cmd_annotate(args: argparse.Namespace) -> None:
     from .annotate import annotate
 
-    annotate(args.image)
+    annotate(args.image, args.desde)
 
 
 def _cmd_characterize(args: argparse.Namespace) -> None:
@@ -147,6 +185,21 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--debug", action="store_true", help="guarda el panel de depuración")
     c.set_defaults(func=_cmd_count)
 
+    ce = sub.add_parser(
+        "centros", help="cuenta plantas buscando su centro (plátano, palma, copas pegadas)"
+    )
+    ce.add_argument("image")
+    ce.add_argument(
+        "--forma", choices=["estrella", "copa"], default="estrella",
+        help="estrella: plátano, banano, palma · copa: cítricos, cacao, frutales",
+    )
+    ce.add_argument(
+        "--tamano", type=float, default=None,
+        help="distancia entre plantas vecinas en px (por defecto se estima)",
+    )
+    ce.add_argument("--gt", default=None, help="CSV x,y de conteo manual para medir P/R/F1")
+    ce.set_defaults(func=_cmd_centros)
+
     e = sub.add_parser("eval", help="evalúa contra un conteo manual")
     e.add_argument("image")
     e.add_argument("gt")
@@ -165,6 +218,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--weeds", type=int, default=0,
         help="cuántas manchas de maleza sembrar entre hileras (no entran al GT)",
     )
+    s.add_argument(
+        "--platanal", action="store_true",
+        help="platanal (rosetas de hojas sobre pasto) en vez de huerto de copas redondas",
+    )
     s.set_defaults(func=_cmd_make_synthetic)
 
     ch = sub.add_parser("characterize", help="marca árboles a revisar (Etapa II)")
@@ -174,6 +231,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     a = sub.add_parser("annotate", help="marca copas a mano (matplotlib interactivo)")
     a.add_argument("image")
+    a.add_argument(
+        "--desde", default=None,
+        help="CSV con puntos de partida (p. ej. IMG_centros.csv): se corrige en vez de marcar todo",
+    )
     a.set_defaults(func=_cmd_annotate)
 
     return p

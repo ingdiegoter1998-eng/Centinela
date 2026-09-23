@@ -35,6 +35,13 @@ ESCENAS = {
         "nota": "El mismo huerto con maleza entre hileras: mismo verde y misma luminancia "
         "que la copa, forma irregular. La maleza no está en la verdad de terreno.",
     },
+    "Platanal sintético · 63 matas sobre pasto verde": {
+        "img": SAMPLES / "platanal_demo.png",
+        "gt": SAMPLES / "platanal_demo_gt.csv",
+        "nota": "Generado por `centinela make-synthetic --platanal`. Rosetas de hojas sobre "
+        "pasto tan verde como la planta: la segmentación por manchas no tiene de dónde "
+        "agarrarse. En *Analizar mi foto* se cuenta con el método de centros.",
+    },
     "Huerto real (USDA) · cenital, suelo visible": {
         "img": SAMPLES / "banco" / "huerto_reticula_usda.jpg",
         "gt": None,
