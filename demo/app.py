@@ -9,6 +9,7 @@ el método y `eps` para ver en vivo quién decide el conteo.
 from __future__ import annotations
 
 import hashlib
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -52,6 +53,12 @@ ESCENAS = {
         "nota": "La única imagen real del banco donde la premisa se cumple: árboles "
         "espaciados sobre suelo. Dominio público (USDA).",
     },
+    "Palma junto a un río (real) · segundo control": {
+        "img": SAMPLES / "banco" / "palma_aceite_rio.jpg",
+        "gt": None,
+        "nota": "Palmas separadas sobre suelo, casi cenital: la otra imagen real donde la "
+        "premisa se cumple. DrLianPinKoh, CC BY 2.0.",
+    },
     "Palma de aceite · dron cenital": {
         "img": SAMPLES / "palma_lote.jpg",
         "gt": None,
@@ -69,7 +76,14 @@ ESCENAS = {
         "nota": "Copas de ~15 px pegadas en hilera. Falta resolución.",
     },
 }
+# Una copia de la app puede llevar solo parte de las imágenes (el Space público lleva
+# únicamente las de licencia clara): se ofrecen las escenas cuyo archivo existe.
+ESCENAS = {nombre: e for nombre, e in ESCENAS.items() if e["img"].exists()}
 SUBIR = "Subir una imagen…"
+
+# CENTINELA_PUBLICO=1 en la copia pública (Hugging Face Spaces): muestra el aviso de
+# que es una demo de laboratorio, no una herramienta de conteo.
+PUBLICO = os.environ.get("CENTINELA_PUBLICO") == "1"
 
 DESCRIPTORES = {
     "todos": ("Los 7 (Etapa I)", FEATURE_COLS),
@@ -255,6 +269,17 @@ n_manchas = len(dets)
 n_arboles = int(dets["is_tree"].sum()) if n_manchas else 0
 
 st.title("Centinela · conteo de árboles en una imagen aérea")
+
+if PUBLICO:
+    st.info(
+        "**Demo de laboratorio del [Proyecto Centinela]"
+        "(https://ingdiegoter1998-eng.github.io/Centinela/).** Sobre fotos reales el conteo "
+        "todavía no es confiable, y la pestaña *¿Quién decide el conteo?* te dice cuándo. "
+        "No lo uses para inventariar una finca. Las fotos que subas se procesan en este "
+        "servidor, se guardan temporalmente mientras el Space está encendido y se borran "
+        "cuando se reinicia. Código: "
+        "[github.com/ingdiegoter1998-eng/Centinela](https://github.com/ingdiegoter1998-eng/Centinela)."
+    )
 
 m = st.columns(4)
 m[0].metric("Árboles contados", n_arboles)
