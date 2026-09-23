@@ -15,7 +15,7 @@ Se construye por etapas: la complejidad técnica crece al ritmo de la carrera.
 
 | Componente | Estado |
 |---|---|
-| Landing pública (Fase 0.5) | 🟢 Implementada — `landing/` |
+| Landing pública (Fase 0.5) | 🟢 En línea — <https://ingdiegoter1998-eng.github.io/Centinela/> · fuente en `landing/` |
 | Conteo de árboles en una imagen (Etapa I) | 🟠 Reabierta — el F1 = 1.00 del sintético lo produce el watershed; DBSCAN no llegaba a decidir. El pipeline ahora reporta quién decidió y si el conteo es estable. Ver [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) §5 |
 | Caracterización del cultivo (Etapa II) | ✅ Implementada — recall 0.88 / 8.7 % FP en sintético; sobre imagen real hereda el estado de la Etapa I. Ver [`docs/resultados-fase-2.md`](docs/resultados-fase-2.md) |
 | Validación con dron propio + georreferencia (Etapa I-B) | ⚪ Backlog — necesita dron con GPS. La validación con imagen real *pública* se adelantó a la Etapa I: [`docs/resultados-imagen-real.md`](docs/resultados-imagen-real.md) |
@@ -87,9 +87,8 @@ npm run build        # producción → landing/dist/
 
 Se despliega sola en **GitHub Pages** con cada push a `main`
 (`.github/workflows/pages.yml`). Hay que activarlo una vez en
-*Settings → Pages → Source: GitHub Actions*. **Estado al 2026-09-22:** Pages todavía no está
-activado — el workflow compila la landing sin errores pero el paso de publicar falla con 404.
-Una vez activado, el sitio queda en <https://ingdiegoter1998-eng.github.io/Centinela/>.
+*Settings → Pages → Source: GitHub Actions* (activado el 2026-09-22). **En línea:**
+<https://ingdiegoter1998-eng.github.io/Centinela/>
 
 El `base` de Vite apunta a `/Centinela/` porque en Pages el sitio vive
 bajo la ruta del repositorio. Si cambia el nombre del repo o se usa dominio
