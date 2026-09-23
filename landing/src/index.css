@@ -95,7 +95,7 @@ a {
 
 .section {
   padding: clamp(72px, 9vw, 124px) 0;
-  scroll-margin-top: 62px; /* alto de la barra sticky */
+  scroll-margin-top: 100px; /* alto de la barra sticky: 62 + fila de páginas */
 }
 
 .section + .section {
@@ -166,6 +166,48 @@ a {
   .nav__links {
     display: none;
   }
+}
+
+/* segunda fila: las mismas páginas que la barra de hoja de ruta, diapositivas, etc. */
+.nav__paginas {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nav__paginas-inner {
+  display: flex;
+  gap: 4px;
+  height: 38px;
+  align-items: center;
+  overflow-x: auto;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav__paginas a {
+  color: var(--tx-onDark-soft);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.nav__paginas a:first-child {
+  margin-left: -10px;
+}
+
+.nav__paginas a:hover {
+  color: var(--tx-onDark);
+  background: var(--ink-2);
+}
+
+.nav__paginas a[aria-current] {
+  color: var(--tx-onDark);
+  background: var(--ink-3);
+}
+
+.nav__paginas a:focus-visible {
+  outline: 2px solid var(--green-bright);
+  outline-offset: 1px;
 }
 
 .nav__cta,

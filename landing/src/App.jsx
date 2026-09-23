@@ -116,11 +116,22 @@ export default function App() {
             <a href="#fases">Fases</a>
             <a href="#ahora">Dónde estamos</a>
             <a href="#nosotros">Quiénes somos</a>
-            <a href="hoja-de-ruta.html">Hoja de ruta</a>
           </div>
           <a className="nav__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
             Probar la demo
           </a>
+        </div>
+        <div className="nav__paginas">
+          <div className="wrap nav__paginas-inner">
+            <a href="./" aria-current="page">Inicio</a>
+            {paginas
+              .filter((p) => !p.url.startsWith('http'))
+              .map((p) => (
+                <a key={p.url} href={p.url}>
+                  {p.nombre}
+                </a>
+              ))}
+          </div>
         </div>
       </nav>
 
