@@ -32,25 +32,27 @@ def _grupo(tabla: str) -> str:
 
 
 def _nodo(t) -> str:
-    """Entidad como nodo de Graphviz: cabecera y solo sus llaves (los campos van en las tablas)."""
+    """Entidad como nodo de Graphviz: cabecera y una fila por campo, con su llave y su tipo."""
     cabecera = (
-        f'<tr><td colspan="2" bgcolor="{COLOR_CABECERA[_grupo(t.tabla)]}">'
+        f'<tr><td colspan="3" bgcolor="{COLOR_CABECERA[_grupo(t.tabla)]}">'
         f'<font color="#ffffff"><b>{escape(t.entidad)}</b></font><br/>'
         f'<font color="#d8d8d8" point-size="9">{t.tabla}</font></td></tr>'
     )
     filas = [cabecera]
     for c in t.campos:
-        if c.clave:
-            claves = " ".join(f'<font color="{COLOR_CLAVE[k]}">{k}</font>' for k in c.clave.split())
-            filas.append(f'<tr><td align="left">{claves}</td><td align="left">{c.nombre}</td></tr>')
-    resto = len([c for c in t.campos if not c.clave])
-    filas.append(
-        f'<tr><td colspan="2" align="left"><font color="#9a9a9a">'
-        f"+ {resto} campo{'s' if resto != 1 else ''}{' más' if not t.externa else ' de Django'}"
-        "</font></td></tr>"
-    )
+        claves = " ".join(f'<font color="{COLOR_CLAVE[k]}">{k}</font>' for k in c.clave.split())
+        tipo = escape(c.tipo) + (" ?" if c.nulo else "")
+        filas.append(
+            f'<tr><td align="left">{claves or " "}</td><td align="left">{c.nombre}</td>'
+            f'<td align="left"><font color="#9a9a9a" point-size="10">{tipo}</font></td></tr>'
+        )
+    if t.externa:
+        filas.append(
+            '<tr><td colspan="3" align="left"><font color="#9a9a9a" point-size="10">'
+            "… y otros campos propios de Django</font></td></tr>"
+        )
     return (
-        f'"{t.tabla}" [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="5" '
+        f'"{t.tabla}" [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" '
         f'color="#555555" bgcolor="#1a1d24">{"".join(filas)}</table>>];'
     )
 
@@ -113,12 +115,12 @@ st.markdown(
 )
 
 st.subheader("Diagrama entidad-relación")
-st.graphviz_chart(diagrama())
+st.graphviz_chart(diagrama(), width="stretch")
 st.caption(
     "Verde: registro de campo · morado: resultado del análisis · gris: catálogos y cuentas. "
-    "**PK** llave primaria · **FK** llave foránea · **UQ** valor único. El diagrama muestra "
-    "solo las llaves; todos los campos están en las tablas de abajo. Líneas: una raya = uno, "
-    "pata de gallo = muchos, círculo = opcional; punteada = relación opcional."
+    "**PK** llave primaria · **FK** llave foránea · **UQ** valor único · **?** admite vacío. "
+    "Líneas: una raya = uno, pata de gallo = muchos, círculo = opcional; punteada = relación "
+    "opcional. El detalle de cada campo está en las tablas de abajo."
 )
 
 st.subheader("Tablas")
