@@ -73,6 +73,13 @@ class RegistroDeCampo(TestCase):
         self.assertEqual(a.estado, Analisis.ERROR)
         self.assertTrue(a.mensaje)
 
+    def test_las_fotos_no_se_ven_sin_sesion(self):
+        foto = self._foto(make_plantain(seed=0)[0])
+        self.assertEqual(self.client.get(foto.imagen.url).status_code, 302)
+        usuario = get_user_model().objects.create_user("revisor2", password="clave-de-prueba-123")
+        self.client.force_login(usuario)
+        self.assertEqual(self.client.get(foto.imagen.url).status_code, 200)
+
     def test_las_paginas_piden_sesion_y_luego_responden(self):
         self.assertEqual(self.client.get(reverse("tablero")).status_code, 302)
         usuario = get_user_model().objects.create_user("revisor", password="clave-de-prueba-123")

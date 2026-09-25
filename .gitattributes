@@ -12,3 +12,6 @@
 # Scripts de Windows: cmd.exe falla con LF en bloques entre paréntesis.
 *.bat text eol=crlf
 *.cmd text eol=crlf
+
+# Scripts de PowerShell con acentos: CRLF para Windows PowerShell 5.1.
+*.ps1 text eol=crlf

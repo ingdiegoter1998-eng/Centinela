@@ -20,8 +20,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
-demo = ["streamlit>=1.38"]
-web = ["django>=5.2", "pillow>=10"]  # web/ — registro de fincas, lotes y análisis  # demo/app.py — demo en vivo
+demo = ["streamlit>=1.38"]  # demo/app.py — demo en vivo
+web = ["django>=5.2", "pillow>=10", "waitress>=3", "whitenoise>=6.7"]  # web/ — registro de campo
 modelo = ["deepforest>=2"]  # scripts/comparar_deepforest.py — ~1 GB con PyTorch, solo local
 
 [project.scripts]

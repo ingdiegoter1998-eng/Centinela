@@ -73,3 +73,5 @@ data/samples/usuario/
 .DS_Store
 Thumbs.db
 *.log
+web/.clave_secreta
+web/staticfiles/
