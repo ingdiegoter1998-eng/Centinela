@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import streamlit as st
-from comun import MAX_LADO, SAMPLES, VERDE, guardar_subida
+from comun import MAX_LADO, PUBLICO, SAMPLES, VERDE, guardar_subida
 
 from centinela_core.centros import detectar, revisar_vigor
 from centinela_core.io import load_image
@@ -59,6 +59,18 @@ EJEMPLOS = {
     },
 }
 EJEMPLOS = {k: v for k, v in EJEMPLOS.items() if v["img"].exists()}
+
+# Fotos para la demo en vivo que no tienen licencia para redistribuirse: viven en
+# data/samples/usuario/demo/ (fuera de git) y solo aparecen al correr la demo en local.
+DEMO_LOCAL = SAMPLES / "usuario" / "demo"
+if not PUBLICO and DEMO_LOCAL.is_dir():
+    for f in sorted(DEMO_LOCAL.glob("*.png")):
+        EJEMPLOS[f"Demo en vivo · {f.stem.replace('_', ' ')}"] = {
+            "img": f,
+            "forma": "estrella",
+            "tamano": None,
+            "nota": "Foto local para la demo en vivo; no se publica en la versión en línea.",
+        }
 
 
 # --------------------------------------------------------------------------- análisis
@@ -165,7 +177,10 @@ fuente = st.radio(
 
 ruta, original, nombre, ejemplo = None, None, None, None
 if fuente == "Subir mi foto":
-    subida = st.file_uploader("Foto aérea (JPG o PNG, hasta 10 MB)", type=["jpg", "jpeg", "png"])
+    subida = st.file_uploader(
+        "Foto aérea (JPG, PNG, WEBP o AVIF, hasta 10 MB)",
+        type=["jpg", "jpeg", "png", "webp", "avif"],
+    )
     if subida is not None:
         try:
             ruta, original = guardar_subida(subida)

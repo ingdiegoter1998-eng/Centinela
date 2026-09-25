@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import os
 import sys
 import tempfile
@@ -13,6 +14,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import streamlit as st
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))  # por si el paquete no está instalado en modo editable
@@ -95,10 +97,21 @@ def procesar(ruta: str, mtime: float):
     return r.rgb, r.index, r.mask, r.labels, r.detections
 
 
+def _leer_con_pillow(datos: bytes) -> np.ndarray | None:
+    """Decodifica con Pillow lo que OpenCV no abre. Devuelve BGR, o None si tampoco puede."""
+    try:
+        with Image.open(io.BytesIO(datos)) as im:
+            return cv2.cvtColor(np.asarray(im.convert("RGB")), cv2.COLOR_RGB2BGR)
+    except (OSError, ValueError):  # UnidentifiedImageError es un OSError
+        return None
+
+
 def guardar_subida(archivo) -> tuple[Path, tuple[int, int]]:
     """Guarda la foto subida (reducida si hace falta). Devuelve la ruta y el tamaño original."""
     datos = archivo.getvalue()
     img = cv2.imdecode(np.frombuffer(datos, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        img = _leer_con_pillow(datos)  # AVIF y otros formatos que OpenCV no abre
     if img is None:
         raise ValueError("No se pudo leer la imagen. Prueba con un JPG o PNG.")
     original = img.shape[:2]

@@ -10,3 +10,4 @@ matplotlib>=3.8
 pyyaml>=6.0
 streamlit>=1.38
 altair>=5
+pillow>=11.3  # lee AVIF y WEBP al subir fotos
