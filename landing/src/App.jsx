@@ -6,7 +6,7 @@ import {
   fases,
   fasesTitulo,
   notaFases,
-  dondeEstamos,
+  demoUrl,
   paginas,
   quienesSomos,
 } from './content'
@@ -114,10 +114,9 @@ export default function App() {
           <div className="nav__links">
             <a href="#proyecto">El proyecto</a>
             <a href="#fases">Fases</a>
-            <a href="#ahora">Dónde estamos</a>
             <a href="#nosotros">Quiénes somos</a>
           </div>
-          <a className="nav__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
+          <a className="nav__cta" href={demoUrl} target="_blank" rel="noreferrer">
             Probar la demo
           </a>
         </div>
@@ -158,7 +157,7 @@ export default function App() {
               <span className="chip">UIS Saravena</span>
               <span className="chip">Ingeniería en Inteligencia Artificial</span>
             </div>
-            <a className="hero__cta" href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
+            <a className="hero__cta" href={demoUrl} target="_blank" rel="noreferrer">
               Probar la demo en el navegador →
             </a>
           </div>
@@ -212,24 +211,6 @@ export default function App() {
           <div className="fases__nota">
             <h3 className="fases__nota-titulo">{notaFases.titulo}</h3>
             <p>{notaFases.texto}</p>
-          </div>
-        </Seccion>
-
-        <Seccion id="ahora" eyebrow="Dónde estamos" titulo={dondeEstamos.titulo} className="ahora">
-          <div className="ahora__card">
-            <div className="prose">
-              {dondeEstamos.parrafos.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-            </div>
-            {dondeEstamos.demo && (
-              <p className="ahora__demo">
-                <a href={dondeEstamos.demo.url} target="_blank" rel="noreferrer">
-                  {dondeEstamos.demo.texto} →
-                </a>
-                <span>{dondeEstamos.demo.nota}</span>
-              </p>
-            )}
           </div>
         </Seccion>
 

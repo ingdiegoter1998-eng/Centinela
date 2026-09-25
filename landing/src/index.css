@@ -539,51 +539,6 @@ a {
   }
 }
 
-/* ── dónde estamos ─────────────────────────────────────────────────── */
-
-.ahora {
-  background: var(--paper-2);
-}
-
-.ahora__card {
-  margin-top: 36px;
-  max-width: 760px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--amber);
-  padding: clamp(28px, 4vw, 40px);
-}
-
-
-.ahora__card .prose {
-  margin-top: 0;
-}
-
-.ahora__demo {
-  margin-top: 26px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.ahora__demo a {
-  font-weight: 600;
-  color: var(--green);
-  text-underline-offset: 4px;
-}
-
-.ahora__demo a:focus-visible {
-  outline: 2px solid var(--green);
-  outline-offset: 3px;
-}
-
-.ahora__demo span {
-  font-size: 15px;
-  color: var(--tx-soft);
-}
-
 /* ── pie ───────────────────────────────────────────────────────────── */
 
 .pie {

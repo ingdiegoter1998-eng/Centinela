@@ -129,19 +129,8 @@ export const paginas = [
   },
 ]
 
-export const dondeEstamos = {
-  titulo: 'Etapa I · Validación del método de conteo',
-  parrafos: [
-    'La versión actual procesa imágenes aéreas para distinguir la vegetación del suelo, localizar cada planta y determinar su distribución espacial.',
-    'En imágenes de prueba con un número conocido de árboles, el método identifica correctamente cada ejemplar.',
-    'Las primeras pruebas sobre fotografías aéreas reales permitieron identificar una sensibilidad del método a determinadas condiciones de segmentación. A partir de ellas se incorporó un método de detección de centros de planta, que localiza el punto de convergencia de las hojas y permite contar cultivos como plátano y palma sobre fondos de pasto o con hojas en contacto. Actualmente se está realizando una validación cuantitativa sobre imágenes reales mediante conteo manual y comparación con los resultados automáticos.',
-  ],
-  demo: {
-    texto: 'Probar la demo en el navegador',
-    url: 'https://centinela-demo.streamlit.app/',
-    nota: 'La demo corresponde a una versión experimental del método de conteo y permite visualizar su funcionamiento sobre imágenes de prueba.',
-  },
-}
+// Demo en vivo (Streamlit Community Cloud): la enlazan el menú y la portada.
+export const demoUrl = 'https://centinela-demo.streamlit.app/'
 
 export const quienesSomos = {
   titulo: 'Un proyecto desarrollado en Saravena',
