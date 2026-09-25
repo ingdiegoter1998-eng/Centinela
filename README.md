@@ -31,6 +31,7 @@ Centinela/
 ├── tests/                Suite pytest (67 tests)
 ├── scripts/              Mediciones reproducibles fuera del CLI
 ├── demo/                 App de demo en vivo (Streamlit) + lanzador para Windows
+├── web/                  Registro de campo (Django): fincas, lotes, fotos, análisis
 ├── config.yaml           Parámetros del pipeline
 ├── pyproject.toml        Paquete + CLI `centinela`
 ├── docs/
@@ -45,6 +46,22 @@ Centinela/
 ├── .github/workflows/    Despliegue de la landing en GitHub Pages
 ├── LICENSE               MIT
 └── ROADMAP.md            Hoja de ruta del proyecto
+```
+
+## Registro de campo (Django)
+
+`web/` es un sitio Django que registra **productores, fincas, lotes, capturas con fecha, fotos,
+análisis, plantas y sus mediciones**, y analiza cada foto al subirla con `centinela_core`.
+Modelo entidad-relación y decisiones de diseño en [`docs/modelo-datos.md`](docs/modelo-datos.md).
+Por ahora corre en local (doble clic en `web\iniciar_web.bat`):
+
+```bash
+pip install -e ".[web]"
+python web/manage.py migrate
+python web/manage.py createsuperuser        # usuario para entrar
+python web/manage.py cargar_demo            # dos fincas ficticias con fotos sintéticas
+python web/manage.py runserver              # tablero en http://127.0.0.1:8000
+python web/manage.py test campo
 ```
 
 ## Etapa I — conteo de plantas en una imagen

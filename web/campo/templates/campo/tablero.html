@@ -1,0 +1,46 @@
+{% extends "campo/base.html" %}
+{% block titulo %}Tablero{% endblock %}
+{% block contenido %}
+<h1>Tablero de fincas</h1>
+<p class="sub">Último conteo registrado en cada lote. El detalle por fecha está en la página de cada lote.</p>
+
+<div class="cifras">
+  <div class="cifra"><b>{{ totales.fincas }}</b><span>fincas</span></div>
+  <div class="cifra"><b>{{ totales.lotes }}</b><span>lotes</span></div>
+  <div class="cifra"><b>{{ totales.fotos }}</b><span>fotos</span></div>
+  <div class="cifra"><b>{{ totales.analisis }}</b><span>análisis completos</span></div>
+</div>
+
+{% for finca, lotes in filas %}
+  <h2>{{ finca.nombre }}</h2>
+  <p class="sub">{{ finca.productor }} · {% if finca.vereda %}vereda {{ finca.vereda }}, {% endif %}{{ finca.municipio }}, {{ finca.departamento }}{% if finca.area_ha %} · {{ finca.area_ha }} ha{% endif %}</p>
+  {% if lotes %}
+  <div class="tabla"><table>
+    <thead><tr><th>Lote</th><th>Cultivo</th><th>Área</th><th>Última captura</th><th>Plantas en la foto</th><th>Confianza</th></tr></thead>
+    <tbody>
+    {% for lote, a in lotes %}
+      <tr>
+        <td><a href="{% url 'lote' lote.pk %}">{{ lote.nombre }}</a></td>
+        <td>{{ lote.cultivo }}{% if lote.variedad %} · {{ lote.variedad }}{% endif %}</td>
+        <td class="num">{{ lote.area_ha }} ha</td>
+        {% if a %}
+          <td class="num">{{ a.foto.captura.fecha|date:"Y-m-d" }}</td>
+          <td class="num">{% if a.confianza == "rango" %}{{ a.conteo_min }}–{{ a.conteo_max }}{% else %}{{ a.conteo }}{% endif %}</td>
+          <td><span class="chip {{ a.confianza }}">{{ a.get_confianza_display }}</span></td>
+        {% else %}
+          <td colspan="3"><span class="chip nada">sin análisis</span></td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="vacio-msg">Esta finca todavía no tiene lotes registrados.</p>
+  {% endif %}
+{% empty %}
+  <p class="vacio-msg">
+    No hay fincas registradas. Se agregan desde <a href="{% url 'admin:campo_productor_add' %}">Administrar datos</a>,
+    o con datos de ejemplo: <code>python web/manage.py cargar_demo</code>.
+  </p>
+{% endfor %}
+{% endblock %}

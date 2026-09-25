@@ -20,7 +20,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
-demo = ["streamlit>=1.38"]  # demo/app.py — demo en vivo
+demo = ["streamlit>=1.38"]
+web = ["django>=5.2", "pillow>=10"]  # web/ — registro de fincas, lotes y análisis  # demo/app.py — demo en vivo
 modelo = ["deepforest>=2"]  # scripts/comparar_deepforest.py — ~1 GB con PyTorch, solo local
 
 [project.scripts]
@@ -35,3 +36,8 @@ target-version = "py312"
 
 [tool.ruff.lint]
 ignore = ["DTZ005"]  # timestamp local naive en el manifest, a propósito
+
+[tool.ruff.lint.per-file-ignores]
+# Django declara listas como atributos de clase (admin, Meta): es el idioma del framework.
+"web/**" = ["RUF012"]
+"web/*/migrations/*" = ["ALL"]

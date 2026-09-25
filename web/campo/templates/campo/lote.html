@@ -1,0 +1,40 @@
+{% extends "campo/base.html" %}
+{% block titulo %}{{ lote }}{% endblock %}
+{% block contenido %}
+<p class="sub"><a href="{% url 'tablero' %}">Tablero</a> › {{ lote.finca.nombre }}</p>
+<h1>{{ lote.nombre }}</h1>
+<p class="sub">
+  {{ lote.cultivo }}{% if lote.variedad %} · {{ lote.variedad }}{% endif %} · {{ lote.area_ha }} ha
+  {% if lote.fecha_siembra %} · sembrado el {{ lote.fecha_siembra|date:"Y-m-d" }}{% endif %}
+  {% if lote.densidad_teorica %} · densidad teórica {{ lote.densidad_teorica|floatformat:0 }} plantas/ha{% endif %}
+  · <a href="{% url 'admin:campo_lote_change' lote.pk %}">editar</a>
+</p>
+
+<h2>Historial de capturas</h2>
+{% if capturas %}
+<div class="tabla"><table>
+  <thead><tr><th>Fecha</th><th>Foto</th><th>Plantas en la foto</th><th>Confianza</th><th>Plantas/ha</th><th>Para revisar</th></tr></thead>
+  <tbody>
+  {% for captura, fotos in capturas %}
+    {% for foto, a in fotos %}
+    <tr>
+      <td class="num">{{ captura.fecha|date:"Y-m-d H:i" }}{% if captura.dispositivo %}<br><span class="nota">{{ captura.dispositivo }}</span>{% endif %}</td>
+      <td class="foto"><a href="{% url 'admin:campo_foto_change' foto.pk %}"><img src="{{ foto.imagen.url }}" alt="Foto {{ foto.pk }} del lote {{ lote.nombre }}"></a></td>
+      {% if a %}
+        <td class="num">{% if a.confianza == "rango" %}{{ a.conteo_min }}–{{ a.conteo_max }}{% else %}{{ a.conteo }}{% endif %}</td>
+        <td><span class="chip {{ a.confianza }}">{{ a.get_confianza_display }}</span></td>
+        <td class="num">{% if a.densidad_ha %}{{ a.densidad_ha|floatformat:0 }}{% else %}<span class="nota">falta la resolución en el suelo</span>{% endif %}</td>
+        <td class="num"><a href="{% url 'admin:campo_analisis_change' a.pk %}">{{ a.n_revisar }} de {{ a.conteo }}</a></td>
+      {% else %}
+        <td colspan="4"><span class="chip nada">sin análisis</span></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  {% empty %}{% endfor %}
+  </tbody>
+</table></div>
+<p class="nota">Plantas/ha se calcula con el área que cubre la foto; requiere registrar la resolución en el suelo (cm/px) de la captura.</p>
+{% else %}
+<p class="vacio-msg">Este lote no tiene capturas. <a href="{% url 'admin:campo_captura_add' %}?lote={{ lote.pk }}">Registrar una captura con sus fotos</a>.</p>
+{% endif %}
+{% endblock %}
