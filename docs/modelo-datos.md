@@ -2,7 +2,10 @@
 
 Centinela registra **quién cultiva qué, dónde, cuándo se fotografió y qué se midió**. El modelo
 vive en `web/campo/models.py` (Django) y se consulta en el tablero del sitio web y en el panel
-de administración.
+de administración. La página *Modelo de datos* de la demo
+(<https://centinela-demo.streamlit.app/modelo_datos>) muestra el diagrama y todas las tablas con
+sus campos, tipos y llaves; lee `demo/esquema.py`, que `tests/test_esquema_web.py` compara con
+los modelos de Django.
 
 ## Diagrama entidad-relación
 

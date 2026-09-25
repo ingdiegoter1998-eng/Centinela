@@ -28,7 +28,7 @@ Centinela/
 ├── landing/              Landing pública — React + Vite (estática, sin backend)
 ├── centinela_core/       Conteo de plantas — Python puro (OpenCV / skimage / sklearn)
 │                         centros.py = método de centros · pipeline.py = manchas + DBSCAN
-├── tests/                Suite pytest (67 tests)
+├── tests/                Suite pytest (79 tests)
 ├── scripts/              Mediciones reproducibles fuera del CLI
 ├── demo/                 App de demo en vivo (Streamlit) + lanzador para Windows
 ├── web/                  Registro de campo (Django): fincas, lotes, fotos, análisis
@@ -110,7 +110,7 @@ pip install -e ".[demo]"                              # una vez
 streamlit run demo/app.py                             # demo en vivo (o demo\iniciar.bat)
 ```
 
-**Demo en línea: <https://centinela-demo.streamlit.app/>.** Tiene dos páginas: *Analizar mi foto* (para cualquier persona: sube una foto, dice cómo se ven sus plantas y recibe el conteo con su rango, las plantas a revisar y descargas; usa el método de centros) y *Laboratorio* (el pipeline de manchas + DBSCAN con todos sus controles). La misma app se publica en
+**Demo en línea: <https://centinela-demo.streamlit.app/>.** Tiene tres páginas: *Analizar mi foto* (para cualquier persona: sube una foto, dice cómo se ven sus plantas y recibe el conteo con su rango, las plantas a revisar y descargas; usa el método de centros), *Laboratorio* (el pipeline de manchas + DBSCAN con todos sus controles) y *Modelo de datos* (diagrama entidad-relación, tablas con sus campos y llaves, y relaciones del registro de campo). La misma app se publica en
 Streamlit Community Cloud directo desde este repo (`demo/app.py`, dependencias en `demo/requirements.txt`, configuración en
 `.streamlit/config.toml`). Allá corre en modo público: muestra un aviso de que es una demo de
 laboratorio y oculta las escenas cuya imagen no tiene licencia clara. Se actualiza sola con

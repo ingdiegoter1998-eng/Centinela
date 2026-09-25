@@ -2,12 +2,14 @@
 
     streamlit run demo/app.py        (o doble clic en demo/iniciar.bat)
 
-Dos páginas:
+Tres páginas:
 
 - **Analizar mi foto** (`analizar.py`): para cualquier persona. Sube una foto y recibe el
   conteo con su nivel de confianza, sin parámetros técnicos.
 - **Laboratorio** (`laboratorio.py`): el pipeline con todos sus controles, para ver en vivo
   quién decide el conteo. Es la que usa el guion de la demo (docs/demo-en-vivo.md).
+- **Modelo de datos** (`modelo_datos.py`): tablas, llaves y relaciones de la base de datos
+  del registro de campo (`web/`).
 
 En local abre en el Laboratorio; en la copia pública (Streamlit Community Cloud), en
 Analizar mi foto.
@@ -25,6 +27,7 @@ st.markdown(
 
 analizar = st.Page("analizar.py", title="Analizar mi foto", icon="📷", default=PUBLICO)
 laboratorio = st.Page("laboratorio.py", title="Laboratorio", icon="🔬", default=not PUBLICO)
+modelo = st.Page("modelo_datos.py", title="Modelo de datos", icon="🗂️")
 
 with st.sidebar:
     st.markdown(
@@ -32,4 +35,4 @@ with st.sidebar:
         "[Código](https://github.com/ingdiegoter1998-eng/Centinela)"
     )
 
-st.navigation([analizar, laboratorio]).run()
+st.navigation([analizar, laboratorio, modelo]).run()
