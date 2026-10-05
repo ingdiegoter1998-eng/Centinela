@@ -10,11 +10,12 @@
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <nav class="nav" id="nav">
+  <nav class="nav" id="nav" hidden>
     <a href="#/" data-nav="mesas">Mesas</a>
     <a href="#/inventario" data-nav="inventario">Inventario</a>
-    <a href="#/ventas" data-nav="ventas">Ventas</a>
-    <a href="#/catalogo" data-nav="catalogo" class="nav-admin" title="Catálogo: productos, precios, mesas">⚙</a>
+    <a href="#/ventas" data-nav="ventas" class="solo-admin" hidden>Ventas</a>
+    <a href="#/catalogo" data-nav="catalogo" class="nav-admin solo-admin" title="Catálogo: productos, precios, mesas" hidden>⚙</a>
+    <button type="button" id="salir" class="nav-salir" title="Cerrar sesión"><span id="quien"></span> ⏻</button>
   </nav>
   <div id="aviso-red" class="aviso error" hidden>Sin conexión con el servidor. Reintentando…</div>
   <div id="avisos"></div>
@@ -25,7 +26,7 @@
       <h2 id="mover-titulo"></h2>
       <label class="opcion"><input type="radio" name="tipo" value="compra" checked> Entró mercancía (suma)</label>
       <label class="opcion"><input type="radio" name="tipo" value="conteo"> Conté en el estante (fija el stock)</label>
-      <label>Cantidad <input type="number" name="cantidad" inputmode="numeric" min="0" required></label>
+      <label><span id="mover-unidad">Cantidad</span> <input type="number" name="cantidad" inputmode="numeric" min="0" required></label>
       <label class="solo-compra">Costo por unidad (opcional) <input type="number" name="costo" inputmode="numeric" min="0"></label>
       <label>Nota (opcional) <input type="text" name="nota" maxlength="200"></label>
       <div class="acciones">

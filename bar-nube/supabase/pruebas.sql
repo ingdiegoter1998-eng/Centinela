@@ -191,14 +191,15 @@ begin
 end $$;
 rollback;
 
-begin;  -- el acceso abierto funciona con el rol anon (lo que usa el front)
+begin;  -- sin sesión (rol anon, la llave pública) no se lee ni se escribe nada
 set local role anon;
 do $$ begin
-  assert (select count(*) from productos) > 0, 'anon lee productos';
-  perform agregar(_id_mesa('Mesa 1'), _id_prod('Águila'));
-  assert (select count(*) from v_cuentas_abiertas) = 1, 'anon ve la vista';
-  perform cobrar(_id_mesa('Mesa 1'), 'efectivo');
-  insert into categorias (nombre) values ('Prueba anon');
+  begin perform count(*) from productos; assert false, 'anon no debe leer productos';
+  exception when insufficient_privilege then null; end;
+  begin perform agregar(_id_mesa('Mesa 1'), _id_prod('Águila')); assert false, 'anon no debe vender';
+  exception when insufficient_privilege then null; end;
+  begin insert into categorias (nombre) values ('Prueba anon'); assert false, 'anon no debe escribir';
+  exception when insufficient_privilege then null; end;
 end $$;
 rollback;
 

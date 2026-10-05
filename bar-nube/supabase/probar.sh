@@ -17,11 +17,18 @@ PSQL="psql -h $DIR -p $PUERTO -U postgres -v ON_ERROR_STOP=1 -q"
 $PSQL -d postgres -c "create role anon nologin; create role authenticated nologin; create publication supabase_realtime;" >/dev/null
 $PSQL -d postgres -c "create database bar" >/dev/null
 export PGHOST=$DIR PGPORT=$PUERTO PGUSER=postgres PGDATABASE=bar
+# Lo que Supabase Auth trae: tabla de usuarios y auth.uid() (lee el «sub» del token de la sesión).
+$PSQL -c "create schema auth; create table auth.users (id uuid primary key);
+  create function auth.uid() returns uuid language sql stable as \$\$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid \$\$;
+  grant usage on schema auth to anon, authenticated;" >/dev/null
 $PSQL -f schema.sql
 $PSQL -f schema.sql                  # idempotente: una segunda vez no debe fallar
 $PSQL -f datos_demo.sql
 $PSQL -f datos_demo.sql              # ni duplicar datos
 $PSQL -f pruebas.sql
+$PSQL -f catalogo.sql                # catálogo real encima del demo; repetirlo no duplica
+$PSQL -f catalogo.sql
+$PSQL -f pruebas_roles.sql
 echo "== concurrencia: 8 sesiones × 25 toques sobre el mismo producto"
 PROD=$($PSQL -At -c "select id from productos where nombre='Poker'")
 MESA=$($PSQL -At -c "select id from mesas where nombre='Mesa 3'")
