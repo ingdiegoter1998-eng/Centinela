@@ -1,0 +1,21 @@
+{% load formato %}
+{% if mesas %}
+<div class="mesas">
+  {% for m in mesas %}
+  <a class="mesa {% if m.factura %}ocupada{% else %}libre{% endif %}" href="{% url 'cuenta' m.id %}">
+    <span class="mesa-nombre">{{ m.nombre }}</span>
+    {% if m.factura %}
+      <span class="mesa-total">{{ m.factura.total|pesos }}</span>
+      <span class="mesa-info">{{ m.factura.n_items }} ítem{{ m.factura.n_items|pluralize:"s" }} · {{ m.factura.cliente.nombre|default:"Anónimo" }}</span>
+      <span class="mesa-info">desde {{ m.factura.abierta_en|date:"g:i a" }}</span>
+    {% else %}
+      <span class="mesa-info">Libre</span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% if por_cobrar %}<p class="pie">Por cobrar en las mesas: <b>{{ por_cobrar|pesos }}</b></p>{% endif %}
+{% else %}
+<p class="vacio">Todavía no hay mesas. Créalas en <a href="{% url 'admin:barra_mesa_add' %}">administración</a>
+  (o corre <code>python manage.py cargar_demo</code> para ver el ejemplo).</p>
+{% endif %}

@@ -1,0 +1,24 @@
+{% extends "barra/base.html" %}
+{% load formato %}
+{% block titulo %}Factura {{ factura.numero|default:"" }} · Bar{% endblock %}
+{% block contenido %}
+<article class="recibo">
+  <h1>{% if factura.numero %}Factura N.º {{ factura.numero }}{% else %}Cuenta {{ factura.get_estado_display|lower }}{% endif %}</h1>
+  <p class="nota">
+    {{ factura.mesa.nombre }} · {{ factura.cliente.nombre|default:"Cliente anónimo" }}<br>
+    {{ factura.cerrada_en|default:factura.abierta_en|date:"j \d\e F Y, g:i a" }}
+    {% if factura.metodo_pago %}· {{ factura.get_metodo_pago_display }}{% endif %}
+    {% if factura.estado == 'anulada' %}<br><b>ANULADA</b>{% endif %}
+  </p>
+  <table>
+    {% for l in factura.lineas.all %}
+    <tr><td>{{ l.cantidad }} × {{ l.producto.nombre }}</td><td class="der">{{ l.subtotal|pesos }}</td></tr>
+    {% endfor %}
+    <tr class="total"><td>Total</td><td class="der">{{ factura.total|pesos }}</td></tr>
+  </table>
+  <div class="acciones sin-imprimir">
+    <a class="btn principal" href="{% url 'mesas' %}">Volver a mesas</a>
+    <button type="button" class="btn" onclick="window.print()">Imprimir</button>
+  </div>
+</article>
+{% endblock %}

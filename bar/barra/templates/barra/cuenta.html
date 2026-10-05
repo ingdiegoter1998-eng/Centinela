@@ -1,0 +1,11 @@
+{% extends "barra/base.html" %}
+{% block titulo %}{{ mesa.nombre }} · Bar{% endblock %}
+{% block contenido %}
+<div class="cab">
+  <a class="volver" href="{% url 'mesas' %}">← Mesas</a>
+  <h1>{{ mesa.nombre }}</h1>
+</div>
+<div data-panel data-url="{% url 'cuenta_panel' mesa.id %}" data-accion-url="{% url 'cuenta_accion' mesa.id %}">
+  {% include "barra/_cuenta_panel.html" %}
+</div>
+{% endblock %}

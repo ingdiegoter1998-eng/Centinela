@@ -22,6 +22,10 @@ db.sqlite3-journal
 web/media/
 /staticfiles/
 
+# ── Bar (bar/): base de datos, clave local y respaldos ─────────────────
+bar/.secret_key
+bar/respaldos/
+
 # ── Secretos y entorno ─────────────────────────────
 .env
 .env.*
