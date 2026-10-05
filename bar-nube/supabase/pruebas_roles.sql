@@ -13,7 +13,9 @@ do $$ begin
   assert (select precio || '/' || costo from productos where nombre = 'Corona') = '5000/3000', 'Corona';
   assert _stock('Águila Light') = 48 and _stock('Poker') = 48 and _stock('Aguardiente — botella') = 10, 'existencias';
   assert _stock('Cerveza artesanal negra (litros)') = 10000, '10 litros = 10000 ml';
-  assert (select count(*) from productos where nombre = 'Whisky — trago') = 1, 'sin duplicados al repetir';
+  assert (select count(*) from productos where nombre = 'Gaseosa') = 1, 'sin duplicados al repetir';
+  assert not exists (select 1 from productos where nombre in ('Mojito', 'Nachos', 'Whisky — trago')), 'lo que no hay no está';
+  assert not exists (select 1 from categorias where nombre in ('Cócteles', 'Comida')), 'sin categorías vacías';
   assert not (select se_vende from productos where nombre = 'Cerveza artesanal negra (litros)'), 'el recipiente no se vende';
 end $$;
 rollback;

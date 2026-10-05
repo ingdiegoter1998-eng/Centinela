@@ -41,6 +41,7 @@ build/
 *.png
 !landing/**/*.png
 !landing/**/*.svg
+!bar-nube/logo.png
 !docs/**/*.png
 !docs/adelanto/*.jpg
 # El banco de imágenes de referencia SÍ va al repo.
