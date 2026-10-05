@@ -1,0 +1,179 @@
+/* Tema oscuro (los bares son oscuros), botones grandes y sin hover: se usa con un dedo. */
+:root {
+  --fondo: #14141c;
+  --tarjeta: #1f1f2b;
+  --tarjeta-2: #2a2a39;
+  --borde: #35354a;
+  --texto: #f1f1f6;
+  --suave: #9a9ab2;
+  --ambar: #f5a524;
+  --verde: #3ecf8e;
+  --rojo: #ff6b6b;
+  --azul: #5aa9ff;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--fondo); color: var(--texto);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; color: inherit; touch-action: manipulation; }
+a { color: var(--ambar); }
+main { max-width: 1200px; margin: 0 auto; padding: 12px 12px 96px; }
+h1 { font-size: 1.4rem; margin: .4rem 0 .6rem; }
+h2 { font-size: 1.05rem; margin: 0 0 .5rem; }
+small { display: block; color: var(--suave); font-size: .8rem; }
+code { background: var(--tarjeta-2); padding: 1px 6px; border-radius: 6px; }
+
+/* Navegación */
+.nav { display: flex; gap: 4px; padding: 8px 12px; background: var(--tarjeta); position: sticky; top: 0; z-index: 5; }
+.nav a { flex: 1; text-align: center; padding: 12px 8px; border-radius: 10px; color: var(--suave); text-decoration: none; font-weight: 600; }
+.nav a.activo { background: var(--ambar); color: #1a1100; }
+.nav .nav-admin { flex: 0 0 48px; }
+
+/* Avisos */
+.aviso { margin: 8px 12px; padding: 12px 14px; border-radius: 10px; background: var(--tarjeta-2); }
+.aviso.error { background: #4a2229; color: #ffd0d0; }
+.aviso.success { background: #17382b; color: #c9f5de; }
+.vacio { color: var(--suave); text-align: center; padding: 24px 8px; }
+.pie, .nota { color: var(--suave); }
+.pie b { color: var(--texto); }
+
+/* Botones */
+.btn {
+  background: var(--tarjeta-2); border: 1px solid var(--borde); border-radius: 12px;
+  padding: 14px 16px; font-weight: 600; cursor: pointer; text-decoration: none; color: var(--texto);
+  display: inline-block; text-align: center;
+}
+.btn:active { transform: scale(.97); }
+.btn.chico { padding: 8px 12px; font-size: .9rem; }
+.btn.principal { background: var(--ambar); border-color: var(--ambar); color: #1a1100; }
+.btn.peligro { color: var(--rojo); border-color: #5a2b33; background: transparent; }
+
+/* Mesas */
+.cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.volver { text-decoration: none; padding: 10px 0; font-weight: 600; }
+.mesas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.mesa {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 120px;
+  padding: 12px; border-radius: 16px; text-decoration: none; color: var(--texto);
+  background: var(--tarjeta); border: 2px solid var(--borde);
+}
+.mesa.libre { border-color: #25503f; }
+.mesa.libre .mesa-info { color: var(--verde); }
+.mesa.ocupada { border-color: var(--ambar); background: #2b2412; }
+.mesa-nombre { font-size: 1.15rem; font-weight: 700; }
+.mesa-total { font-size: 1.3rem; font-weight: 800; color: var(--ambar); }
+.mesa-info { font-size: .8rem; color: var(--suave); }
+
+/* Pantalla de cuenta: celular en una columna, tablet/PC en dos */
+.pantalla { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 860px) {
+  .pantalla { grid-template-columns: minmax(0, 1fr) 400px; }
+  .cuenta { position: sticky; top: 72px; }
+  .barra-total { display: none !important; }
+  main { padding-bottom: 24px; }
+}
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; position: sticky; top: 64px; background: var(--fondo); z-index: 3; }
+.chip { flex: 0 0 auto; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--borde); background: var(--tarjeta); cursor: pointer; }
+.chip.activo { background: var(--ambar); color: #1a1100; border-color: var(--ambar); font-weight: 700; }
+.productos { padding-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.producto {
+  position: relative; text-align: left; min-height: 92px; padding: 12px; border-radius: 14px;
+  background: var(--tarjeta); border: 1px solid var(--borde); cursor: pointer;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 4px;
+}
+.producto:active { transform: scale(.96); background: var(--tarjeta-2); }
+.producto[hidden] { display: none; }
+.p-nombre { font-weight: 600; line-height: 1.2; }
+.p-precio { color: var(--ambar); font-weight: 700; }
+.p-stock { font-size: .75rem; color: var(--suave); }
+.producto.bajo .p-stock { color: var(--ambar); }
+.producto.agotado { opacity: .55; }
+.producto.agotado .p-stock { color: var(--rojo); font-weight: 700; }
+.p-badge {
+  position: absolute; top: -8px; right: -6px; min-width: 28px; height: 28px; border-radius: 14px;
+  background: var(--verde); color: #04281a; font-weight: 800; display: grid; place-items: center; padding: 0 6px;
+}
+
+.cuenta { scroll-margin-top: 72px; background: var(--tarjeta); border-radius: 16px; padding: 14px; border: 1px solid var(--borde); }
+.cliente { display: flex; gap: 8px; margin-bottom: 10px; }
+.cliente select { flex: 1; min-width: 0; padding: 10px; border-radius: 10px; background: var(--tarjeta-2); border: 1px solid var(--borde); }
+.lineas { list-style: none; margin: 0; padding: 0; }
+.lineas li { display: grid; grid-template-columns: 1fr auto 86px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--borde); }
+.l-nombre { font-weight: 600; }
+.l-cant { display: flex; align-items: center; gap: 8px; }
+.l-cant button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--borde); background: var(--tarjeta-2); font-size: 1.2rem; cursor: pointer; }
+.l-cant b { min-width: 22px; text-align: center; }
+.l-subtotal { text-align: right; font-weight: 700; }
+.total { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.5rem; padding: 14px 0 10px; }
+.total b { color: var(--ambar); }
+.cobrar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.btn.pago { padding: 18px 6px; color: #04140d; border: 0; }
+.pago-efectivo { background: var(--verde); }
+.pago-transferencia { background: var(--azul); }
+.pago-tarjeta { background: var(--ambar); }
+
+/* Barra fija del celular: total siempre a la vista, un toque lleva a la cuenta */
+.barra-total {
+  position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 6;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  background: var(--ambar); color: #1a1100; text-decoration: none; font-weight: 700;
+  padding: 14px 18px; border-radius: 16px; box-shadow: 0 6px 24px #0008;
+}
+.barra-total b { font-size: 1.2rem; }
+
+/* Inventario y ventas */
+.alerta { background: #3a2c10; border: 1px solid #6b4f12; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.alerta ul { margin: 0; padding-left: 18px; }
+.categoria { margin: 18px 0 8px; color: var(--suave); text-transform: uppercase; font-size: .8rem; letter-spacing: .06em; }
+.tabla { background: var(--tarjeta); border-radius: 14px; border: 1px solid var(--borde); overflow: hidden; }
+.fila { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--borde); color: var(--texto); text-decoration: none; }
+.fila:last-child { border-bottom: 0; }
+.fila .f-nombre { flex: 1; font-weight: 600; }
+.fila .f-stock { min-width: 36px; text-align: right; font-weight: 800; font-size: 1.15rem; }
+.fila .f-valor { min-width: 90px; text-align: right; font-weight: 700; }
+.fila.bajo .f-stock { color: var(--ambar); }
+.fila.agotado .f-stock { color: var(--rojo); }
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; }
+.tarjeta span { color: var(--suave); font-size: .85rem; display: block; }
+.tarjeta b { font-size: 1.5rem; color: var(--ambar); }
+.fecha { display: flex; gap: 8px; align-items: center; }
+.fecha input { padding: 8px 10px; border-radius: 10px; background: var(--tarjeta-2); border: 1px solid var(--borde); color-scheme: dark; }
+
+/* Diálogo de inventario */
+dialog { background: var(--tarjeta); color: var(--texto); border: 1px solid var(--borde); border-radius: 16px; padding: 18px; width: min(92vw, 420px); }
+dialog::backdrop { background: #000a; }
+dialog label { display: block; margin: 10px 0; }
+dialog label.opcion { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--borde); border-radius: 10px; }
+dialog input[type=number], dialog input[type=text] { width: 100%; padding: 12px; margin-top: 4px; border-radius: 10px; background: var(--tarjeta-2); border: 1px solid var(--borde); }
+.acciones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+
+/* Factura */
+.recibo { max-width: 460px; margin: 0 auto; background: var(--tarjeta); border-radius: 16px; padding: 18px; border: 1px solid var(--borde); }
+.recibo table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.recibo td { padding: 6px 0; border-bottom: 1px dashed var(--borde); }
+.recibo .der { text-align: right; }
+.recibo .total td { font-size: 1.3rem; font-weight: 800; border: 0; padding-top: 12px; }
+@media print {
+  body { background: #fff; color: #000; }
+  .nav, .sin-imprimir, .aviso { display: none !important; }
+  .recibo { border: 0; background: #fff; color: #000; }
+  .recibo td { border-color: #999; }
+  small, .nota { color: #333; }
+}
+
+/* ── Versión Supabase ───────────────────────────────────────────────── */
+#avisos .aviso { cursor: pointer; }
+.nav a[data-nav].activo { background: var(--ambar); color: #1a1100; }
+dialog select, dialog input[type=text] { width: 100%; padding: 12px; margin-top: 4px; border-radius: 10px; background: var(--tarjeta-2); border: 1px solid var(--borde); }
+dialog label.casilla { display: flex; gap: 10px; align-items: center; }
+dialog label.casilla input { width: auto; margin: 0; }
+.acciones .btn.peligro { margin-right: auto; }
+.fila.inactivo { opacity: .5; }
+.fila.clicable { cursor: pointer; }
+.seccion-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 18px 0 8px; }
+.seccion-cab h2 { margin: 0; color: var(--suave); text-transform: uppercase; font-size: .8rem; letter-spacing: .06em; }
+.recibo .total td { font-size: 1.3rem; }

@@ -32,7 +32,8 @@ Centinela/
 ├── scripts/              Mediciones reproducibles fuera del CLI
 ├── demo/                 App de demo en vivo (Streamlit) + lanzador para Windows
 ├── web/                  Registro de campo (Django): fincas, lotes, fotos, análisis
-├── bar/                  Control de un bar (Django): inventario y ventas — aparte del proyecto, ver bar/README.md
+├── bar/                  Control de un bar (Django, corre en una PC): inventario y ventas — aparte del proyecto, ver bar/README.md
+├── bar-nube/             El mismo bar sin servidor: front estático (GitHub Pages) + Supabase — ver bar-nube/README.md
 ├── config.yaml           Parámetros del pipeline
 ├── pyproject.toml        Paquete + CLI `centinela`
 ├── docs/
