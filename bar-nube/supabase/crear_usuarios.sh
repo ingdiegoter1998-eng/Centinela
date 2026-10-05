@@ -3,8 +3,8 @@
 #   SUPABASE_ACCESS_TOKEN=... ADMIN_CLAVE=... BARMAN_CLAVE=... ./crear_usuarios.sh
 # Se entra con «usuario» + clave; por dentro Supabase pide un correo, así que el usuario se guarda como
 # <usuario>@bar.local (la app lo agrega sola). Repetirlo cambia la clave y el nombre, no duplica nada.
-# Supabase exige 6+ caracteres y el bar usa claves cortas (ej. 1234): por eso la app y este script le agregan
-# el mismo sufijo fijo («-bar») a lo que se escribe. El usuario sigue escribiendo solo «1234».
+# Supabase exige 6+ caracteres y el bar usa claves cortas: por eso la app y este script le agregan
+# el mismo sufijo fijo («-bar») a lo que se escribe. El usuario sigue escribiendo la clave corta.
 # También cierra el registro público.
 set -euo pipefail
 REF=${SUPABASE_PROJECT_REF:-xesmbhfgiosrhctjamru}
