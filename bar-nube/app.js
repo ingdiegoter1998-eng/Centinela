@@ -38,7 +38,6 @@
   const HORA_CORTE = 6;
   let perfil = null;                                   // { nombre, rol } de quien inició sesión
   const esAdmin = () => perfil?.rol === 'admin';
-  const enCatalogo = () => (esAdmin() ? '<a href="#/catalogo">Catálogo</a> (⚙)' : 'el Catálogo (pídeselo al administrador)');
   const dominio = '@bar.local';                        // Supabase pide un correo: el usuario es «<usuario>@bar.local»
   const sufijo = '-bar';                               // y exige 6+ caracteres: a la clave escrita se le suma esto (ver crear_usuarios.sh)
 
@@ -83,7 +82,7 @@
       return { mesas: mesas.map((m) => ({ ...m, cuenta: porMesa[m.id] })), porCobrar: cuentas.reduce((t, c) => t + c.total, 0) };
     },
     html({ mesas, porCobrar }) {
-      if (!mesas.length) return `<p class="vacio">Todavía no hay mesas. Créalas en ${enCatalogo()}.</p>`;
+      if (!mesas.length) return `<p class="vacio">Sin mesas.</p>`;
       const tarjetas = mesas.map((m) => {
         const c = m.cuenta;
         return `<a class="mesa ${c ? 'ocupada' : 'libre'}" href="#/mesa/${m.id}">
@@ -151,7 +150,7 @@
               ${cats.map((c) => `<button type="button" class="chip" data-filtro="${c.id}">${esc(c.nombre)}</button>`).join('')}
             </div>
             <div class="productos">${botones}</div>`
-            : `<p class="vacio">Todavía no hay productos. Agrégalos en ${enCatalogo()}.</p>`}
+            : `<p class="vacio">Sin productos.</p>`}
         </section>
         <section class="cuenta" id="cuenta">
           <h2>Cuenta</h2>
@@ -162,7 +161,7 @@
             </select>
             <button type="button" class="btn chico" data-accion="cliente_nuevo">＋ Cliente</button>
           </div>
-          ${lineas.length ? `<ul class="lineas">${filas}</ul>` : `<p class="vacio">Toca un producto para abrir la cuenta.</p>`}
+          ${lineas.length ? `<ul class="lineas">${filas}</ul>` : ''}
           <div class="total"><span>Total</span><b>${pesos(t)}</b></div>
           ${lineas.length ? `<div class="cobrar">${Object.entries(METODOS).map(([v, e]) =>
             `<button type="button" class="btn pago pago-${v}" data-accion="cobrar" data-metodo="${v}" data-confirmar="¿Cobrar ${pesos(t)} en ${e.toLowerCase()}?">${e}</button>`).join('')}</div>` : ''}
@@ -190,7 +189,7 @@
       const ids = porId(productos);
       const agotado = (p) => p.controla_stock && quedan(p, ids) <= 0;
       const bajo = (p) => p.controla_stock && p.stock_minimo > 0 && quedan(p, ids) <= p.stock_minimo;
-      const detalle = (p) => !p.se_vende ? 'recipiente: de aquí salen las porciones que se venden'
+      const detalle = (p) => !p.se_vende ? ''
         : esAdmin() ? `costo ${pesos(p.costo)} · venta ${pesos(p.precio)} · gana ${pesos(p.precio - p.costo)}${p.insumo_id ? ` · usa ${p.consumo} ml` : ''}`
         : `venta ${pesos(p.precio)}`;
       const porReponer = productos.filter((p) => !p.insumo_id && (agotado(p) || bajo(p)));
@@ -201,15 +200,14 @@
         grupos[grupos.length - 1].lista.push(p);
       });
       return `<h1>Inventario</h1>
-      ${esAdmin() ? '' : '<p class="nota">Solo lectura: el administrador es quien suma o cuenta el inventario.</p>'}
       ${porReponer.length ? `<section class="alerta"><h2>Por reponer (${porReponer.length})</h2><ul>${porReponer.map((p) =>
         `<li><b>${esc(p.nombre)}</b> — ${agotado(p) ? 'agotado' : `quedan ${existencia(p, ids)}`}</li>`).join('')}</ul></section>` : ''}
       ${grupos.map((g) => `<h2 class="categoria">${esc(g.nombre)}</h2><div class="tabla">${g.lista.map((p) => `
         <div class="fila${agotado(p) ? ' agotado' : bajo(p) ? ' bajo' : ''}">
-          <span class="f-nombre">${esc(p.nombre)}<small>${detalle(p)}</small></span>
+          <span class="f-nombre">${esc(p.nombre)}${detalle(p) ? `<small>${detalle(p)}</small>` : ''}</span>
           <span class="f-stock">${p.controla_stock ? existencia(p, ids) : '—'}</span>
           ${p.controla_stock && esAdmin() && !p.insumo_id ? `<button type="button" class="btn chico" data-mover="${p.id}" data-nombre="${esc(p.nombre)}" data-unidad="${p.unidad}">Mover</button>` : '<span></span>'}
-        </div>`).join('')}</div>`).join('') || `<p class="vacio">Todavía no hay productos. Agrégalos en ${enCatalogo()}.</p>`}
+        </div>`).join('')}</div>`).join('') || `<p class="vacio">Sin productos.</p>`}
       ${valor && esAdmin() ? `<p class="pie">Valor del inventario a costo: <b>${pesos(valor)}</b></p>` : ''}`;
     },
   };
@@ -236,7 +234,7 @@
           <input type="date" value="${fecha}" data-fecha>
           ${fecha < hoy ? `<a class="btn chico" href="#/ventas/${sumaDias(fecha, 1)}">→</a>` : ''}
         </form></div>
-      <p class="nota">Jornada del ${esc(diaLargo(fecha))}: desde las ${HORA_CORTE}:00 hasta las ${HORA_CORTE}:00 del día siguiente.</p>
+      <p class="nota">${esc(diaLargo(fecha))}</p>
       ${esHoy && abiertas.length ? `<section class="alerta"><h2>Cuentas abiertas sin cobrar (${abiertas.length})</h2><ul>${abiertas.map((a) =>
         `<li><a href="#/mesa/${a.mesa_id}"><b>${esc(a.mesa)}</b></a> — ${pesos(a.total)}</li>`).join('')}</ul></section>` : ''}
       <div class="tarjetas">
@@ -295,14 +293,13 @@
     },
     html({ categorias, productos, mesas }) {
       return `<h1>Catálogo</h1>
-      <p class="nota">Aquí se editan productos, precios, categorías y mesas. Para sumar o contar inventario usa <a href="#/inventario">Inventario</a>.</p>
       <div class="seccion-cab"><h2>Productos</h2>
         <button type="button" class="btn chico principal" data-nuevo="producto"${categorias.length ? '' : ' disabled'}>＋ Producto</button></div>
       ${categorias.length ? '' : '<p class="vacio">Crea primero una categoría (abajo).</p>'}
       ${categorias.map((c) => { const ps = productos.filter((p) => p.categoria_id === c.id);
         return ps.length ? `<h2 class="categoria">${esc(c.nombre)}</h2><div class="tabla">${ps.map((p) => `
           <div class="fila clicable${p.activo ? '' : ' inactivo'}" data-editar="producto" data-id="${p.id}">
-            <span class="f-nombre">${esc(p.nombre)}${p.activo ? '' : ' (oculto)'}${p.se_vende ? '' : ' (recipiente, no se vende)'}<small>costo ${pesos(p.costo)} · gana ${pesos(p.precio - p.costo)}${p.controla_stock ? '' : ' · sin inventario'}</small></span>
+            <span class="f-nombre">${esc(p.nombre)}${p.activo ? '' : ' (oculto)'}${p.se_vende ? '' : ' (no se vende)'}<small>costo ${pesos(p.costo)} · gana ${pesos(p.precio - p.costo)}${p.controla_stock ? '' : ' · sin inventario'}</small></span>
             <span class="f-valor">${pesos(p.precio)}</span></div>`).join('')}</div>` : ''; }).join('')}
       <div class="seccion-cab"><h2>Categorías</h2><button type="button" class="btn chico" data-nuevo="categoria">＋ Categoría</button></div>
       <div class="tabla">${categorias.map((c) => `<div class="fila clicable" data-editar="categoria" data-id="${c.id}"><span class="f-nombre">${esc(c.nombre)}</span><span class="f-stock">${c.orden}</span></div>`).join('') || '<p class="vacio">Sin categorías.</p>'}</div>
@@ -481,10 +478,10 @@
         { n: 'nombre', l: 'Nombre', t: 'text', req: true },
         { n: 'precio', l: 'Precio de venta', t: 'number', req: true },
         { n: 'costo', l: 'Costo de compra', t: 'number' },
-        { n: 'controla_stock', l: 'Controla inventario (desmárcalo para cócteles o comida)', t: 'check' },
+        { n: 'controla_stock', l: 'Controla inventario', t: 'check' },
         ...(nuevo ? [{ n: 'stock', l: 'Unidades que hay hoy', t: 'number' }] : []),
-        { n: 'stock_minimo', l: 'Avisar cuando queden (0 = sin aviso)', t: 'number' },
-        { n: 'activo', l: 'Activo (si no, se oculta de ventas)', t: 'check' },
+        { n: 'stock_minimo', l: 'Avisar cuando queden', t: 'number' },
+        { n: 'activo', l: 'Activo', t: 'check' },
       ];
       formulario(nuevo ? 'Nuevo producto' : 'Editar producto', campos, p,
         (v) => escribir(nuevo ? db.from('productos').insert(v) : db.from('productos').update(v).eq('id', id)),
@@ -492,13 +489,13 @@
     } else if (tipo === 'categoria') {
       const c = nuevo ? { nombre: '', orden: (cats.length + 1) } : d.categorias.find((x) => x.id === id);
       formulario(nuevo ? 'Nueva categoría' : 'Editar categoría',
-        [{ n: 'nombre', l: 'Nombre', t: 'text', req: true }, { n: 'orden', l: 'Posición en la pantalla de ventas (menor primero)', t: 'number' }], c,
+        [{ n: 'nombre', l: 'Nombre', t: 'text', req: true }, { n: 'orden', l: 'Posición', t: 'number' }], c,
         (v) => escribir(nuevo ? db.from('categorias').insert(v) : db.from('categorias').update(v).eq('id', id)),
         nuevo ? null : () => escribir(db.from('categorias').delete().eq('id', id)).catch(sinUso));
     } else {
       const m = nuevo ? { nombre: '', orden: d.mesas.length, activa: true } : d.mesas.find((x) => x.id === id);
       formulario(nuevo ? 'Nueva mesa' : 'Editar mesa',
-        [{ n: 'nombre', l: 'Nombre (ej.: Mesa 9, Terraza 1)', t: 'text', req: true }, { n: 'orden', l: 'Posición en el tablero (menor primero)', t: 'number' }, { n: 'activa', l: 'Activa (si no, se oculta del tablero)', t: 'check' }], m,
+        [{ n: 'nombre', l: 'Nombre', t: 'text', req: true }, { n: 'orden', l: 'Posición', t: 'number' }, { n: 'activa', l: 'Activa', t: 'check' }], m,
         (v) => escribir(nuevo ? db.from('mesas').insert(v) : db.from('mesas').update(v).eq('id', id)),
         nuevo ? null : () => escribir(db.from('mesas').delete().eq('id', id)).catch(sinUso));
     }
@@ -576,7 +573,8 @@
   function pantallaLogin(mensaje = '') {
     nav.hidden = true;
     app.innerHTML = `<form class="login" id="form-login">
-      <h1>🍺 Bar</h1>
+      <img src="logo.png" alt="El Callejón del Gato" width="140" height="140">
+      <h1>Cuentas</h1>
       <label>Usuario <input name="usuario" autocomplete="username" autocapitalize="none" autocorrect="off" required autofocus></label>
       <label>Contraseña <input name="clave" type="password" autocomplete="current-password" required></label>
       <p class="login-error" id="login-error">${esc(mensaje)}</p>

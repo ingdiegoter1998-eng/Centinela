@@ -3,13 +3,22 @@
 -- Inventario, solo el super administrador). La ganancia no se guarda: la app la calcula como venta − costo.
 
 insert into categorias (nombre, orden) values
-  ('Cervezas', 1), ('Cervezas artesanales', 1), ('Licores', 2), ('Cócteles', 3), ('Sin alcohol', 4), ('Comida', 5)
+  ('Cervezas', 1), ('Cervezas artesanales', 1), ('Licores', 2), ('Sin alcohol', 4)
 on conflict (nombre) do nothing;
 
 -- «Águila» pasa a llamarse «Águila Light».
 update productos set nombre = 'Águila Light'
  where nombre = 'Águila' and categoria_id = (select id from categorias where nombre = 'Cervezas')
    and not exists (select 1 from productos where nombre = 'Águila Light');
+
+-- Lo que todavía no hay en el bar no va en la app (cócteles, comida, tragos sueltos, jugo): se quita si existía.
+delete from productos p
+ where p.nombre in ('Aguardiente — trago', 'Whisky — trago', 'Mojito', 'Michelada', 'Piña colada', 'Jugo natural',
+                    'Papas fritas', 'Nachos', 'Empanadas (3)')
+   and not exists (select 1 from lineas l where l.producto_id = p.id)
+   and not exists (select 1 from movimientos m where m.producto_id = p.id);
+delete from categorias c
+ where c.nombre in ('Cócteles', 'Comida') and not exists (select 1 from productos where categoria_id = c.id);
 
 -- Productos con costo y precio dados. Existencias: solo se usan si el producto es nuevo.
 insert into productos (categoria_id, nombre, precio, costo, controla_stock, stock, stock_minimo)
@@ -19,19 +28,10 @@ from (values
   ('Cervezas',    'Club Colombia',          6000,  3200, 36, 12),
   ('Cervezas',    'Corona',                 5000,  3000, 24,  6),
   ('Cervezas',    'Poker',                  5000,  2400, 48, 12),
-  ('Licores',     'Aguardiente — trago',    4000,  1500, null, 0),
   ('Licores',     'Aguardiente — botella', 65000, 38000, 10, 3),
   ('Licores',     'Ron — botella',         85000, 52000,  8, 2),
-  ('Licores',     'Whisky — trago',        12000,  5000, null, 0),
-  ('Cócteles',    'Mojito',                18000,  6500, null, 0),
-  ('Cócteles',    'Michelada',             12000,  4500, null, 0),
-  ('Cócteles',    'Piña colada',           20000,  7000, null, 0),
   ('Sin alcohol', 'Gaseosa',                4000,  1800, 30, 10),
-  ('Sin alcohol', 'Agua',                   3000,  1000, 40, 10),
-  ('Sin alcohol', 'Jugo natural',           7000,  2500, null, 0),
-  ('Comida',      'Papas fritas',          10000,  3500, null, 0),
-  ('Comida',      'Nachos',                16000,  6000, null, 0),
-  ('Comida',      'Empanadas (3)',          9000,  3000, null, 0)
+  ('Sin alcohol', 'Agua',                   3000,  1000, 40, 10)
 ) as v(categoria, nombre, precio, costo, stock, minimo)
 join categorias c on c.nombre = v.categoria
 on conflict (categoria_id, nombre) do update set precio = excluded.precio, costo = excluded.costo;

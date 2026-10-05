@@ -37,7 +37,7 @@ jobs:
         working-directory: .
         run: |
           mkdir -p landing/dist/bar
-          cp -r bar-nube/index.html bar-nube/app.css bar-nube/app.js bar-nube/config.js bar-nube/vendor landing/dist/bar/
+          cp -r bar-nube/index.html bar-nube/app.css bar-nube/app.js bar-nube/config.js bar-nube/logo.png bar-nube/vendor landing/dist/bar/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: landing/dist

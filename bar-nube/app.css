@@ -1,12 +1,12 @@
 /* Tema oscuro (los bares son oscuros), botones grandes y sin hover: se usa con un dedo. */
 :root {
-  --fondo: #14141c;
-  --tarjeta: #1f1f2b;
-  --tarjeta-2: #2a2a39;
-  --borde: #35354a;
-  --texto: #f1f1f6;
-  --suave: #9a9ab2;
-  --ambar: #f5a524;
+  --fondo: #0a0807;
+  --tarjeta: #16100d;
+  --tarjeta-2: #221913;
+  --borde: #3a2619;
+  --texto: #f4ebe4;
+  --suave: #a39084;
+  --ambar: #ff6a1f;
   --verde: #3ecf8e;
   --rojo: #ff6b6b;
   --azul: #5aa9ff;
@@ -30,7 +30,8 @@ code { background: var(--tarjeta-2); padding: 1px 6px; border-radius: 6px; }
 
 /* Inicio de sesión */
 .login { max-width: 340px; margin: 12vh auto 0; display: grid; gap: 14px; }
-.login h1 { text-align: center; font-size: 2rem; }
+.login h1 { text-align: center; font-size: 1.6rem; letter-spacing: .04em; margin: 0; }
+.login img { display: block; margin: 0 auto; border-radius: 50%; box-shadow: 0 0 40px #ff4d1a40; }
 .login label { display: grid; gap: 6px; color: var(--suave); font-size: .9rem; }
 .login input { padding: 14px; border-radius: 10px; border: 1px solid var(--borde); background: var(--tarjeta); font-size: 1.1rem; }
 .login-error { color: var(--rojo); min-height: 1.4em; margin: 0; text-align: center; }
@@ -38,13 +39,13 @@ code { background: var(--tarjeta-2); padding: 1px 6px; border-radius: 6px; }
 /* Navegación */
 .nav { display: flex; gap: 4px; padding: 8px 12px; background: var(--tarjeta); position: sticky; top: 0; z-index: 5; }
 .nav a { flex: 1; text-align: center; padding: 12px 8px; border-radius: 10px; color: var(--suave); text-decoration: none; font-weight: 600; }
-.nav a.activo { background: var(--ambar); color: #1a1100; }
+.nav a.activo { background: var(--ambar); color: #1a0a00; box-shadow: 0 0 14px #ff6a1f55; }
 .nav .nav-admin { flex: 0 0 48px; }
 .nav-salir { flex: 0 0 auto; border: 0; border-radius: 10px; background: var(--tarjeta-2); color: var(--suave); padding: 0 12px; font-weight: 600; max-width: 38vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Avisos */
 .aviso { margin: 8px 12px; padding: 12px 14px; border-radius: 10px; background: var(--tarjeta-2); }
-.aviso.error { background: #4a2229; color: #ffd0d0; }
+.aviso.error { background: #4a1d1a; color: #ffd6d0; }
 .aviso.success { background: #17382b; color: #c9f5de; }
 .vacio { color: var(--suave); text-align: center; padding: 24px 8px; }
 .pie, .nota { color: var(--suave); }
@@ -70,9 +71,9 @@ code { background: var(--tarjeta-2); padding: 1px 6px; border-radius: 6px; }
   padding: 12px; border-radius: 16px; text-decoration: none; color: var(--texto);
   background: var(--tarjeta); border: 2px solid var(--borde);
 }
-.mesa.libre { border-color: #25503f; }
+.mesa.libre { border-color: var(--borde); }
 .mesa.libre .mesa-info { color: var(--verde); }
-.mesa.ocupada { border-color: var(--ambar); background: #2b2412; }
+.mesa.ocupada { border-color: var(--ambar); background: #2a1409; }
 .mesa-nombre { font-size: 1.15rem; font-weight: 700; }
 .mesa-total { font-size: 1.3rem; font-weight: 800; color: var(--ambar); }
 .mesa-info { font-size: .8rem; color: var(--suave); }
@@ -135,7 +136,7 @@ code { background: var(--tarjeta-2); padding: 1px 6px; border-radius: 6px; }
 .barra-total b { font-size: 1.2rem; }
 
 /* Inventario y ventas */
-.alerta { background: #3a2c10; border: 1px solid #6b4f12; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.alerta { background: #34180b; border: 1px solid #7a3412; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
 .alerta ul { margin: 0; padding-left: 18px; }
 .categoria { margin: 18px 0 8px; color: var(--suave); text-transform: uppercase; font-size: .8rem; letter-spacing: .06em; }
 .tabla { background: var(--tarjeta); border-radius: 14px; border: 1px solid var(--borde); overflow: hidden; }
