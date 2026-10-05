@@ -1,0 +1,74 @@
+{% load formato %}
+{% if mensaje %}<div class="aviso error">{{ mensaje }}</div>{% endif %}
+<div class="pantalla">
+  <section class="catalogo">
+    {% if productos %}
+    <div class="chips">
+      <button type="button" class="chip" data-filtro="">Todo</button>
+      {% for c in categorias %}<button type="button" class="chip" data-filtro="{{ c.id }}">{{ c.nombre }}</button>{% endfor %}
+    </div>
+    <div class="productos">
+      {% for p in productos %}
+      <button type="button" class="producto{% if p.agotado %} agotado{% endif %}{% if p.stock_bajo %} bajo{% endif %}"
+              data-accion="agregar" data-producto="{{ p.id }}" data-cat="{{ p.categoria_id }}">
+        <span class="p-nombre">{{ p.nombre }}</span>
+        <span class="p-precio">{{ p.precio|pesos }}</span>
+        {% if p.controla_stock %}<span class="p-stock">{% if p.agotado %}agotado{% else %}quedan {{ p.stock }}{% endif %}</span>{% endif %}
+        {% if p.en_cuenta %}<span class="p-badge">{{ p.en_cuenta }}</span>{% endif %}
+      </button>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="vacio">Todavía no hay productos. Agrégalos en <a href="{% url 'admin:barra_producto_add' %}">administración</a>
+      (o corre <code>python manage.py cargar_demo</code> para ver el ejemplo).</p>
+    {% endif %}
+  </section>
+
+  <section class="cuenta" id="cuenta">
+    <h2>Cuenta</h2>
+    <div class="cliente">
+      <select data-accion="cliente" aria-label="Cliente">
+        <option value="">Cliente anónimo</option>
+        {% for c in clientes %}<option value="{{ c.id }}"{% if factura.cliente_id == c.id %} selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+      </select>
+      <button type="button" class="btn chico" data-accion="cliente_nuevo" data-pregunta="Nombre del cliente nuevo">＋ Cliente</button>
+    </div>
+
+    {% if lineas %}
+    <ul class="lineas">
+      {% for l in lineas %}
+      <li>
+        <span class="l-nombre">{{ l.producto.nombre }}<small>{{ l.precio|pesos }} c/u</small></span>
+        <span class="l-cant">
+          <button type="button" data-accion="quitar" data-producto="{{ l.producto_id }}" aria-label="Quitar uno">−</button>
+          <b>{{ l.cantidad }}</b>
+          <button type="button" data-accion="agregar" data-producto="{{ l.producto_id }}" aria-label="Agregar uno">＋</button>
+        </span>
+        <span class="l-subtotal">{{ l.subtotal|pesos }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="vacio">Toca un producto para abrir la cuenta.</p>
+    {% endif %}
+
+    <div class="total"><span>Total</span><b>{{ total|pesos }}</b></div>
+
+    {% if lineas %}
+    <div class="cobrar">
+      {% for valor, etiqueta in metodos %}
+      <button type="button" class="btn pago pago-{{ valor }}" data-accion="cobrar" data-metodo="{{ valor }}"
+              data-confirmar="¿Cobrar {{ total|pesos }} en {{ etiqueta|lower }}?">{{ etiqueta }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if factura %}
+    <button type="button" class="btn peligro chico" data-accion="anular"
+            data-confirmar="¿Anular toda la cuenta de {{ mesa.nombre }}? Lo pedido vuelve al inventario.">Anular cuenta</button>
+    {% endif %}
+  </section>
+
+  <a class="barra-total" href="#cuenta">
+    <span>{{ n_items }} ítem{{ n_items|pluralize:"s" }}</span><b>{{ total|pesos }}</b><span>Ver cuenta ↓</span>
+  </a>
+</div>

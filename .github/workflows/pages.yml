@@ -1,11 +1,12 @@
-# Publica la landing (landing/) en GitHub Pages en cada push a main.
+# Publica en GitHub Pages en cada push a main: la landing (landing/) en la raíz y el control
+# del bar (bar-nube/, solo el front estático) en /bar/.
 # Requiere activar Pages en Settings → Pages → Source: GitHub Actions.
-name: Desplegar landing
+name: Desplegar sitio
 
 on:
   push:
     branches: [main]
-    paths: ['landing/**', '.github/workflows/pages.yml']
+    paths: ['landing/**', 'bar-nube/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -32,6 +33,11 @@ jobs:
           cache-dependency-path: landing/package-lock.json
       - run: npm ci
       - run: npm run build
+      - name: Agregar el control del bar en /bar/
+        working-directory: .
+        run: |
+          mkdir -p landing/dist/bar
+          cp -r bar-nube/index.html bar-nube/app.css bar-nube/app.js bar-nube/config.js bar-nube/vendor landing/dist/bar/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: landing/dist

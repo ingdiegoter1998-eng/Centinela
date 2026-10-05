@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14141c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Bar</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🍺%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="#/" data-nav="mesas">Mesas</a>
+    <a href="#/inventario" data-nav="inventario">Inventario</a>
+    <a href="#/ventas" data-nav="ventas">Ventas</a>
+    <a href="#/catalogo" data-nav="catalogo" class="nav-admin" title="Catálogo: productos, precios, mesas">⚙</a>
+  </nav>
+  <div id="aviso-red" class="aviso error" hidden>Sin conexión con el servidor. Reintentando…</div>
+  <div id="avisos"></div>
+  <main id="app"><p class="vacio">Cargando…</p></main>
+
+  <dialog id="dlg-mover">
+    <form id="form-mover">
+      <h2 id="mover-titulo"></h2>
+      <label class="opcion"><input type="radio" name="tipo" value="compra" checked> Entró mercancía (suma)</label>
+      <label class="opcion"><input type="radio" name="tipo" value="conteo"> Conté en el estante (fija el stock)</label>
+      <label>Cantidad <input type="number" name="cantidad" inputmode="numeric" min="0" required></label>
+      <label class="solo-compra">Costo por unidad (opcional) <input type="number" name="costo" inputmode="numeric" min="0"></label>
+      <label>Nota (opcional) <input type="text" name="nota" maxlength="200"></label>
+      <div class="acciones">
+        <button type="button" class="btn" data-cerrar>Cancelar</button>
+        <button class="btn principal">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-form"><form id="form-generico"></form></dialog>
+
+  <script src="config.js"></script>
+  <script src="vendor/supabase.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{% extends "barra/base.html" %}
+{% load formato %}
+{% block titulo %}Ventas · Bar{% endblock %}
+{% block contenido %}
+<div class="cab">
+  <h1>Ventas</h1>
+  <form class="fecha" method="get">
+    <a class="btn chico" href="?fecha={{ anterior|date:'Y-m-d' }}">←</a>
+    <input type="date" name="fecha" value="{{ dia|date:'Y-m-d' }}" onchange="this.form.submit()">
+    {% if siguiente %}<a class="btn chico" href="?fecha={{ siguiente|date:'Y-m-d' }}">→</a>{% endif %}
+  </form>
+</div>
+<p class="nota">Jornada del {{ dia|date:"l j \d\e F" }}: desde las {{ hora_corte }}:00 hasta las {{ hora_corte }}:00 del día siguiente.</p>
+
+{% if es_hoy and abiertas %}
+<section class="alerta">
+  <h2>Cuentas abiertas sin cobrar ({{ abiertas|length }})</h2>
+  <ul>{% for f in abiertas %}<li><a href="{% url 'cuenta' f.mesa_id %}"><b>{{ f.mesa.nombre }}</b></a> — {{ f.total|pesos }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<div class="tarjetas">
+  <div class="tarjeta"><span>Vendido</span><b>{{ venta|pesos }}</b></div>
+  <div class="tarjeta"><span>Ganancia</span><b>{{ ganancia|pesos }}</b></div>
+  <div class="tarjeta"><span>Facturas</span><b>{{ n_facturas }}</b></div>
+  <div class="tarjeta"><span>Promedio por factura</span><b>{{ ticket_promedio|pesos }}</b></div>
+</div>
+
+<h2 class="categoria">Cómo pagaron</h2>
+<div class="tabla">
+  {% for m in metodos %}<div class="fila"><span class="f-nombre">{{ m.nombre }}</span><span class="f-valor">{{ m.total|pesos }}</span></div>{% endfor %}
+</div>
+
+<h2 class="categoria">Lo más vendido</h2>
+<div class="tabla">
+  {% for p in productos %}
+  <div class="fila">
+    <span class="f-nombre">{{ p.producto__nombre }}<small>{{ p.producto__categoria__nombre }} · gana {{ p.ganancia|pesos }}</small></span>
+    <span class="f-stock">{{ p.unidades }}</span>
+    <span class="f-valor">{{ p.venta|pesos }}</span>
+  </div>
+  {% empty %}<p class="vacio">Sin ventas en esta jornada.</p>{% endfor %}
+</div>
+
+<h2 class="categoria">Facturas</h2>
+<div class="tabla">
+  {% for f in facturas %}
+  <a class="fila enlace" href="{% url 'factura' f.id %}">
+    <span class="f-nombre">N.º {{ f.numero }} · {{ f.mesa.nombre }}<small>{{ f.cerrada_en|date:"g:i a" }} · {{ f.cliente.nombre|default:"Anónimo" }} · {{ f.get_metodo_pago_display }}</small></span>
+    <span class="f-valor">{{ f.total|pesos }}</span>
+  </a>
+  {% empty %}<p class="vacio">Sin facturas.</p>{% endfor %}
+</div>
+{% endblock %}

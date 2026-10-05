@@ -1,0 +1,51 @@
+{% extends "barra/base.html" %}
+{% load formato %}
+{% block titulo %}Inventario · Bar{% endblock %}
+{% block contenido %}
+<h1>Inventario</h1>
+
+{% if bajos %}
+<section class="alerta">
+  <h2>Por reponer ({{ bajos|length }})</h2>
+  <ul>{% for p in bajos %}<li><b>{{ p.nombre }}</b> — {% if p.agotado %}agotado{% else %}quedan {{ p.stock }}{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% regroup productos by categoria as grupos %}
+{% for grupo in grupos %}
+<h2 class="categoria">{{ grupo.grouper.nombre }}</h2>
+<div class="tabla">
+  {% for p in grupo.list %}
+  <div class="fila{% if p.agotado %} agotado{% elif p.stock_bajo %} bajo{% endif %}">
+    <span class="f-nombre">{{ p.nombre }}<small>costo {{ p.costo|pesos }} · venta {{ p.precio|pesos }} · gana {{ p.margen|pesos }}</small></span>
+    <span class="f-stock">{% if p.controla_stock %}{{ p.stock }}{% else %}—{% endif %}</span>
+    {% if p.controla_stock %}
+    <button type="button" class="btn chico" data-mover="{{ p.id }}" data-nombre="{{ p.nombre }}" data-costo="{{ p.costo }}">Mover</button>
+    {% else %}<span></span>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% empty %}
+<p class="vacio">Todavía no hay productos. Agrégalos en <a href="{% url 'admin:barra_producto_add' %}">administración</a>.</p>
+{% endfor %}
+
+{% if valor_costo %}<p class="pie">Valor del inventario a costo: <b>{{ valor_costo|pesos }}</b></p>{% endif %}
+
+<dialog id="dialogo-mover">
+  <form method="post" action="{% url 'inventario_mover' %}">
+    {% csrf_token %}
+    <h2 id="mover-titulo"></h2>
+    <input type="hidden" name="producto" id="mover-producto">
+    <label class="opcion"><input type="radio" name="tipo" value="compra" checked> Entró mercancía (suma)</label>
+    <label class="opcion"><input type="radio" name="tipo" value="conteo"> Conté en el estante (fija el stock)</label>
+    <label>Cantidad <input type="number" name="cantidad" inputmode="numeric" min="0" required id="mover-cantidad"></label>
+    <label class="solo-compra">Costo por unidad (opcional)
+      <input type="number" name="costo" inputmode="numeric" min="0" id="mover-costo"></label>
+    <label>Nota (opcional) <input type="text" name="nota" maxlength="200"></label>
+    <div class="acciones">
+      <button type="button" class="btn" data-cerrar>Cancelar</button>
+      <button class="btn principal">Guardar</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

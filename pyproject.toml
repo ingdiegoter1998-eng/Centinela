@@ -41,3 +41,5 @@ ignore = ["DTZ005"]  # timestamp local naive en el manifest, a propósito
 # Django declara listas como atributos de clase (admin, Meta): es el idioma del framework.
 "web/**" = ["RUF012"]
 "web/*/migrations/*" = ["ALL"]
+"bar/**" = ["RUF012"]
+"bar/*/migrations/*" = ["ALL"]

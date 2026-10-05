@@ -1,0 +1,7 @@
+{% extends "barra/base.html" %}
+{% block titulo %}Mesas · Bar{% endblock %}
+{% block contenido %}
+<div data-panel data-url="{% url 'mesas_panel' %}">
+  {% include "barra/_mesas_panel.html" %}
+</div>
+{% endblock %}
