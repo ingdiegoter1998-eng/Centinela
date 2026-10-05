@@ -5,6 +5,9 @@
 //  - Cada toque se muestra al instante (optimista) y se manda a la base; luego se vuelve a leer.
 //  - Supabase Realtime avisa cuando cambia algo; además se relee cada pocos segundos por si el
 //    aviso se pierde (WiFi inestable).
+// Hay que iniciar sesión. Dos roles (tabla `perfiles`): «admin» lo ve y lo cambia todo; «barman» abre y
+// cobra cuentas y solo ve el inventario. Lo que cada rol puede lo decide la base (RLS), no esta pantalla:
+// aquí solo se esconde lo que no le sirve.
 (() => {
   const cfg = window.BAR_CONFIG || {};
   const app = document.getElementById('app');
@@ -14,7 +17,7 @@
     return;
   }
   const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
+    auth: { persistSession: true, autoRefreshToken: true },
     // Tope de 10 s por petición: con WiFi malo es mejor avisar que dejar la pantalla colgada.
     global: { fetch: (url, opts) => fetch(url, { ...opts, signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : opts?.signal }) },
   });
@@ -33,6 +36,18 @@
   const items = (lineas) => lineas.reduce((t, l) => t + l.cantidad, 0);
   const METODOS = { efectivo: 'Efectivo', transferencia: 'Transferencia', tarjeta: 'Tarjeta' };
   const HORA_CORTE = 6;
+  let perfil = null;                                   // { nombre, rol } de quien inició sesión
+  const esAdmin = () => perfil?.rol === 'admin';
+  const enCatalogo = () => (esAdmin() ? '<a href="#/catalogo">Catálogo</a> (⚙)' : 'el Catálogo (pídeselo al administrador)');
+  const dominio = '@bar.local';                        // Supabase pide un correo: el usuario es «<usuario>@bar.local»
+  const sufijo = '-bar';                               // y exige 6+ caracteres: a la clave escrita se le suma esto (ver crear_usuarios.sh)
+
+  // Existencias que se ven de un producto. Si se vende por porciones de un recipiente (cerveza de barril),
+  // son las porciones que alcanzan; el recipiente (unidad 'ml') se muestra en litros.
+  const porId = (ps) => Object.fromEntries(ps.map((p) => [p.id, p]));
+  const quedan = (p, ids) => (p.insumo_id && ids[p.insumo_id] ? Math.floor(ids[p.insumo_id].stock / p.consumo) : p.stock);
+  const litros = (ml) => `${(ml / 1000).toLocaleString('es-CO', { maximumFractionDigits: 2 })} L`;
+  const existencia = (p, ids) => (p.unidad === 'ml' ? litros(p.stock) : String(quedan(p, ids)));
 
   async function leer(consulta) {
     // Sin reintentos internos de la librería (esperan varios segundos con la red caída):
@@ -68,7 +83,7 @@
       return { mesas: mesas.map((m) => ({ ...m, cuenta: porMesa[m.id] })), porCobrar: cuentas.reduce((t, c) => t + c.total, 0) };
     },
     html({ mesas, porCobrar }) {
-      if (!mesas.length) return `<p class="vacio">Todavía no hay mesas. Créalas en <a href="#/catalogo">Catálogo</a> (⚙).</p>`;
+      if (!mesas.length) return `<p class="vacio">Todavía no hay mesas. Créalas en ${enCatalogo()}.</p>`;
       const tarjetas = mesas.map((m) => {
         const c = m.cuenta;
         return `<a class="mesa ${c ? 'ocupada' : 'libre'}" href="#/mesa/${m.id}">
@@ -100,19 +115,22 @@
       clientes.sort((a, b) => ES(a.nombre, b.nombre));
       return { mesa, factura, lineas: (factura?.lineas || []).slice().sort((a, b) => a.id - b.id), productos, clientes };
     },
-    html({ mesa, factura, lineas, productos, clientes }) {
+    html({ mesa, factura, lineas, productos: todos, clientes }) {
+      const ids = porId(todos);
+      const productos = todos.filter((p) => p.se_vende);
       const cats = [...new Map(productos.map((p) => [p.categorias.id, p.categorias])).values()]
         .sort((a, b) => a.orden - b.orden || ES(a.nombre, b.nombre));
       const enCuenta = Object.fromEntries(lineas.map((l) => [l.producto_id, l.cantidad]));
       const t = total(lineas);
       const n = items(lineas);
       const botones = productos.map((p) => {
-        const agotado = p.controla_stock && p.stock <= 0;
-        const bajo = p.controla_stock && p.stock_minimo > 0 && p.stock <= p.stock_minimo;
+        const q = quedan(p, ids);
+        const agotado = p.controla_stock && q <= 0;
+        const bajo = p.controla_stock && p.stock_minimo > 0 && q <= p.stock_minimo;
         return `<button type="button" class="producto${agotado ? ' agotado' : ''}${bajo ? ' bajo' : ''}" data-accion="agregar" data-producto="${p.id}" data-cat="${p.categoria_id}">
           <span class="p-nombre">${esc(p.nombre)}</span>
           <span class="p-precio">${pesos(p.precio)}</span>
-          ${p.controla_stock ? `<span class="p-stock">${agotado ? 'agotado' : `quedan ${p.stock}`}</span>` : ''}
+          ${p.controla_stock ? `<span class="p-stock">${agotado ? 'agotado' : `quedan ${q}`}</span>` : ''}
           ${enCuenta[p.id] ? `<span class="p-badge">${enCuenta[p.id]}</span>` : ''}
         </button>`;
       }).join('');
@@ -133,7 +151,7 @@
               ${cats.map((c) => `<button type="button" class="chip" data-filtro="${c.id}">${esc(c.nombre)}</button>`).join('')}
             </div>
             <div class="productos">${botones}</div>`
-            : `<p class="vacio">Todavía no hay productos. Agrégalos en <a href="#/catalogo">Catálogo</a> (⚙).</p>`}
+            : `<p class="vacio">Todavía no hay productos. Agrégalos en ${enCatalogo()}.</p>`}
         </section>
         <section class="cuenta" id="cuenta">
           <h2>Cuenta</h2>
@@ -169,25 +187,30 @@
       return { productos };
     },
     html({ productos }) {
-      const agotado = (p) => p.controla_stock && p.stock <= 0;
-      const bajo = (p) => p.controla_stock && p.stock_minimo > 0 && p.stock <= p.stock_minimo;
-      const porReponer = productos.filter((p) => agotado(p) || bajo(p));
-      const valor = productos.filter((p) => p.controla_stock && p.stock > 0).reduce((t, p) => t + p.stock * p.costo, 0);
+      const ids = porId(productos);
+      const agotado = (p) => p.controla_stock && quedan(p, ids) <= 0;
+      const bajo = (p) => p.controla_stock && p.stock_minimo > 0 && quedan(p, ids) <= p.stock_minimo;
+      const detalle = (p) => !p.se_vende ? 'recipiente: de aquí salen las porciones que se venden'
+        : esAdmin() ? `costo ${pesos(p.costo)} · venta ${pesos(p.precio)} · gana ${pesos(p.precio - p.costo)}${p.insumo_id ? ` · usa ${p.consumo} ml` : ''}`
+        : `venta ${pesos(p.precio)}`;
+      const porReponer = productos.filter((p) => !p.insumo_id && (agotado(p) || bajo(p)));
+      const valor = productos.filter((p) => p.controla_stock && p.stock > 0 && p.unidad !== 'ml' && !p.insumo_id).reduce((t, p) => t + p.stock * p.costo, 0);
       const grupos = [];
       productos.forEach((p) => {
         if (!grupos.length || grupos[grupos.length - 1].id !== p.categorias.id) grupos.push({ id: p.categorias.id, nombre: p.categorias.nombre, lista: [] });
         grupos[grupos.length - 1].lista.push(p);
       });
       return `<h1>Inventario</h1>
+      ${esAdmin() ? '' : '<p class="nota">Solo lectura: el administrador es quien suma o cuenta el inventario.</p>'}
       ${porReponer.length ? `<section class="alerta"><h2>Por reponer (${porReponer.length})</h2><ul>${porReponer.map((p) =>
-        `<li><b>${esc(p.nombre)}</b> — ${agotado(p) ? 'agotado' : `quedan ${p.stock}`}</li>`).join('')}</ul></section>` : ''}
+        `<li><b>${esc(p.nombre)}</b> — ${agotado(p) ? 'agotado' : `quedan ${existencia(p, ids)}`}</li>`).join('')}</ul></section>` : ''}
       ${grupos.map((g) => `<h2 class="categoria">${esc(g.nombre)}</h2><div class="tabla">${g.lista.map((p) => `
         <div class="fila${agotado(p) ? ' agotado' : bajo(p) ? ' bajo' : ''}">
-          <span class="f-nombre">${esc(p.nombre)}<small>costo ${pesos(p.costo)} · venta ${pesos(p.precio)} · gana ${pesos(p.precio - p.costo)}</small></span>
-          <span class="f-stock">${p.controla_stock ? p.stock : '—'}</span>
-          ${p.controla_stock ? `<button type="button" class="btn chico" data-mover="${p.id}" data-nombre="${esc(p.nombre)}">Mover</button>` : '<span></span>'}
-        </div>`).join('')}</div>`).join('') || `<p class="vacio">Todavía no hay productos. Agrégalos en <a href="#/catalogo">Catálogo</a> (⚙).</p>`}
-      ${valor ? `<p class="pie">Valor del inventario a costo: <b>${pesos(valor)}</b></p>` : ''}`;
+          <span class="f-nombre">${esc(p.nombre)}<small>${detalle(p)}</small></span>
+          <span class="f-stock">${p.controla_stock ? existencia(p, ids) : '—'}</span>
+          ${p.controla_stock && esAdmin() && !p.insumo_id ? `<button type="button" class="btn chico" data-mover="${p.id}" data-nombre="${esc(p.nombre)}" data-unidad="${p.unidad}">Mover</button>` : '<span></span>'}
+        </div>`).join('')}</div>`).join('') || `<p class="vacio">Todavía no hay productos. Agrégalos en ${enCatalogo()}.</p>`}
+      ${valor && esAdmin() ? `<p class="pie">Valor del inventario a costo: <b>${pesos(valor)}</b></p>` : ''}`;
     },
   };
 
@@ -279,7 +302,7 @@
       ${categorias.map((c) => { const ps = productos.filter((p) => p.categoria_id === c.id);
         return ps.length ? `<h2 class="categoria">${esc(c.nombre)}</h2><div class="tabla">${ps.map((p) => `
           <div class="fila clicable${p.activo ? '' : ' inactivo'}" data-editar="producto" data-id="${p.id}">
-            <span class="f-nombre">${esc(p.nombre)}${p.activo ? '' : ' (oculto)'}<small>costo ${pesos(p.costo)} · gana ${pesos(p.precio - p.costo)}${p.controla_stock ? '' : ' · sin inventario'}</small></span>
+            <span class="f-nombre">${esc(p.nombre)}${p.activo ? '' : ' (oculto)'}${p.se_vende ? '' : ' (recipiente, no se vende)'}<small>costo ${pesos(p.costo)} · gana ${pesos(p.precio - p.costo)}${p.controla_stock ? '' : ' · sin inventario'}</small></span>
             <span class="f-valor">${pesos(p.precio)}</span></div>`).join('')}</div>` : ''; }).join('')}
       <div class="seccion-cab"><h2>Categorías</h2><button type="button" class="btn chico" data-nuevo="categoria">＋ Categoría</button></div>
       <div class="tabla">${categorias.map((c) => `<div class="fila clicable" data-editar="categoria" data-id="${c.id}"><span class="f-nombre">${esc(c.nombre)}</span><span class="f-stock">${c.orden}</span></div>`).join('') || '<p class="vacio">Sin categorías.</p>'}</div>
@@ -296,7 +319,8 @@
 
   function ruta() {
     const partes = (location.hash.replace(/^#\/?/, '') || '').split('/').filter(Boolean);
-    const nombre = { mesa: 'cuenta' }[partes[0]] || partes[0] || 'mesas';
+    let nombre = { mesa: 'cuenta' }[partes[0]] || partes[0] || 'mesas';
+    if (!esAdmin() && ['ventas', 'catalogo'].includes(nombre)) nombre = 'mesas';
     return { nombre: vistas[nombre] ? nombre : 'mesas', args: partes.slice(1) };
   }
 
@@ -332,6 +356,7 @@
   }
 
   async function navegar() {
+    if (!perfil) return;                  // sin sesión solo se ve el inicio de sesión
     const { nombre, args } = ruta();
     actual = { nombre, args, d: null };
     window.scrollTo(0, 0);
@@ -340,6 +365,11 @@
   }
 
   // ── Acciones sobre la cuenta ─────────────────────────────────────────────────────────────
+  function bajaStock(d, prod, n) {      // n > 0 descuenta (igual que la base: del recipiente si lo hay)
+    const destino = (prod.insumo_id && d.productos.find((x) => x.id === prod.insumo_id)) || prod;
+    destino.stock -= n * prod.consumo;
+  }
+
   function optimista(accion, productoId) {
     const d = actual.d;
     const prod = d.productos.find((p) => p.id === productoId);
@@ -349,12 +379,12 @@
       if (l) l.cantidad += 1;
       else d.lineas.push({ id: Date.now(), producto_id: productoId, cantidad: 1, precio: prod.precio, productos: { nombre: prod.nombre } });
       if (!d.factura) d.factura = { id: null, cliente_id: null };
-      if (prod.controla_stock) prod.stock -= 1;
+      if (prod.controla_stock) bajaStock(d, prod, 1);
     } else if (l) {
       l.cantidad -= 1;
       if (l.cantidad <= 0) d.lineas = d.lineas.filter((x) => x !== l);
       if (!d.lineas.length) d.factura = null;
-      if (prod.controla_stock) prod.stock += 1;
+      if (prod.controla_stock) bajaStock(d, prod, -1);
     }
     dibujar();
   }
@@ -395,12 +425,12 @@
   // ── Diálogos: inventario y catálogo ──────────────────────────────────────────────────────
   const dlgMover = document.getElementById('dlg-mover');
   const formMover = document.getElementById('form-mover');
-  let moviendo = null;
+  let moviendo = null; let moviendoUnidad = 'unid';
 
   formMover.addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = new FormData(formMover);
-    const cantidad = parseInt(f.get('cantidad'), 10);
+    const cantidad = moviendoUnidad === 'ml' ? Math.round(parseFloat(String(f.get('cantidad')).replace(',', '.')) * 1000) : parseInt(f.get('cantidad'), 10);
     const nota = (f.get('nota') || '').trim();
     try {
       if (f.get('tipo') === 'conteo') await rpc('contar', { p_producto: moviendo, p_stock: cantidad, p_nota: nota });
@@ -486,7 +516,13 @@
     const mover = t.closest('[data-mover]');
     if (mover) {
       moviendo = Number(mover.dataset.mover);
+      moviendoUnidad = mover.dataset.unidad || 'unid';
+      const enLitros = moviendoUnidad === 'ml';
       formMover.reset();
+      formMover.cantidad.step = enLitros ? '0.1' : '1';
+      formMover.cantidad.inputMode = enLitros ? 'decimal' : 'numeric';
+      document.getElementById('mover-unidad').textContent = enLitros ? 'Litros' : 'Cantidad';
+      formMover.querySelector('.solo-compra').hidden = enLitros;
       document.getElementById('mover-titulo').textContent = mover.dataset.nombre;
       dlgMover.showModal();
       return;
@@ -515,19 +551,77 @@
   let temporizador = null;
   const pedirRefresco = () => { clearTimeout(temporizador); temporizador = setTimeout(() => refrescar(), 250); };
   let enVivo = false;
-  const canal = db.channel('bar');
-  ['facturas', 'lineas', 'productos', 'mesas'].forEach((tabla) => canal.on('postgres_changes', { event: '*', schema: 'public', table: tabla }, pedirRefresco));
-  canal.subscribe((estado) => { enVivo = estado === 'SUBSCRIBED'; });
+  let sincronizando = false;
+  function sincronizar() {
+    if (sincronizando) return;
+    sincronizando = true;
+    const canal = db.channel('bar');
+    ['facturas', 'lineas', 'productos', 'mesas'].forEach((tabla) => canal.on('postgres_changes', { event: '*', schema: 'public', table: tabla }, pedirRefresco));
+    canal.subscribe((estado) => { enVivo = estado === 'SUBSCRIBED'; });
 
-  let tick = 0;
-  setInterval(() => {
-    tick++;
-    if (document.hidden) return;
-    // Con Realtime activo basta una relectura de respaldo cada ~20 s; sin él, cada 4 s.
-    if (enVivo ? tick % 5 === 0 : true) refrescar();
-  }, 4000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
-  window.addEventListener('online', () => refrescar());
+    let tick = 0;
+    setInterval(() => {
+      tick++;
+      if (document.hidden) return;
+      // Con Realtime activo basta una relectura de respaldo cada ~20 s; sin él, cada 4 s.
+      if (enVivo ? tick % 5 === 0 : true) refrescar();
+    }, 4000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
+    window.addEventListener('online', () => refrescar());
+  }
 
-  navegar();
+  // ── Sesión ───────────────────────────────────────────────────────────────────────────────
+  const nav = document.getElementById('nav');
+
+  function pantallaLogin(mensaje = '') {
+    nav.hidden = true;
+    app.innerHTML = `<form class="login" id="form-login">
+      <h1>🍺 Bar</h1>
+      <label>Usuario <input name="usuario" autocomplete="username" autocapitalize="none" autocorrect="off" required autofocus></label>
+      <label>Contraseña <input name="clave" type="password" autocomplete="current-password" required></label>
+      <p class="login-error" id="login-error">${esc(mensaje)}</p>
+      <button class="btn principal">Entrar</button>
+    </form>`;
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const boton = e.target.querySelector('button');
+      boton.disabled = true;
+      const { error } = await db.auth.signInWithPassword({ email: String(f.get('usuario')).trim().toLowerCase() + dominio, password: String(f.get('clave')) + sufijo });
+      if (error) {
+        boton.disabled = false;
+        const sinRed = /fetch|network|abort|timeout/i.test(error.message);
+        document.getElementById('login-error').textContent = sinRed ? 'Sin conexión con el servidor.' : 'Usuario o contraseña incorrectos.';
+        return;
+      }
+      location.hash = '#/';
+      entrar();
+    });
+  }
+
+  async function salir() {
+    await db.auth.signOut();
+    location.hash = '#/';
+    location.reload();
+  }
+
+  async function entrar() {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) return pantallaLogin();
+    let datos;
+    try { datos = await leer(db.from('perfiles').select('nombre, rol').eq('id', session.user.id).maybeSingle()); }
+    catch (e) { app.innerHTML = `<p class="vacio">${esc(e.message)}</p>`; return; }
+    if (!datos) { await db.auth.signOut(); return pantallaLogin('Ese usuario no tiene permisos en el bar.'); }
+    perfil = datos;
+    document.querySelectorAll('.solo-admin').forEach((a) => { a.hidden = !esAdmin(); });
+    document.getElementById('quien').textContent = perfil.nombre;
+    nav.hidden = false;
+    sincronizar();
+    navegar();
+  }
+
+  document.getElementById('salir').addEventListener('click', () => { if (confirm('¿Cerrar sesión?')) salir(); });
+  db.auth.onAuthStateChange((evento) => { if (evento === 'SIGNED_OUT' && perfil) location.reload(); });
+
+  entrar();
 })();

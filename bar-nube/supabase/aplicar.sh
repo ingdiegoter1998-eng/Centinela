@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Aplica schema.sql (y opcionalmente los datos de ejemplo) a tu proyecto de Supabase, sin pegar nada a mano.
-#   SUPABASE_ACCESS_TOKEN=... ./aplicar.sh [--demo]
+#   SUPABASE_ACCESS_TOKEN=... ./aplicar.sh [--demo | --catalogo]
 # El token se crea en Supabase → Account → Access Tokens. Dura hasta que lo borres: bórralo al terminar.
 # Es seguro repetirlo: el esquema no borra ni duplica datos.
 set -euo pipefail
@@ -21,6 +21,7 @@ ejecutar() {   # $1 = archivo .sql
 
 ejecutar schema.sql
 [ "${1:-}" = "--demo" ] && ejecutar datos_demo.sql
+[ "${1:-}" = "--catalogo" ] && ejecutar catalogo.sql
 echo "Listo. Llave pública (anon) de tu proyecto:"
 curl -sS "https://api.supabase.com/v1/projects/$REF/api-keys" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
   | python3 -c 'import json,sys; [print("  ", k["name"], k["api_key"]) for k in json.load(sys.stdin) if k["name"]=="anon"]'

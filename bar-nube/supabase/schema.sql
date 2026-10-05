@@ -7,8 +7,10 @@
 --     mesas 1─* facturas *─1 clientes                sin cliente = anónimo
 --     facturas 1─* lineas *─1 productos
 --
--- Seguridad: ABIERTA a propósito (decisión del dueño). Cualquiera con la URL y la llave `anon`
--- puede leer y escribir. Si algún día importa, se cierra cambiando las políticas de abajo.
+-- Seguridad: hay que iniciar sesión (Supabase Auth). Cada usuario tiene un perfil con rol:
+--     admin   (super administrador)  todo: catálogo, precios, inventario, ventas y ganancias
+--     barman  (personal limitado)    abre y cobra cuentas; solo ve el inventario, sin modificarlo
+-- La llave `anon` (pública) ya no lee ni escribe nada. Los usuarios se crean con crear_usuarios.sh.
 --
 -- Se puede ejecutar más de una vez sin duplicar nada ni borrar datos.
 
@@ -32,6 +34,15 @@ create table if not exists productos (
   activo         boolean not null default true,
   unique (categoria_id, nombre)
 );
+
+-- Productos que se venden por porciones de un mismo recipiente (ej.: cerveza artesanal de barril):
+--   insumo_id  producto «recipiente» del que se descuenta   consumo  cuánto se descuenta por unidad vendida
+--   unidad     'ml' → el recipiente cuenta en mililitros y la app lo muestra en litros
+--   se_vende   false para el recipiente: existe en inventario pero no aparece en las mesas
+alter table productos add column if not exists unidad    text    not null default 'unid';
+alter table productos add column if not exists se_vende  boolean not null default true;
+alter table productos add column if not exists insumo_id bigint  references productos(id) on delete restrict;
+alter table productos add column if not exists consumo   int     not null default 1 check (consumo > 0);
 
 create table if not exists mesas (
   id     bigint generated always as identity primary key,
@@ -82,6 +93,27 @@ create table if not exists movimientos (
   fecha          timestamptz not null default now()
 );
 
+-- Un perfil por usuario de Supabase Auth: quién es y qué rol tiene.
+create table if not exists perfiles (
+  id     uuid primary key references auth.users(id) on delete cascade,
+  nombre text not null,
+  rol    text not null check (rol in ('admin', 'barman'))
+);
+
+-- Quién llama. Sin sesión (auth.uid() nulo) solo vale la conexión directa de administración
+-- (SQL editor, scripts, pruebas); la API pública nunca entra por ahí (su rol de sesión es otro).
+create or replace function es_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select case when auth.uid() is null then session_user in ('postgres', 'supabase_admin')
+              else exists (select 1 from perfiles where id = auth.uid() and rol = 'admin') end
+$$;
+
+create or replace function es_personal() returns boolean   -- cualquier usuario con perfil
+language sql stable security definer set search_path = public as $$
+  select case when auth.uid() is null then session_user in ('postgres', 'supabase_admin')
+              else exists (select 1 from perfiles where id = auth.uid()) end
+$$;
+
 -- ── Vista: cuentas abiertas con su total (tablero de mesas) ─────────────────────────────────
 
 create or replace view v_cuentas_abiertas with (security_invoker = true) as
@@ -102,20 +134,22 @@ group by f.id, c.nombre;
 
 -- Devuelve la cuenta abierta de la mesa (bloqueada), creándola si no hay.
 create or replace function _cuenta_de(p_mesa bigint) returns bigint
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v_fac bigint;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   insert into facturas (mesa_id) values (p_mesa) on conflict (mesa_id) where estado = 'abierta' do nothing;
   select id into v_fac from facturas where mesa_id = p_mesa and estado = 'abierta' for update;
   return v_fac;
 end $$;
 
 create or replace function agregar(p_mesa bigint, p_producto bigint, p_cantidad int default 1) returns void
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v_prod productos; v_fac bigint;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   if p_cantidad is null or p_cantidad <= 0 then return; end if;
-  select * into v_prod from productos where id = p_producto and activo;
+  select * into v_prod from productos where id = p_producto and activo and se_vende;
   if not found then return; end if;
   v_fac := _cuenta_de(p_mesa);
   insert into lineas (factura_id, producto_id, cantidad, precio, costo)
@@ -123,15 +157,17 @@ begin
   on conflict (factura_id, producto_id) do update set cantidad = lineas.cantidad + excluded.cantidad;
   -- El stock se descuenta al pedir (inventario de este instante) y puede quedar negativo:
   -- nunca se frena una venta porque el conteo esté desactualizado.
+  -- Si se vende por porciones de un recipiente (insumo_id), el descuento sale del recipiente.
   if v_prod.controla_stock then
-    update productos set stock = stock - p_cantidad where id = p_producto;
+    update productos set stock = stock - p_cantidad * v_prod.consumo where id = coalesce(v_prod.insumo_id, v_prod.id);
   end if;
 end $$;
 
 create or replace function quitar(p_mesa bigint, p_producto bigint, p_cantidad int default 1) returns void
-language plpgsql set search_path = public as $$
-declare v_fac bigint; v_lin lineas; v_n int; v_controla boolean;
+language plpgsql security definer set search_path = public as $$
+declare v_fac bigint; v_lin lineas; v_n int; v_prod productos;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   select id into v_fac from facturas where mesa_id = p_mesa and estado = 'abierta' for update;
   if v_fac is null then return; end if;
   select * into v_lin from lineas where factura_id = v_fac and producto_id = p_producto;
@@ -142,8 +178,10 @@ begin
   else
     update lineas set cantidad = cantidad - v_n where id = v_lin.id;
   end if;
-  select controla_stock into v_controla from productos where id = p_producto;
-  if v_controla then update productos set stock = stock + v_n where id = p_producto; end if;
+  select * into v_prod from productos where id = p_producto;
+  if v_prod.controla_stock then
+    update productos set stock = stock + v_n * v_prod.consumo where id = coalesce(v_prod.insumo_id, v_prod.id);
+  end if;
   -- Una cuenta sin nada pedido no existe: la mesa vuelve a estar libre.
   if not exists (select 1 from lineas where factura_id = v_fac) then
     delete from facturas where id = v_fac;
@@ -151,17 +189,19 @@ begin
 end $$;
 
 create or replace function asignar_cliente(p_mesa bigint, p_cliente bigint) returns void
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v_fac bigint;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   v_fac := _cuenta_de(p_mesa);
   update facturas set cliente_id = (select id from clientes where id = p_cliente) where id = v_fac;
 end $$;
 
 create or replace function crear_cliente(p_mesa bigint, p_nombre text) returns void
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v_nombre text := btrim(coalesce(p_nombre, '')); v_cli bigint;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   if v_nombre = '' then return; end if;
   select id into v_cli from clientes where nombre = v_nombre order by id limit 1;
   if v_cli is null then insert into clientes (nombre) values (v_nombre) returning id into v_cli; end if;
@@ -170,9 +210,10 @@ end $$;
 
 -- Cobra la cuenta de la mesa. Devuelve el id de la factura (para abrir el recibo).
 create or replace function cobrar(p_mesa bigint, p_metodo text) returns bigint
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v_fac bigint;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   if p_metodo not in ('efectivo', 'transferencia', 'tarjeta') then
     raise exception 'Elige cómo pagó el cliente.';
   end if;
@@ -190,13 +231,18 @@ end $$;
 
 -- Descarta la cuenta abierta y devuelve al inventario todo lo que tenía.
 create or replace function anular(p_mesa bigint) returns void
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v_fac bigint;
 begin
+  if not es_personal() then raise exception 'Inicia sesión.'; end if;
   select id into v_fac from facturas where mesa_id = p_mesa and estado = 'abierta' for update;
   if v_fac is null then return; end if;
-  update productos p set stock = p.stock + l.cantidad
-    from lineas l where l.factura_id = v_fac and l.producto_id = p.id and p.controla_stock;
+  update productos p set stock = p.stock + d.n
+    from (select coalesce(pr.insumo_id, pr.id) as destino, sum(l.cantidad * pr.consumo)::int as n
+            from lineas l join productos pr on pr.id = l.producto_id
+           where l.factura_id = v_fac and pr.controla_stock
+           group by 1) d
+   where p.id = d.destino;
   if exists (select 1 from lineas where factura_id = v_fac) then
     update facturas set estado = 'anulada', cerrada_en = now() where id = v_fac;
   else
@@ -208,6 +254,7 @@ end $$;
 create or replace function comprar(p_producto bigint, p_cantidad int, p_costo int default null, p_nota text default '')
 returns void language plpgsql set search_path = public as $$
 begin
+  if not es_admin() then raise exception 'Solo el administrador mueve el inventario.'; end if;
   if p_cantidad is null or p_cantidad <= 0 then
     raise exception 'La cantidad que entra debe ser mayor que cero.';
   end if;
@@ -223,6 +270,7 @@ create or replace function contar(p_producto bigint, p_stock int, p_nota text de
 language plpgsql set search_path = public as $$
 declare v_actual int;
 begin
+  if not es_admin() then raise exception 'Solo el administrador mueve el inventario.'; end if;
   if p_stock is null or p_stock < 0 then raise exception 'El conteo no puede ser negativo.'; end if;
   select stock into v_actual from productos where id = p_producto for update;
   if not found then raise exception 'Producto no encontrado.'; end if;
@@ -248,6 +296,7 @@ declare
   v_fin timestamptz := (((p_dia + 1) + make_interval(hours => p_corte))::timestamp at time zone 'America/Bogota');
   v_res jsonb;
 begin
+  if not es_admin() then raise exception 'Solo el administrador ve las ventas.'; end if;
   with f as (
     select * from facturas where estado = 'pagada' and cerrada_en >= v_ini and cerrada_en < v_fin
   ), l as (
@@ -285,7 +334,9 @@ begin
   return v_res;
 end $$;
 
--- ── Permisos y seguridad (abierta) ──────────────────────────────────────────────────────────
+-- ── Permisos y seguridad ────────────────────────────────────────────────────────────────────
+-- Leer: cualquier usuario con perfil. Escribir directo en las tablas: solo admin. El barman vende
+-- a través de las funciones de arriba (agregar, cobrar...), que son las que tocan stock y cuentas.
 
 do $$
 declare t text;
@@ -293,14 +344,24 @@ begin
   foreach t in array array['categorias', 'productos', 'mesas', 'clientes', 'facturas', 'lineas', 'movimientos'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists acceso_total on %I', t);
-    execute format('create policy acceso_total on %I for all to anon, authenticated using (true) with check (true)', t);
+    execute format('drop policy if exists personal_lee on %I', t);
+    execute format('drop policy if exists admin_escribe on %I', t);
+    execute format('create policy personal_lee on %I for select to authenticated using (es_personal())', t);
+    execute format('create policy admin_escribe on %I for all to authenticated using (es_admin()) with check (es_admin())', t);
   end loop;
 end $$;
 
-grant usage on schema public to anon, authenticated;
-grant all on all tables    in schema public to anon, authenticated;
-grant all on all sequences in schema public to anon, authenticated;
-grant execute on all functions in schema public to anon, authenticated;
+alter table perfiles enable row level security;
+drop policy if exists perfil_propio on perfiles;
+create policy perfil_propio on perfiles for select to authenticated using (id = auth.uid() or es_admin());
+
+revoke all on all tables    in schema public from anon;
+revoke all on all sequences in schema public from anon;
+revoke execute on all functions in schema public from public, anon;
+grant usage on schema public to authenticated;
+grant all on all tables    in schema public to authenticated;
+grant all on all sequences in schema public to authenticated;
+grant execute on all functions in schema public to authenticated;
 
 -- ── Tiempo real: los celulares reciben los cambios sin preguntar ────────────────────────────
 

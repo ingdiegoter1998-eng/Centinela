@@ -13,13 +13,33 @@ consecutiva, jornada de 6:00 a 6:00) viven en funciones de la base: [`supabase/s
 ## Puesta en marcha (una sola vez)
 
 1. **Base de datos**: aplicar `supabase/schema.sql` al proyecto. Sin pegar nada a mano:
-   `SUPABASE_ACCESS_TOKEN=... ./supabase/aplicar.sh --demo` (el `--demo` carga el catálogo de ejemplo).
-   A mano: Supabase → SQL Editor → pegar `schema.sql` → Run. Es seguro repetirlo.
+   `SUPABASE_ACCESS_TOKEN=... ./supabase/aplicar.sh --catalogo` (carga el catálogo real del bar; `--demo` carga uno de
+   ejemplo). A mano: Supabase → SQL Editor → pegar `schema.sql` → Run. Es seguro repetirlo.
+   **Usuarios**: `SUPABASE_ACCESS_TOKEN=... ADMIN_CLAVE=... BARMAN_CLAVE=... ./supabase/crear_usuarios.sh`
+   (las claves no viven en el repo; repetirlo las cambia).
 2. **Llave pública**: poner la llave `anon` (Project Settings → API) en `config.js`. Es pública por diseño.
    Nunca la `service_role`.
 3. **Publicar**: activar Pages (Settings → Pages → Source: *GitHub Actions*) y hacer merge a `main`.
    El workflow `pages.yml` publica la app en `https://<usuario>.github.io/Centinela/bar/`.
 4. Los celulares abren ese link y lo agregan a la pantalla de inicio.
+
+## Usuarios y permisos
+
+Se entra con usuario y contraseña. Quien no inició sesión no ve ni escribe nada (la llave pública `anon` quedó sin
+permisos); lo que cada rol puede lo impone la base (RLS y funciones), no la pantalla.
+
+| Usuario | Rol | Puede |
+|---|---|---|
+| `diego` | admin (super administrador) | Todo: mesas, inventario (sumar/contar), ventas y ganancias, catálogo y precios |
+| `barman` (José Manuel) | barman | Abrir, editar y cobrar cuentas; ver el inventario sin modificarlo. No ve ventas ni catálogo |
+
+Detalle: Supabase exige claves de 6+ caracteres y aquí se usan claves cortas, así que la app (y `crear_usuarios.sh`) le
+suma el sufijo fijo `-bar` a lo que se escribe. Por dentro el usuario es `<usuario>@bar.local`. El registro público
+está cerrado: usuarios nuevos solo con el script.
+
+**Cerveza artesanal por litros**: la pinta (490 ml) y el vaso (330 ml) descuentan del mismo recipiente («Cerveza
+artesanal negra (litros)», se cuenta en ml y se muestra en litros). El administrador lo ajusta con *Mover* en Inventario,
+escribiendo litros.
 
 ## Uso
 
@@ -32,8 +52,8 @@ relee solo cada pocos segundos. Si no hay conexión aparece un aviso rojo y se r
 
 ## Qué conviene saber
 
-- **Seguridad abierta, a propósito**: quien tenga el link de la app puede leer y escribir (políticas
-  `acceso_total` en `schema.sql`). No repartas el link. Si algún día importa, se cierran esas políticas.
+- **Costos visibles por la API**: la pantalla del barman esconde costos y ganancias, pero técnicamente puede leer la
+  columna `costo` de `productos` si consulta la API a mano. Si importa, hay que mover el costo a otra tabla.
 - **Supabase gratis pausa el proyecto tras 7 días sin uso**. Un bar abre a diario; si cierras una semana, se
   reactiva con un clic en el panel de Supabase.
 - **Respaldo**: Supabase → Database → Backups (el plan gratis no hace copias descargables automáticas);
