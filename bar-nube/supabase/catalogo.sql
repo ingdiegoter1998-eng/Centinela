@@ -3,7 +3,7 @@
 -- Inventario, solo el super administrador). La ganancia no se guarda: la app la calcula como venta − costo.
 
 insert into categorias (nombre, orden) values
-  ('Cervezas', 1), ('Cervezas artesanales', 1), ('Licores', 2), ('Sin alcohol', 4), ('Comida', 5)
+  ('Cervezas', 1), ('Cervezas artesanales', 1), ('Sin alcohol', 4), ('Comida', 5)
 on conflict (nombre) do nothing;
 
 -- «Águila» pasa a llamarse «Águila Light».
@@ -11,14 +11,14 @@ update productos set nombre = 'Águila Light'
  where nombre = 'Águila' and categoria_id = (select id from categorias where nombre = 'Cervezas')
    and not exists (select 1 from productos where nombre = 'Águila Light');
 
--- Lo que todavía no hay en el bar no va en la app (cócteles, comida, tragos sueltos, jugo): se quita si existía.
+-- Lo que no existe o todavía no hay en el bar no va en la app (cócteles, tragos, jugo, botellas de licor): se quita si existía.
 delete from productos p
  where p.nombre in ('Aguardiente — trago', 'Whisky — trago', 'Mojito', 'Michelada', 'Piña colada', 'Jugo natural',
-                    'Papas fritas', 'Nachos', 'Empanadas (3)')
+                    'Papas fritas', 'Nachos', 'Empanadas (3)', 'Aguardiente — botella', 'Ron — botella')
    and not exists (select 1 from lineas l where l.producto_id = p.id)
    and not exists (select 1 from movimientos m where m.producto_id = p.id);
 delete from categorias c
- where c.nombre = 'Cócteles' and not exists (select 1 from productos where categoria_id = c.id);
+ where c.nombre in ('Cócteles', 'Licores') and not exists (select 1 from productos where categoria_id = c.id);
 
 -- Productos con costo y precio dados. Existencias: solo se usan si el producto es nuevo.
 insert into productos (categoria_id, nombre, precio, costo, controla_stock, stock, stock_minimo)
@@ -29,8 +29,6 @@ from (values
   ('Cervezas',    'Corona',                 5000,  3000, 24,  6),
   ('Cervezas',    'Poker',                  5000,  2400, 48, 12),
   ('Cervezas',    'Redd''s',                5000,  2500, null, 0),   -- sin control de existencias por ahora
-  ('Licores',     'Aguardiente — botella', 65000, 38000, 10, 3),
-  ('Licores',     'Ron — botella',         85000, 52000,  8, 2),
   ('Sin alcohol', 'Gaseosa',                4000,  1800, 30, 10),
   ('Sin alcohol', 'Agua',                   3000,  1000, 40, 10),
   ('Comida',      'Maní',                   2800,  1275, null, 0)
