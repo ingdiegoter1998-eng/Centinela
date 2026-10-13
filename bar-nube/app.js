@@ -165,6 +165,7 @@
           <div class="total"><span>Total</span><b>${pesos(t)}</b></div>
           ${lineas.length ? `<div class="cobrar">${Object.entries(METODOS).map(([v, e]) =>
             `<button type="button" class="btn pago pago-${v}" data-accion="cobrar" data-metodo="${v}" data-confirmar="¿Cobrar ${pesos(t)} en ${e.toLowerCase()}?">${e}</button>`).join('')}</div>` : ''}
+          ${factura?.id ? `<a class="btn chico" href="#/factura/${factura.id}">Ver factura</a>` : ''}
           ${factura ? `<button type="button" class="btn peligro chico" data-accion="anular" data-confirmar="¿Anular toda la cuenta de ${esc(mesa.nombre)}? Lo pedido vuelve al inventario.">Anular cuenta</button>` : ''}
         </section>
         <a class="barra-total" role="button" data-ir="cuenta"><span>${n} ${plural(n, 'ítem', 'ítems')}</span><b>${pesos(t)}</b><span>Ver cuenta ↓</span></a>
@@ -256,6 +257,23 @@
     },
   };
 
+  // Facturas cobradas en la jornada (la ve el barman; el administrador tiene Ventas) --------
+  vistas.facturas = {
+    async datos() {
+      const hoy = await rpc('jornada_actual', { p_corte: HORA_CORTE });
+      const desde = new Date(`${hoy}T${String(HORA_CORTE).padStart(2, '0')}:00:00-05:00`).toISOString();
+      const fs = await leer(db.from('facturas').select('id, numero, cerrada_en, metodo_pago, mesas(nombre), clientes(nombre), lineas(cantidad, precio)')
+        .eq('estado', 'pagada').gte('cerrada_en', desde).order('cerrada_en', { ascending: false }));
+      return { fs };
+    },
+    html({ fs }) {
+      return `<h1>Facturas</h1>
+      <div class="tabla">${fs.map((f) => `<a class="fila enlace" href="#/factura/${f.id}">
+        <span class="f-nombre">N.º ${f.numero} · ${esc(f.mesas.nombre)}<small>${hora(f.cerrada_en)} · ${esc(f.clientes?.nombre || 'Anónimo')} · ${METODOS[f.metodo_pago]}</small></span>
+        <span class="f-valor">${pesos(total(f.lineas))}</span></a>`).join('') || '<p class="vacio">Sin facturas.</p>'}</div>`;
+    },
+  };
+
   // Factura (recibo) -----------------------------------------------------------------------
   vistas.factura = {
     async datos([id]) {
@@ -326,7 +344,7 @@
     app.innerHTML = v.html(actual.d, actual.args);
     document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('activo',
       a.dataset.nav === actual.nombre || (a.dataset.nav === 'mesas' && ['cuenta', 'factura'].includes(actual.nombre))
-      || (a.dataset.nav === 'ventas' && actual.nombre === 'factura')));
+      || (a.dataset.nav === 'ventas' && actual.nombre === 'factura') || (a.dataset.nav === 'facturas' && actual.nombre === 'factura')));
     v.despues?.();
   }
 
@@ -612,6 +630,7 @@
     if (!datos) { await db.auth.signOut(); return pantallaLogin('Ese usuario no tiene permisos en el bar.'); }
     perfil = datos;
     document.querySelectorAll('.solo-admin').forEach((a) => { a.hidden = !esAdmin(); });
+    document.querySelectorAll('.solo-barman').forEach((a) => { a.hidden = esAdmin(); });
     document.getElementById('quien').textContent = perfil.nombre;
     nav.hidden = false;
     sincronizar();
