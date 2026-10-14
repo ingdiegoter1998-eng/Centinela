@@ -26,10 +26,18 @@ web/media/
 bar/.secret_key
 bar/respaldos/
 
+# ── Cámara (bar-camara/): zonas del local, fotos, eventos sin mandar y el modelo descargado ──
+bar-camara/zonas.yaml
+bar-camara/capturas/
+bar-camara/pendientes.jsonl
+bar-camara/pendientes.tmp
+bar-camara/*.pt
+
 # ── Secretos y entorno ─────────────────────────────
 .env
 .env.*
 !.env.example
+!bar-camara/.env.ejemplo
 
 # ── Datos e imágenes ────────────────────────────────────────────────────
 build/

@@ -1,0 +1,36 @@
+# Ajustes del vigía de la cámara. Las zonas no van aquí: las dibuja calibrar.py en zonas.yaml.
+# Los datos de acceso (IP, usuario y clave de la cámara, clave de Supabase) van en .env, nunca aquí.
+
+camara:
+  flujo: stream2          # stream2 = resolución baja (alcanza y pesa poco) · stream1 = 1080p
+  cuadros_por_seg: 5      # cuántos cuadros por segundo se analizan
+
+horario:                  # fuera de este horario una sacada sale marcada «fuera de horario»
+  abre: "16:00"
+  cierra: "03:00"
+
+sacadas:                  # movimiento en la zona «grifo»
+  umbral: 0.08            # fracción de la zona que tiene que cambiar para contar como movimiento
+  umbral_pixel: 25        # cuánto tiene que cambiar un pixel (0-255) para contar como cambiado
+  adaptacion: 0.02        # qué tan rápido el fondo absorbe cambios de luz (más alto = olvida más rápido)
+  quieto_seg: 1.0         # si nada se mueve este tiempo, la zona cuenta como quieta (vaso olvidado, mano quieta)
+  reinicio_seg: 3.0       # y tras este tiempo lo que quedó ahí pasa a ser parte del fondo
+  min_activo: 1.0         # segundos de movimiento para que arranque una sacada
+  pausa: 2.0              # segundos quieto para darla por terminada
+  min_duracion: 3.0       # más corto que esto era alguien pasando: no cuenta
+  max_duracion: 60.0      # más largo que esto se marca para revisar
+
+personas:                 # detector de personas (opcional, pip install ultralytics)
+  activo: true
+  cada_seg: 5             # cada cuántos segundos se buscan personas (es pesado para el procesador)
+  confianza: 0.4
+  modelo: yolov8n.pt
+
+aforo:
+  ventana_seg: 300        # un dato de aforo (máximo de personas) cada 5 minutos
+
+barra:
+  minutos_sola: 10        # aviso si nadie está detrás de la barra este tiempo con el bar abierto
+
+latido_seg: 300           # cada cuánto avisa a Supabase que sigue vivo
+fotos_dias: 15            # días que se guardan las fotos de las sacadas en este computador

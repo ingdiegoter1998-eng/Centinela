@@ -1,0 +1,6 @@
+opencv-python>=4.8
+numpy>=1.24
+pyyaml>=6
+requests>=2.28
+# Opcional, para aforo y barra sola (detector de personas, ~1 GB con sus dependencias):
+# ultralytics>=8.1

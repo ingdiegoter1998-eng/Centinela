@@ -10,6 +10,7 @@
 -- Seguridad: hay que iniciar sesión (Supabase Auth). Cada usuario tiene un perfil con rol:
 --     admin   (super administrador)  todo: catálogo, precios, inventario, ventas y ganancias
 --     barman  (personal limitado)    abre y cobra cuentas; solo ve el inventario, sin modificarlo
+--     camara  (programa bar-camara/) solo registra eventos de la cámara; no ve ni vende nada
 -- La llave `anon` (pública) ya no lee ni escribe nada. Los usuarios se crean con crear_usuarios.sh.
 --
 -- Se puede ejecutar más de una vez sin duplicar nada ni borrar datos.
@@ -97,8 +98,11 @@ create table if not exists movimientos (
 create table if not exists perfiles (
   id     uuid primary key references auth.users(id) on delete cascade,
   nombre text not null,
-  rol    text not null check (rol in ('admin', 'barman'))
+  rol    text not null check (rol in ('admin', 'barman', 'camara'))
 );
+-- Bases creadas antes del rol «camara»: se amplía la regla sin tocar los perfiles.
+alter table perfiles drop constraint if exists perfiles_rol_check;
+alter table perfiles add constraint perfiles_rol_check check (rol in ('admin', 'barman', 'camara'));
 
 -- Quién llama. Sin sesión (auth.uid() nulo) solo vale la conexión directa de administración
 -- (SQL editor, scripts, pruebas); la API pública nunca entra por ahí (su rol de sesión es otro).
@@ -108,10 +112,15 @@ language sql stable security definer set search_path = public as $$
               else exists (select 1 from perfiles where id = auth.uid() and rol = 'admin') end
 $$;
 
-create or replace function es_personal() returns boolean   -- cualquier usuario con perfil
+create or replace function es_personal() returns boolean   -- el personal del bar (no la cámara)
 language sql stable security definer set search_path = public as $$
   select case when auth.uid() is null then session_user in ('postgres', 'supabase_admin')
-              else exists (select 1 from perfiles where id = auth.uid()) end
+              else exists (select 1 from perfiles where id = auth.uid() and rol in ('admin', 'barman')) end
+$$;
+
+create or replace function es_camara() returns boolean     -- el programa que mira la cámara
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from perfiles where id = auth.uid() and rol = 'camara')
 $$;
 
 -- ── Vista: cuentas abiertas con su total (tablero de mesas) ─────────────────────────────────
@@ -334,6 +343,84 @@ begin
   return v_res;
 end $$;
 
+-- ── Cámara ──────────────────────────────────────────────────────────────────────────────────
+-- El programa de bar-camara/ mira la cámara en el bar y manda solo eventos, nunca video:
+--   sacada      actividad en el grifo de inicio a fin (una cerveza servida)
+--   aforo       cuántas personas se vieron como máximo en la ventana [inicio, fin]
+--   barra_sola  nadie detrás de la barra de inicio a fin
+--   latido      el programa sigue vivo (para saber si la cámara estaba mirando)
+-- `origen` lo pone el programa y es único: si reenvía un lote tras un corte de internet, no se duplica.
+-- Solo el administrador los ve: el barman no ve cómo lo mide la cámara.
+
+create table if not exists eventos_camara (
+  id       bigint generated always as identity primary key,
+  origen   text not null unique,
+  tipo     text not null check (tipo in ('sacada', 'aforo', 'barra_sola', 'latido')),
+  inicio   timestamptz not null,
+  fin      timestamptz,
+  personas int check (personas >= 0),
+  zona     text not null default '',
+  nota     text not null default ''
+);
+create index if not exists eventos_camara_inicio on eventos_camara (inicio);
+
+-- Recibe un lote de eventos (lista JSON). Devuelve cuántos eran nuevos.
+create or replace function registrar_eventos(p_eventos jsonb) returns int
+language plpgsql security definer set search_path = public as $$
+declare v_n int;
+begin
+  if not (es_camara() or es_admin()) then raise exception 'Solo el programa de la cámara registra eventos.'; end if;
+  if jsonb_typeof(p_eventos) is distinct from 'array' then raise exception 'Se esperaba una lista de eventos.'; end if;
+  insert into eventos_camara (origen, tipo, inicio, fin, personas, zona, nota)
+  select e->>'origen', e->>'tipo', (e->>'inicio')::timestamptz, (e->>'fin')::timestamptz,
+         (e->>'personas')::int, coalesce(e->>'zona', ''), left(coalesce(e->>'nota', ''), 200)
+  from jsonb_array_elements(p_eventos) e
+  on conflict (origen) do nothing;
+  get diagnostics v_n = row_count;
+  return v_n;
+end $$;
+
+-- Cámara contra ventas en una jornada. «Vendidas» son las porciones de cerveza de barril (productos que
+-- descuentan de un recipiente) de las cuentas de la jornada: las cobradas por su hora de cobro y las aún
+-- abiertas por su hora de apertura. Lo anulado va aparte: vender y luego anular también es una forma de robo.
+create or replace function resumen_camara(p_dia date, p_corte int default 6) returns jsonb
+language plpgsql stable set search_path = public as $$
+declare
+  v_ini timestamptz := ((p_dia + make_interval(hours => p_corte))::timestamp at time zone 'America/Bogota');
+  v_fin timestamptz := (((p_dia + 1) + make_interval(hours => p_corte))::timestamp at time zone 'America/Bogota');
+  v_res jsonb;
+begin
+  if not es_admin() then raise exception 'Solo el administrador ve la cámara.'; end if;
+  with e as (
+    select * from eventos_camara where inicio >= v_ini and inicio < v_fin
+  ), v as (
+    select f.estado, coalesce(f.cerrada_en, f.abierta_en) as en, l.cantidad
+    from facturas f join lineas l on l.factura_id = f.id join productos p on p.id = l.producto_id
+    where p.insumo_id is not null
+      and coalesce(f.cerrada_en, f.abierta_en) >= v_ini and coalesce(f.cerrada_en, f.abierta_en) < v_fin
+  ), h as (
+    select g as ini, g + interval '1 hour' as fin from generate_series(v_ini, v_fin - interval '1 hour', interval '1 hour') g
+  )
+  select jsonb_build_object(
+    'sacadas',      (select count(*) from e where tipo = 'sacada'),
+    'vendidas',     (select coalesce(sum(cantidad), 0) from v where estado <> 'anulada'),
+    'anuladas',     (select coalesce(sum(cantidad), 0) from v where estado = 'anulada'),
+    'aforo_max',    (select max(personas) from e where tipo = 'aforo'),
+    'ultima_senal', (select max(coalesce(fin, inicio)) from eventos_camara),
+    'por_hora', (select coalesce(jsonb_agg(x order by x.hora), '[]') from (
+        select h.ini as hora,
+               (select count(*) from e where tipo = 'sacada' and inicio >= h.ini and inicio < h.fin) as sacadas,
+               (select coalesce(sum(cantidad), 0) from v where estado <> 'anulada' and en >= h.ini and en < h.fin) as vendidas,
+               (select max(personas) from e where tipo = 'aforo' and inicio >= h.ini and inicio < h.fin) as personas
+        from h) x
+      where x.sacadas > 0 or x.vendidas > 0 or x.personas is not null),
+    'alertas', (select coalesce(jsonb_agg(jsonb_build_object('tipo', tipo, 'inicio', inicio, 'fin', fin, 'nota', nota)
+                                          order by inicio), '[]')
+                from e where tipo = 'barra_sola' or (tipo = 'sacada' and nota <> ''))
+  ) into v_res;
+  return v_res;
+end $$;
+
 -- ── Permisos y seguridad ────────────────────────────────────────────────────────────────────
 -- Leer: cualquier usuario con perfil. Escribir directo en las tablas: solo admin. El barman vende
 -- a través de las funciones de arriba (agregar, cobrar...), que son las que tocan stock y cuentas.
@@ -350,6 +437,10 @@ begin
     execute format('create policy admin_escribe on %I for all to authenticated using (es_admin()) with check (es_admin())', t);
   end loop;
 end $$;
+
+alter table eventos_camara enable row level security;
+drop policy if exists admin_todo on eventos_camara;
+create policy admin_todo on eventos_camara for all to authenticated using (es_admin()) with check (es_admin());
 
 alter table perfiles enable row level security;
 drop policy if exists perfil_propio on perfiles;
