@@ -11,10 +11,15 @@ update productos set nombre = 'Águila Light'
  where nombre = 'Águila' and categoria_id = (select id from categorias where nombre = 'Cervezas')
    and not exists (select 1 from productos where nombre = 'Águila Light');
 
+-- «Gaseosa» pasa a llamarse «Soda» (se conserva su historial de ventas).
+update productos set nombre = 'Soda'
+ where nombre = 'Gaseosa' and categoria_id = (select id from categorias where nombre = 'Sin alcohol')
+   and not exists (select 1 from productos where nombre = 'Soda');
+
 -- Lo que no existe o todavía no hay en el bar no va en la app (cócteles, tragos, jugo, botellas de licor): se quita si existía.
 delete from productos p
  where p.nombre in ('Aguardiente — trago', 'Whisky — trago', 'Mojito', 'Michelada', 'Piña colada', 'Jugo natural',
-                    'Papas fritas', 'Nachos', 'Empanadas (3)', 'Aguardiente — botella', 'Ron — botella')
+                    'Papas fritas', 'Nachos', 'Empanadas (3)', 'Aguardiente — botella', 'Ron — botella', 'Agua')
    and not exists (select 1 from lineas l where l.producto_id = p.id)
    and not exists (select 1 from movimientos m where m.producto_id = p.id);
 delete from categorias c
@@ -29,12 +34,14 @@ from (values
   ('Cervezas',    'Corona',                 5000,  3000, 24,  6),
   ('Cervezas',    'Poker',                  5000,  2400, 48, 12),
   ('Cervezas',    'Redd''s',                5000,  2500, null, 0),   -- sin control de existencias por ahora
-  ('Sin alcohol', 'Gaseosa',                4000,  1800, 30, 10),
-  ('Sin alcohol', 'Agua',                   3000,  1000, 40, 10),
-  ('Comida',      'Maní',                   2800,  1275, null, 0)
+  ('Sin alcohol', 'Soda',                   4000,  1800,  5,  2),
+  ('Comida',      'Maní',                   2800,  1275, 95, 10)    -- 100 comprados, ~95 en existencia
 ) as v(categoria, nombre, precio, costo, stock, minimo)
 join categorias c on c.nombre = v.categoria
 on conflict (categoria_id, nombre) do update set precio = excluded.precio, costo = excluded.costo;
+
+-- Maní ya controla existencias (antes se vendía sin control).
+update productos set controla_stock = true where nombre = 'Maní' and not controla_stock;
 
 insert into mesas (nombre, orden) values ('Mesa afuera', 9) on conflict (nombre) do nothing;
 
