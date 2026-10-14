@@ -18,6 +18,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from urllib.parse import quote
 
 import yaml
 
@@ -56,7 +57,9 @@ def url_camara(env: dict, flujo: str) -> str:
     falta = [k for k in ('CAMARA_IP', 'CAMARA_USUARIO', 'CAMARA_CLAVE') if not env.get(k)]
     if falta:
         sys.exit(f'Faltan datos de la cámara en .env: {", ".join(falta)} (copia .env.ejemplo a .env).')
-    return f"rtsp://{env['CAMARA_USUARIO']}:{env['CAMARA_CLAVE']}@{env['CAMARA_IP']}:554/{flujo}"
+    # La clave va codificada: una clave larga con @ o : rompería la dirección.
+    usuario, clave = quote(env['CAMARA_USUARIO'], safe=''), quote(env['CAMARA_CLAVE'], safe='')
+    return f"rtsp://{usuario}:{clave}@{env['CAMARA_IP']}:{env.get('CAMARA_PUERTO') or 554}/{flujo}"
 
 
 class CamaraEnVivo(threading.Thread):

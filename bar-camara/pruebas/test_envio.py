@@ -113,5 +113,14 @@ class Envio(unittest.TestCase):
         self.assertTrue(llave.startswith('eyJ'))
 
 
+
+class UrlCamara(unittest.TestCase):
+    def test_puerto_y_clave_con_simbolos(self):
+        import vigia
+        env = {'CAMARA_IP': 'micasa.ddns.net', 'CAMARA_PUERTO': '8554', 'CAMARA_USUARIO': 'tapo', 'CAMARA_CLAVE': 'a@b:c/d'}
+        self.assertEqual(vigia.url_camara(env, 'stream2'), 'rtsp://tapo:a%40b%3Ac%2Fd@micasa.ddns.net:8554/stream2')
+        env.pop('CAMARA_PUERTO')
+        self.assertTrue(vigia.url_camara(env, 'stream1').endswith('@micasa.ddns.net:554/stream1'))
+
 if __name__ == '__main__':
     unittest.main()

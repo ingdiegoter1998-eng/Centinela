@@ -22,6 +22,9 @@ tapa el grifo se equivoca. Cuando la app muestra «servidas sin vender», se mir
 - La cámara Tapo con RTSP activado (abajo cómo) y **fija** apuntando al grifo, sin giro automático.
 - Un computador con Windows y Python 3.10 o mayor, en la misma red WiFi de la cámara, prendido mientras el bar
   está abierto. No necesita tarjeta de video.
+  Desde otra red también sirve si en el router de donde está la cámara se redirige un puerto (por ejemplo el
+  8554) al 554 de la cámara: en `.env` van la IP pública o el nombre DDNS y ese puerto (`CAMARA_PUERTO`). Si la
+  cámara queda abierta a internet, su clave tiene que ser larga.
 - Internet para mandar los eventos. Si se cae, se guardan en `pendientes.jsonl` y salen solos cuando vuelve.
 
 ## Puesta en marcha
