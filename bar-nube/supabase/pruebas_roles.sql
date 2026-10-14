@@ -11,11 +11,13 @@ do $$ begin
   assert _id_prod('Águila') is null and _id_prod('Águila Light') is not null, 'Águila → Águila Light';
   assert (select precio || '/' || costo from productos where nombre = 'Águila Light') = '5000/2400', 'Águila Light';
   assert (select precio || '/' || costo from productos where nombre = 'Corona') = '5000/3000', 'Corona';
-  assert _stock('Águila Light') = 48 and _stock('Poker') = 48 and _stock('Agua') = 40, 'existencias';
+  assert _stock('Águila Light') = 48 and _stock('Poker') = 48 and _stock('Soda') is not null and _stock('Maní') = 95, 'existencias';
   assert not exists (select 1 from productos where nombre like '%botella'), 'sin botellas de licor';
   assert not exists (select 1 from categorias where nombre = 'Licores'), 'sin Licores';
   assert _stock('Cerveza artesanal negra (litros)') = 10000, '10 litros = 10000 ml';
-  assert (select count(*) from productos where nombre = 'Gaseosa') = 1, 'sin duplicados al repetir';
+  assert (select count(*) from productos where nombre = 'Soda') = 1, 'sin duplicados al repetir';
+  assert not exists (select 1 from productos where nombre in ('Agua', 'Gaseosa')), 'sin Agua ni Gaseosa';
+  assert (select controla_stock from productos where nombre = 'Maní'), 'Maní controla existencias';
   assert not exists (select 1 from productos where nombre in ('Mojito', 'Nachos', 'Whisky — trago')), 'lo que no hay no está';
   assert not exists (select 1 from categorias where nombre = 'Cócteles'), 'sin categorías vacías';
   assert (select precio || '/' || costo from productos where nombre = 'Maní') = '2800/1275', 'Maní';
