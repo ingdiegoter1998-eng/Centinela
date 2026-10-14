@@ -34,6 +34,7 @@ Centinela/
 ├── web/                  Registro de campo (Django): fincas, lotes, fotos, análisis
 ├── bar/                  Control de un bar (Django, corre en una PC): inventario y ventas — aparte del proyecto, ver bar/README.md
 ├── bar-nube/             El mismo bar sin servidor: front estático (GitHub Pages) + Supabase — ver bar-nube/README.md
+├── bar-camara/           Vigía de la cámara del bar: cuenta sacadas de cerveza y aforo, manda eventos a Supabase — ver bar-camara/README.md
 ├── config.yaml           Parámetros del pipeline
 ├── pyproject.toml        Paquete + CLI `centinela`
 ├── docs/

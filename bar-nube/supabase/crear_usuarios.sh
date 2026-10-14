@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Crea (o actualiza) los usuarios del bar y les da rol. Las contraseñas NO viven en el repo: se pasan por entorno.
-#   SUPABASE_ACCESS_TOKEN=... ADMIN_CLAVE=... BARMAN_CLAVE=... ./crear_usuarios.sh
+#   SUPABASE_ACCESS_TOKEN=... ADMIN_CLAVE=... BARMAN_CLAVE=... [CAMARA_CLAVE=...] ./crear_usuarios.sh
+# CAMARA_CLAVE es opcional: crea el usuario «camara» que usa el programa de bar-camara/ (solo registra eventos).
 # Se entra con «usuario» + clave; por dentro Supabase pide un correo, así que el usuario se guarda como
 # <usuario>@bar.local (la app lo agrega sola). Repetirlo cambia la clave y el nombre, no duplica nada.
 # Supabase exige 6+ caracteres y el bar usa claves cortas: por eso la app y este script le agregan
@@ -9,7 +10,7 @@
 set -euo pipefail
 REF=${SUPABASE_PROJECT_REF:-xesmbhfgiosrhctjamru}
 : "${SUPABASE_ACCESS_TOKEN:?Falta SUPABASE_ACCESS_TOKEN}"; : "${ADMIN_CLAVE:?Falta ADMIN_CLAVE}"; : "${BARMAN_CLAVE:?Falta BARMAN_CLAVE}"
-export REF SUPABASE_ACCESS_TOKEN ADMIN_CLAVE BARMAN_CLAVE
+export REF SUPABASE_ACCESS_TOKEN ADMIN_CLAVE BARMAN_CLAVE CAMARA_CLAVE=${CAMARA_CLAVE:-}
 python3 - <<'PY'
 import json, os, urllib.request, urllib.error
 REF, TOKEN = os.environ['REF'], os.environ['SUPABASE_ACCESS_TOKEN']
@@ -38,6 +39,8 @@ USUARIOS = [  # usuario, nombre que se muestra, rol, variable con la clave
     ('diego',  'Diego',       'admin',  'ADMIN_CLAVE'),
     ('barman', 'José Manuel', 'barman', 'BARMAN_CLAVE'),
 ]
+if os.environ.get('CAMARA_CLAVE'):
+    USUARIOS.append(('camara', 'Cámara', 'camara', 'CAMARA_CLAVE'))
 existentes = {u['email']: u['id'] for u in api(base + '?per_page=200', cab=cab)['users']}
 filas = []
 for usuario, nombre, rol, var in USUARIOS:

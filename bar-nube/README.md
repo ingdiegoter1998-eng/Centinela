@@ -32,10 +32,15 @@ permisos); lo que cada rol puede lo impone la base (RLS y funciones), no la pant
 |---|---|---|
 | `diego` | admin (super administrador) | Todo: mesas, inventario (sumar/contar), ventas y ganancias, catálogo y precios |
 | `barman` (José Manuel) | barman | Abrir, editar y cobrar cuentas; ver el inventario sin modificarlo. No ve ventas ni catálogo |
+| `camara` (opcional) | camara | Solo registrar eventos de la cámara ([`bar-camara/`](../bar-camara/README.md)). No entra a la app ni ve nada. Se crea con `CAMARA_CLAVE=...` en `crear_usuarios.sh` |
 
 Detalle: Supabase exige claves de 6+ caracteres y aquí se usan claves cortas, así que la app (y `crear_usuarios.sh`) le
 suma el sufijo fijo `-bar` a lo que se escribe. Por dentro el usuario es `<usuario>@bar.local`. El registro público
 está cerrado: usuarios nuevos solo con el script.
+
+**Cámara**: si corre el vigía de [`bar-camara/`](../bar-camara/README.md), *Ventas* muestra para la jornada las
+cervezas servidas que vio la cámara contra las vendidas, el aforo por hora y lo que hay que revisar (barra sola,
+sacadas fuera de horario). Solo lo ve el administrador.
 
 **Cerveza artesanal por litros**: la pinta (490 ml) y el vaso (330 ml) descuentan del mismo recipiente («Cerveza
 artesanal negra (litros)», se cuenta en ml y se muestra en litros). El administrador lo ajusta con *Mover* en Inventario,

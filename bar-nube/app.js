@@ -218,16 +218,17 @@
     async datos([dia]) {
       const hoy = await rpc('jornada_actual', { p_corte: HORA_CORTE });
       const fecha = /^\d{4}-\d{2}-\d{2}$/.test(dia || '') ? dia : hoy;
-      const [r, abiertas, mesas] = await Promise.all([
+      const [r, abiertas, mesas, camara] = await Promise.all([
         rpc('resumen', { p_dia: fecha, p_corte: HORA_CORTE }),
         leer(db.from('v_cuentas_abiertas').select('*')),
         leer(db.from('mesas').select('id, nombre, orden')),
+        rpc('resumen_camara', { p_dia: fecha, p_corte: HORA_CORTE }).catch(() => null),   // la cámara no frena las ventas
       ]);
       const nombreMesa = Object.fromEntries(mesas.map((m) => [m.id, m]));
       abiertas.sort((a, b) => (nombreMesa[a.mesa_id]?.orden ?? 0) - (nombreMesa[b.mesa_id]?.orden ?? 0));
-      return { r, fecha, hoy, abiertas: abiertas.map((a) => ({ ...a, mesa: nombreMesa[a.mesa_id]?.nombre })) };
+      return { r, fecha, hoy, camara, abiertas: abiertas.map((a) => ({ ...a, mesa: nombreMesa[a.mesa_id]?.nombre })) };
     },
-    html({ r, fecha, hoy, abiertas }) {
+    html({ r, fecha, hoy, camara, abiertas }) {
       const esHoy = fecha === hoy;
       return `<div class="cab"><h1>Ventas</h1>
         <form class="fecha" onsubmit="return false">
@@ -244,6 +245,7 @@
         <div class="tarjeta"><span>Facturas</span><b>${r.n_facturas}</b></div>
         <div class="tarjeta"><span>Promedio por factura</span><b>${pesos(r.ticket_promedio)}</b></div>
       </div>
+      ${seccionCamara(camara)}
       <h2 class="categoria">Cómo pagaron</h2>
       <div class="tabla">${r.metodos.map((m) => `<div class="fila"><span class="f-nombre">${METODOS[m.metodo]}</span><span class="f-valor">${pesos(m.total)}</span></div>`).join('')}</div>
       <h2 class="categoria">Lo más vendido</h2>
@@ -256,6 +258,33 @@
         <span class="f-valor">${pesos(f.total)}</span></a>`).join('') || '<p class="vacio">Sin facturas.</p>'}</div>`;
     },
   };
+
+  // Cámara contra ventas (programa de bar-camara/). Una sacada es actividad en el grifo: la cámara no sabe si
+  // fue pinta o vaso y puede fallar con mala luz, así que sirve de alerta, no de prueba.
+  function seccionCamara(c) {
+    if (!c) return '';
+    const titulo = '<h2 class="categoria">Cámara</h2>';
+    const senal = c.ultima_senal ? `Última señal de la cámara: ${fechaLarga(c.ultima_senal)}` : 'La cámara todavía no ha mandado datos';
+    if (!c.sacadas && c.aforo_max == null && !c.alertas.length) return `${titulo}<p class="nota">Sin datos de la cámara en esta jornada. ${senal}</p>`;
+    const dif = c.sacadas - c.vendidas;
+    const soloHora = (iso) => new Date(iso).toLocaleTimeString('es-CO', { hour: 'numeric', timeZone: ZONA });
+    const alerta = (a) => a.tipo === 'barra_sola'
+      ? `Nadie en la barra de ${hora(a.inicio)} a ${a.fin ? hora(a.fin) : '…'}`
+      : `Sacada a las ${hora(a.inicio)}: ${esc(a.nota)}`;
+    return `${titulo}
+      <div class="tarjetas">
+        <div class="tarjeta"><span>Cervezas servidas (cámara)</span><b>${c.sacadas}</b></div>
+        <div class="tarjeta"><span>Cervezas vendidas</span><b>${c.vendidas}</b></div>
+        <div class="tarjeta${dif > 0 ? ' mal' : ''}"><span>Servidas sin vender</span><b>${Math.max(dif, 0)}</b></div>
+        <div class="tarjeta"><span>Personas (máximo)</span><b>${c.aforo_max ?? '—'}</b></div>
+      </div>
+      ${c.anuladas ? `<p class="nota">Además, en cuentas anuladas de la jornada había ${c.anuladas} ${plural(c.anuladas, 'cerveza', 'cervezas')}.</p>` : ''}
+      ${c.alertas.length ? `<section class="alerta"><h2>Para revisar (${c.alertas.length})</h2><ul>${c.alertas.map((a) => `<li>${alerta(a)}</li>`).join('')}</ul></section>` : ''}
+      <div class="tabla">${c.por_hora.map((h) => `<div class="fila${h.sacadas > h.vendidas ? ' mal' : ''}">
+        <span class="f-nombre">${soloHora(h.hora)}<small>${h.personas == null ? '' : `${h.personas} ${plural(h.personas, 'persona', 'personas')}`}</small></span>
+        <span class="f-valor">${h.sacadas} servidas · ${h.vendidas} vendidas</span></div>`).join('')}</div>
+      <p class="nota">Vendidas por hora de cobro, así que una hora puede salir desfasada; el total de la jornada es el que cuenta. ${senal}</p>`;
+  }
 
   // Facturas cobradas en la jornada (la ve el barman; el administrador tiene Ventas) --------
   vistas.facturas = {
@@ -627,7 +656,7 @@
     let datos;
     try { datos = await leer(db.from('perfiles').select('nombre, rol').eq('id', session.user.id).maybeSingle()); }
     catch (e) { app.innerHTML = `<p class="vacio">${esc(e.message)}</p>`; return; }
-    if (!datos) { await db.auth.signOut(); return pantallaLogin('Ese usuario no tiene permisos en el bar.'); }
+    if (!datos || datos.rol === 'camara') { await db.auth.signOut(); return pantallaLogin('Ese usuario no tiene permisos en el bar.'); }
     perfil = datos;
     document.querySelectorAll('.solo-admin').forEach((a) => { a.hidden = !esAdmin(); });
     document.querySelectorAll('.solo-barman').forEach((a) => { a.hidden = esAdmin(); });

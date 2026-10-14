@@ -151,6 +151,7 @@ code { background: var(--tarjeta-2); padding: 1px 6px; border-radius: 6px; }
 .tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; }
 .tarjeta span { color: var(--suave); font-size: .85rem; display: block; }
 .tarjeta b { font-size: 1.5rem; color: var(--ambar); }
+.tarjeta.mal b, .fila.mal .f-valor { color: var(--rojo); }
 .fecha { display: flex; gap: 8px; align-items: center; }
 .fecha input { padding: 8px 10px; border-radius: 10px; background: var(--tarjeta-2); border: 1px solid var(--borde); color-scheme: dark; }
 
