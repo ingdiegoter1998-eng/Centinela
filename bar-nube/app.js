@@ -31,6 +31,7 @@
   const hora = (iso) => new Date(iso).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', timeZone: ZONA });
   const fechaLarga = (iso) => new Date(iso).toLocaleString('es-CO', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: ZONA });
   const diaLargo = (ymd) => new Date(`${ymd}T12:00:00Z`).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  const jornadaDe = (iso) => new Date(Date.parse(iso) - (5 + HORA_CORTE) * 36e5).toISOString().slice(0, 10);   // Bogotá = UTC−5, corte 6:00
   const sumaDias = (ymd, n) => new Date(Date.parse(`${ymd}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
   const total = (lineas) => lineas.reduce((t, l) => t + l.cantidad * l.precio, 0);
   const items = (lineas) => lineas.reduce((t, l) => t + l.cantidad, 0);
@@ -43,8 +44,18 @@
 
   // Existencias que se ven de un producto. Si se vende por porciones de un recipiente (cerveza de barril),
   // son las porciones que alcanzan; el recipiente (unidad 'ml') se muestra en litros.
+  // Un combo (p.comps = [{producto_id, cantidad}]) no tiene stock propio: alcanza para lo que dé su componente más escaso.
   const porId = (ps) => Object.fromEntries(ps.map((p) => [p.id, p]));
-  const quedan = (p, ids) => (p.insumo_id && ids[p.insumo_id] ? Math.floor(ids[p.insumo_id].stock / p.consumo) : p.stock);
+  const esCombo = (p) => !!p.comps?.length;
+  const controla = (p, ids) => (esCombo(p) ? p.comps.some((c) => ids[c.producto_id] && controla(ids[c.producto_id], ids)) : p.controla_stock);
+  const quedan = (p, ids) => (esCombo(p)
+    ? Math.min(...p.comps.filter((c) => ids[c.producto_id] && controla(ids[c.producto_id], ids)).map((c) => Math.floor(quedan(ids[c.producto_id], ids) / c.cantidad)))
+    : p.insumo_id && ids[p.insumo_id] ? Math.floor(ids[p.insumo_id].stock / p.consumo) : p.stock);
+  async function conCombos(productos) {    // pega a cada producto sus componentes si es combo
+    const comps = await leer(db.from('combo_componentes').select('combo_id, producto_id, cantidad'));
+    productos.forEach((p) => { p.comps = comps.filter((c) => c.combo_id === p.id); });
+    return productos;
+  }
   const litros = (ml) => `${(ml / 1000).toLocaleString('es-CO', { maximumFractionDigits: 2 })} L`;
   const existencia = (p, ids) => (p.unidad === 'ml' ? litros(p.stock) : String(quedan(p, ids)));
 
@@ -106,7 +117,7 @@
         leer(db.from('mesas').select('*').eq('id', mesaId).maybeSingle()),
         leer(db.from('facturas').select('id, cliente_id, lineas(id, producto_id, cantidad, precio, productos(nombre))')
           .eq('mesa_id', mesaId).eq('estado', 'abierta').maybeSingle()),
-        leer(db.from('productos').select('*, categorias(id, nombre, orden)').eq('activo', true)),
+        leer(db.from('productos').select('*, categorias(id, nombre, orden)').eq('activo', true)).then(conCombos),
         leer(db.from('clientes').select('id, nombre')),
       ]);
       if (!mesa) throw new Error('Esa mesa no existe.');
@@ -124,12 +135,13 @@
       const n = items(lineas);
       const botones = productos.map((p) => {
         const q = quedan(p, ids);
-        const agotado = p.controla_stock && q <= 0;
-        const bajo = p.controla_stock && p.stock_minimo > 0 && q <= p.stock_minimo;
+        const cuenta = controla(p, ids);
+        const agotado = cuenta && q <= 0;
+        const bajo = cuenta && p.stock_minimo > 0 && q <= p.stock_minimo;
         return `<button type="button" class="producto${agotado ? ' agotado' : ''}${bajo ? ' bajo' : ''}" data-accion="agregar" data-producto="${p.id}" data-cat="${p.categoria_id}">
           <span class="p-nombre">${esc(p.nombre)}</span>
           <span class="p-precio">${pesos(p.precio)}</span>
-          ${p.controla_stock ? `<span class="p-stock">${agotado ? 'agotado' : `quedan ${q}`}</span>` : ''}
+          ${cuenta ? `<span class="p-stock">${agotado ? 'agotado' : `quedan ${q}`}</span>` : ''}
           ${enCuenta[p.id] ? `<span class="p-badge">${enCuenta[p.id]}</span>` : ''}
         </button>`;
       }).join('');
@@ -182,7 +194,7 @@
   // Inventario -----------------------------------------------------------------------------
   vistas.inventario = {
     async datos() {
-      const productos = await leer(db.from('productos').select('*, categorias(id, nombre, orden)').eq('activo', true));
+      const productos = await conCombos(await leer(db.from('productos').select('*, categorias(id, nombre, orden)').eq('activo', true)));
       productos.sort((a, b) => a.categorias.orden - b.categorias.orden || ES(a.categorias.nombre, b.categorias.nombre) || ES(a.nombre, b.nombre));
       return { productos };
     },
@@ -191,9 +203,11 @@
       const agotado = (p) => p.controla_stock && quedan(p, ids) <= 0;
       const bajo = (p) => p.controla_stock && p.stock_minimo > 0 && quedan(p, ids) <= p.stock_minimo;
       const detalle = (p) => !p.se_vende ? ''
-        : esAdmin() ? `costo ${pesos(p.costo)} · venta ${pesos(p.precio)} · gana ${pesos(p.precio - p.costo)}${p.insumo_id ? ` · usa ${p.consumo} ml` : ''}`
-        : `venta ${pesos(p.precio)}`;
-      const porReponer = productos.filter((p) => !p.insumo_id && (agotado(p) || bajo(p)));
+        : (esAdmin() ? `costo ${pesos(p.costo)} · venta ${pesos(p.precio)} · gana ${pesos(p.precio - p.costo)}${p.insumo_id ? ` · usa ${p.consumo} ml` : ''}`
+          : `venta ${pesos(p.precio)}`)
+          + (esCombo(p) ? ` · lleva ${p.comps.map((c) => `${c.cantidad > 1 ? `${c.cantidad} × ` : ''}${esc(ids[c.producto_id]?.nombre)}`).join(' + ')}` : '')
+          + (p.en_promos === false ? ' · no aplica para combos ni promociones' : '');
+      const porReponer = productos.filter((p) => !p.insumo_id && !esCombo(p) && (agotado(p) || bajo(p)));
       const valor = productos.filter((p) => p.controla_stock && p.stock > 0 && p.unidad !== 'ml' && !p.insumo_id).reduce((t, p) => t + p.stock * p.costo, 0);
       const grupos = [];
       productos.forEach((p) => {
@@ -232,7 +246,7 @@
       return `<div class="cab"><h1>Ventas</h1>
         <form class="fecha" onsubmit="return false">
           <a class="btn chico" href="#/ventas/${sumaDias(fecha, -1)}">←</a>
-          <input type="date" value="${fecha}" data-fecha>
+          <input type="date" value="${fecha}" max="${hoy}" data-fecha="ventas">
           ${fecha < hoy ? `<a class="btn chico" href="#/ventas/${sumaDias(fecha, 1)}">→</a>` : ''}
         </form></div>
       <p class="nota">${esc(diaLargo(fecha))}</p>
@@ -257,20 +271,53 @@
     },
   };
 
-  // Facturas cobradas en la jornada (la ve el barman; el administrador tiene Ventas) --------
+  // Historial de facturas (lo ve el barman; el administrador tiene Ventas) -----------------
+  // Cualquier jornada pasada: facturas cobradas, lo vendido y cómo pagaron. Sin costos ni ganancias.
+  // La base ya deja leer facturas y líneas a todo el personal (RLS «personal_lee»).
   vistas.facturas = {
-    async datos() {
+    async datos([dia]) {
       const hoy = await rpc('jornada_actual', { p_corte: HORA_CORTE });
-      const desde = new Date(`${hoy}T${String(HORA_CORTE).padStart(2, '0')}:00:00-05:00`).toISOString();
-      const fs = await leer(db.from('facturas').select('id, numero, cerrada_en, metodo_pago, mesas(nombre), clientes(nombre), lineas(cantidad, precio)')
-        .eq('estado', 'pagada').gte('cerrada_en', desde).order('cerrada_en', { ascending: false }));
-      return { fs };
+      const fecha = /^\d{4}-\d{2}-\d{2}$/.test(dia || '') && dia <= hoy ? dia : hoy;
+      const corte = (ymd) => new Date(`${ymd}T${String(HORA_CORTE).padStart(2, '0')}:00:00-05:00`).toISOString();
+      const fs = await leer(db.from('facturas')
+        .select('id, numero, estado, cerrada_en, metodo_pago, mesas(nombre), clientes(nombre), lineas(cantidad, precio, producto_id, productos(nombre))')
+        .in('estado', ['pagada', 'anulada']).gte('cerrada_en', corte(fecha)).lt('cerrada_en', corte(sumaDias(fecha, 1)))
+        .order('cerrada_en', { ascending: false }));
+      return { fs, fecha, hoy };
     },
-    html({ fs }) {
-      return `<h1>Facturas</h1>
-      <div class="tabla">${fs.map((f) => `<a class="fila enlace" href="#/factura/${f.id}">
-        <span class="f-nombre">N.º ${f.numero} · ${esc(f.mesas.nombre)}<small>${hora(f.cerrada_en)} · ${esc(f.clientes?.nombre || 'Anónimo')} · ${METODOS[f.metodo_pago]}</small></span>
-        <span class="f-valor">${pesos(total(f.lineas))}</span></a>`).join('') || '<p class="vacio">Sin facturas.</p>'}</div>`;
+    html({ fs, fecha, hoy }) {
+      const pagadas = fs.filter((f) => f.estado === 'pagada');
+      const anuladas = fs.filter((f) => f.estado === 'anulada');
+      const vendido = pagadas.reduce((t, f) => t + total(f.lineas), 0);
+      const porMetodo = Object.keys(METODOS).map((m) => [m, pagadas.filter((f) => f.metodo_pago === m).reduce((t, f) => t + total(f.lineas), 0)]);
+      const prods = {};
+      pagadas.forEach((f) => f.lineas.forEach((l) => {
+        const p = prods[l.producto_id] || (prods[l.producto_id] = { nombre: l.productos.nombre, unidades: 0, venta: 0 });
+        p.unidades += l.cantidad; p.venta += l.cantidad * l.precio;
+      }));
+      const lista = Object.values(prods).sort((a, b) => b.unidades - a.unidades || ES(a.nombre, b.nombre));
+      const fila = (f) => `<a class="fila enlace${f.estado === 'anulada' ? ' inactivo' : ''}" href="#/factura/${f.id}">
+        <span class="f-nombre">${f.numero ? `N.º ${f.numero}` : 'Anulada'} · ${esc(f.mesas.nombre)}<small>${hora(f.cerrada_en)} · ${esc(f.clientes?.nombre || 'Anónimo')}${f.metodo_pago ? ` · ${METODOS[f.metodo_pago]}` : ''} · ${items(f.lineas)} ${plural(items(f.lineas), 'ítem', 'ítems')}</small></span>
+        <span class="f-valor">${pesos(total(f.lineas))}</span></a>`;
+      return `<div class="cab"><h1>Facturas</h1>
+        <form class="fecha" onsubmit="return false">
+          <a class="btn chico" href="#/facturas/${sumaDias(fecha, -1)}" aria-label="Día anterior">←</a>
+          <input type="date" value="${fecha}" max="${hoy}" data-fecha="facturas">
+          ${fecha < hoy ? `<a class="btn chico" href="#/facturas/${sumaDias(fecha, 1)}" aria-label="Día siguiente">→</a>` : ''}
+        </form></div>
+      <p class="nota">${fecha === hoy ? 'Jornada de hoy · ' : ''}${esc(diaLargo(fecha))} (de 6:00 a 6:00)</p>
+      <div class="tarjetas">
+        <div class="tarjeta"><span>Vendido</span><b>${pesos(vendido)}</b></div>
+        <div class="tarjeta"><span>Facturas</span><b>${pagadas.length}</b></div>
+      </div>
+      ${pagadas.length ? `<h2 class="categoria">Cómo pagaron</h2>
+      <div class="tabla">${porMetodo.map(([m, t]) => `<div class="fila"><span class="f-nombre">${METODOS[m]}</span><span class="f-valor">${pesos(t)}</span></div>`).join('')}</div>
+      <h2 class="categoria">Lo vendido</h2>
+      <div class="tabla">${lista.map((p) => `<div class="fila"><span class="f-nombre">${esc(p.nombre)}</span>
+        <span class="f-stock">${p.unidades}</span><span class="f-valor">${pesos(p.venta)}</span></div>`).join('')}</div>` : ''}
+      <h2 class="categoria">Facturas cobradas</h2>
+      <div class="tabla">${pagadas.map(fila).join('') || '<p class="vacio">Sin facturas en esta jornada.</p>'}</div>
+      ${anuladas.length ? `<h2 class="categoria">Cuentas anuladas (${anuladas.length})</h2><div class="tabla">${anuladas.map(fila).join('')}</div>` : ''}`;
     },
   };
 
@@ -291,6 +338,7 @@
         <table>${f.lineas.map((l) => `<tr><td>${l.cantidad} × ${esc(l.productos.nombre)}</td><td class="der">${pesos(l.cantidad * l.precio)}</td></tr>`).join('')}
           <tr class="total"><td>Total</td><td class="der">${pesos(total(f.lineas))}</td></tr></table>
         <div class="acciones sin-imprimir"><a class="btn principal" href="#/">Volver a mesas</a>
+          ${f.cerrada_en ? `<a class="btn" href="#/${esAdmin() ? 'ventas' : 'facturas'}/${jornadaDe(f.cerrada_en)}">Facturas del día</a>` : ''}
           <button type="button" class="btn" onclick="window.print()">Imprimir</button></div>
       </article>`;
     },
@@ -380,7 +428,12 @@
   }
 
   // ── Acciones sobre la cuenta ─────────────────────────────────────────────────────────────
-  function bajaStock(d, prod, n) {      // n > 0 descuenta (igual que la base: del recipiente si lo hay)
+  function bajaStock(d, prod, n) {      // n > 0 descuenta (igual que la base: del recipiente, o de cada parte del combo)
+    if (esCombo(prod)) {
+      prod.comps.forEach((c) => { const parte = d.productos.find((x) => x.id === c.producto_id); if (parte) bajaStock(d, parte, n * c.cantidad); });
+      return;
+    }
+    if (!prod.controla_stock) return;
     const destino = (prod.insumo_id && d.productos.find((x) => x.id === prod.insumo_id)) || prod;
     destino.stock -= n * prod.consumo;
   }
@@ -394,12 +447,12 @@
       if (l) l.cantidad += 1;
       else d.lineas.push({ id: Date.now(), producto_id: productoId, cantidad: 1, precio: prod.precio, productos: { nombre: prod.nombre } });
       if (!d.factura) d.factura = { id: null, cliente_id: null };
-      if (prod.controla_stock) bajaStock(d, prod, 1);
+      bajaStock(d, prod, 1);
     } else if (l) {
       l.cantidad -= 1;
       if (l.cantidad <= 0) d.lineas = d.lineas.filter((x) => x !== l);
       if (!d.lineas.length) d.factura = null;
-      if (prod.controla_stock) bajaStock(d, prod, -1);
+      bajaStock(d, prod, -1);
     }
     dibujar();
   }
@@ -557,7 +610,7 @@
     const s = e.target.closest('select[data-accion]');
     if (s && actual.nombre === 'cuenta') accionCuenta(s);
     const f = e.target.closest('[data-fecha]');
-    if (f && f.value) location.hash = `#/ventas/${f.value}`;
+    if (f && f.value) location.hash = `#/${f.dataset.fecha}/${f.value}`;
   });
 
   window.addEventListener('hashchange', navegar);

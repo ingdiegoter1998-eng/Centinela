@@ -31,7 +31,7 @@ permisos); lo que cada rol puede lo impone la base (RLS y funciones), no la pant
 | Usuario | Rol | Puede |
 |---|---|---|
 | `diego` | admin (super administrador) | Todo: mesas, inventario (sumar/contar), ventas y ganancias, catálogo y precios |
-| `barman` (José Manuel) | barman | Abrir, editar y cobrar cuentas; ver el inventario sin modificarlo. No ve ventas ni catálogo |
+| `barman` (José Manuel) | barman | Abrir, editar y cobrar cuentas; ver el inventario sin modificarlo; consultar el historial de facturas de cualquier jornada (lo vendido y cómo pagaron, sin costos ni ganancias). No ve el resumen de Ventas ni el catálogo |
 
 Detalle: Supabase exige claves de 6+ caracteres y aquí se usan claves cortas, así que la app (y `crear_usuarios.sh`) le
 suma el sufijo fijo `-bar` a lo que se escribe. Por dentro el usuario es `<usuario>@bar.local`. El registro público
@@ -40,6 +40,13 @@ está cerrado: usuarios nuevos solo con el script.
 **Cerveza artesanal por litros**: la pinta (490 ml) y el vaso (330 ml) descuentan del mismo recipiente («Cerveza
 artesanal negra (litros)», se cuenta en ml y se muestra en litros). El administrador lo ajusta con *Mover* en Inventario,
 escribiendo litros.
+
+**Combos y cigarrillos**: un combo (ej.: «Combo Poker + Mata Cuchos», $3.800) es un producto con su propio precio
+que descuenta del inventario lo que lo compone (tabla `combo_componentes`); su costo se calcula al vender con los costos
+vigentes. Un producto con `en_promos = false` (Lucky Strike) no puede entrar a ningún combo: la base lo rechaza.
+
+**Conteos puntuales**: un conteo de inventario dado por el dueño se deja en un archivo (ej.: `conteo_2026-10-31.sql`)
+y se corre una vez con `./supabase/aplicar.sh --catalogo conteo_2026-10-31.sql`. Equivale a hacer «Conteo» en Inventario.
 
 ## Uso
 

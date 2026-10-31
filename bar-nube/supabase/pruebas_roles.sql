@@ -9,7 +9,8 @@ create or replace function _stock(p text) returns int language sql as $$ select 
 begin;  -- el catálogo real quedó como lo dio el dueño
 do $$ begin
   assert _id_prod('Águila') is null and _id_prod('Águila Light') is not null, 'Águila → Águila Light';
-  assert (select precio || '/' || costo from productos where nombre = 'Águila Light') = '5000/2400', 'Águila Light';
+  assert (select precio || '/' || costo from productos where nombre = 'Águila Light') = '3500/2400', 'Águila Light';
+  assert (select precio from productos where nombre = 'Poker') = 3500 and (select precio from productos where nombre = 'Club Colombia') = 4000, 'precios 31-oct';
   assert (select precio || '/' || costo from productos where nombre = 'Corona') = '5000/3000', 'Corona';
   assert _stock('Águila Light') = 48 and _stock('Poker') = 48 and _stock('Soda') is not null and _stock('Maní') = 95, 'existencias';
   assert not exists (select 1 from productos where nombre like '%botella'), 'sin botellas de licor';
@@ -64,7 +65,7 @@ begin
   assert (select numero from facturas where id = f) is not null, 'con número';
   -- lo que NO puede
   update productos set precio = 1 where nombre = 'Poker';
-  assert (select precio from productos where nombre = 'Poker') = 5000, 'barman no cambia precios';
+  assert (select precio from productos where nombre = 'Poker') = 3500, 'barman no cambia precios';
   begin insert into categorias (nombre) values ('Hackeada'); assert false, 'barman no crea categorías';
   exception when insufficient_privilege then null; end;
   begin perform comprar(_id_prod('Poker'), 5); assert false, 'barman no compra';
