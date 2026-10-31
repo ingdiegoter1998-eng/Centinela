@@ -43,6 +43,39 @@ alter table productos add column if not exists unidad    text    not null defaul
 alter table productos add column if not exists se_vende  boolean not null default true;
 alter table productos add column if not exists insumo_id bigint  references productos(id) on delete restrict;
 alter table productos add column if not exists consumo   int     not null default 1 check (consumo > 0);
+-- en_promos = false: el producto nunca puede ser parte de un combo o promoción (ej.: Lucky Strike).
+alter table productos add column if not exists en_promos boolean not null default true;
+
+-- Combos: un producto que se vende a su propio precio pero descuenta del inventario lo que lo compone
+-- (ej.: «Combo Poker + Mata Cuchos» descuenta 1 Poker y 1 Mata Cuchos). El combo no tiene stock propio.
+create table if not exists combo_componentes (
+  combo_id    bigint not null references productos(id) on delete cascade,
+  producto_id bigint not null references productos(id) on delete restrict,
+  cantidad    int    not null default 1 check (cantidad > 0),
+  primary key (combo_id, producto_id),
+  check (combo_id <> producto_id)
+);
+
+-- Lo que está marcado como fuera de promociones no entra a ningún combo, ni se puede marcar así si ya está en uno.
+create or replace function _vigila_promos() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  if tg_table_name = 'combo_componentes' then
+    if exists (select 1 from productos where id = new.producto_id and not en_promos) then
+      raise exception '% no aplica para combos ni promociones.', (select nombre from productos where id = new.producto_id);
+    end if;
+    if exists (select 1 from combo_componentes where combo_id = new.producto_id) then
+      raise exception 'Un combo no puede ser parte de otro combo.';
+    end if;
+  elsif not new.en_promos and exists (select 1 from combo_componentes where producto_id = new.id) then
+    raise exception '% está en un combo: quítalo del combo antes de excluirlo de promociones.', new.nombre;
+  end if;
+  return new;
+end $$;
+drop trigger if exists vigila_promos on combo_componentes;
+create trigger vigila_promos before insert or update on combo_componentes for each row execute function _vigila_promos();
+drop trigger if exists vigila_promos on productos;
+create trigger vigila_promos before update of en_promos on productos for each row execute function _vigila_promos();
 
 create table if not exists mesas (
   id     bigint generated always as identity primary key,
@@ -143,6 +176,31 @@ begin
   return v_fac;
 end $$;
 
+-- Mueve el inventario de un producto vendido: p_n > 0 descuenta, p_n < 0 devuelve.
+-- Combo → lo hace con cada componente. Porción de recipiente (insumo_id) → del recipiente.
+create or replace function _mover_stock(p_producto bigint, p_n int) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_prod productos; v_comp record;
+begin
+  select * into v_prod from productos where id = p_producto;
+  if not found or p_n = 0 then return; end if;
+  if exists (select 1 from combo_componentes where combo_id = p_producto) then
+    for v_comp in select producto_id, cantidad from combo_componentes where combo_id = p_producto loop
+      perform _mover_stock(v_comp.producto_id, p_n * v_comp.cantidad);
+    end loop;
+  elsif v_prod.controla_stock then
+    update productos set stock = stock - p_n * v_prod.consumo where id = coalesce(v_prod.insumo_id, v_prod.id);
+  end if;
+end $$;
+
+-- Costo de una unidad: el de un combo es la suma de sus componentes al momento de vender.
+create or replace function _costo(p_producto bigint) returns int
+language sql stable security definer set search_path = public as $$
+  select coalesce((select sum(c.cantidad * p.costo)::int from combo_componentes c join productos p on p.id = c.producto_id
+                    where c.combo_id = p_producto),
+                  (select costo from productos where id = p_producto))
+$$;
+
 create or replace function agregar(p_mesa bigint, p_producto bigint, p_cantidad int default 1) returns void
 language plpgsql security definer set search_path = public as $$
 declare v_prod productos; v_fac bigint;
@@ -153,19 +211,17 @@ begin
   if not found then return; end if;
   v_fac := _cuenta_de(p_mesa);
   insert into lineas (factura_id, producto_id, cantidad, precio, costo)
-  values (v_fac, p_producto, p_cantidad, v_prod.precio, v_prod.costo)
+  values (v_fac, p_producto, p_cantidad, v_prod.precio, _costo(p_producto))
   on conflict (factura_id, producto_id) do update set cantidad = lineas.cantidad + excluded.cantidad;
   -- El stock se descuenta al pedir (inventario de este instante) y puede quedar negativo:
   -- nunca se frena una venta porque el conteo esté desactualizado.
-  -- Si se vende por porciones de un recipiente (insumo_id), el descuento sale del recipiente.
-  if v_prod.controla_stock then
-    update productos set stock = stock - p_cantidad * v_prod.consumo where id = coalesce(v_prod.insumo_id, v_prod.id);
-  end if;
+  -- Porciones de un recipiente descuentan del recipiente; un combo, de cada componente.
+  perform _mover_stock(p_producto, p_cantidad);
 end $$;
 
 create or replace function quitar(p_mesa bigint, p_producto bigint, p_cantidad int default 1) returns void
 language plpgsql security definer set search_path = public as $$
-declare v_fac bigint; v_lin lineas; v_n int; v_prod productos;
+declare v_fac bigint; v_lin lineas; v_n int;
 begin
   if not es_personal() then raise exception 'Inicia sesión.'; end if;
   select id into v_fac from facturas where mesa_id = p_mesa and estado = 'abierta' for update;
@@ -178,10 +234,7 @@ begin
   else
     update lineas set cantidad = cantidad - v_n where id = v_lin.id;
   end if;
-  select * into v_prod from productos where id = p_producto;
-  if v_prod.controla_stock then
-    update productos set stock = stock + v_n * v_prod.consumo where id = coalesce(v_prod.insumo_id, v_prod.id);
-  end if;
+  perform _mover_stock(p_producto, -v_n);
   -- Una cuenta sin nada pedido no existe: la mesa vuelve a estar libre.
   if not exists (select 1 from lineas where factura_id = v_fac) then
     delete from facturas where id = v_fac;
@@ -237,12 +290,7 @@ begin
   if not es_personal() then raise exception 'Inicia sesión.'; end if;
   select id into v_fac from facturas where mesa_id = p_mesa and estado = 'abierta' for update;
   if v_fac is null then return; end if;
-  update productos p set stock = p.stock + d.n
-    from (select coalesce(pr.insumo_id, pr.id) as destino, sum(l.cantidad * pr.consumo)::int as n
-            from lineas l join productos pr on pr.id = l.producto_id
-           where l.factura_id = v_fac and pr.controla_stock
-           group by 1) d
-   where p.id = d.destino;
+  perform _mover_stock(l.producto_id, -l.cantidad) from lineas l where l.factura_id = v_fac;
   if exists (select 1 from lineas where factura_id = v_fac) then
     update facturas set estado = 'anulada', cerrada_en = now() where id = v_fac;
   else
@@ -341,7 +389,7 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['categorias', 'productos', 'mesas', 'clientes', 'facturas', 'lineas', 'movimientos'] loop
+  foreach t in array array['categorias', 'productos', 'combo_componentes', 'mesas', 'clientes', 'facturas', 'lineas', 'movimientos'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists acceso_total on %I', t);
     execute format('drop policy if exists personal_lee on %I', t);
@@ -362,6 +410,8 @@ grant usage on schema public to authenticated;
 grant all on all tables    in schema public to authenticated;
 grant all on all sequences in schema public to authenticated;
 grant execute on all functions in schema public to authenticated;
+-- Mover stock a pelo solo lo hacen las funciones de arriba (que validan); nadie lo llama directo por la API.
+revoke execute on function _mover_stock(bigint, int) from public, anon, authenticated;
 
 -- ── Tiempo real: los celulares reciben los cambios sin preguntar ────────────────────────────
 
