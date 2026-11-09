@@ -10,7 +10,7 @@ begin;  -- el catálogo real quedó como lo dio el dueño
 do $$ begin
   assert _id_prod('Águila') is null and _id_prod('Águila Light') is not null, 'Águila → Águila Light';
   assert (select precio || '/' || costo from productos where nombre = 'Águila Light') = '3500/2400', 'Águila Light';
-  assert (select precio from productos where nombre = 'Poker') = 3500 and (select precio from productos where nombre = 'Club Colombia') = 4000, 'precios 31-oct';
+  assert (select precio from productos where nombre = 'Poker') = 3500 and (select precio from productos where nombre = 'Club Colombia') = 6000, 'precios 8-nov';
   assert (select precio || '/' || costo from productos where nombre = 'Corona') = '5000/3000', 'Corona';
   assert _stock('Águila Light') = 48 and _stock('Poker') = 48 and _stock('Soda') is not null and _stock('Maní') = 95, 'existencias';
   assert not exists (select 1 from productos where nombre like '%botella'), 'sin botellas de licor';

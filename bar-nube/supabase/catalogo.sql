@@ -30,7 +30,7 @@ insert into productos (categoria_id, nombre, precio, costo, controla_stock, stoc
 select c.id, v.nombre, v.precio, v.costo, v.stock is not null, coalesce(v.stock, 0), v.minimo
 from (values
   ('Cervezas',    'Águila Light',           3500,  2400, 37, 12),   -- 2026-10-31: baja a 3.500 (igual que Poker)
-  ('Cervezas',    'Club Colombia',          4000,  3200, 18, 12),   -- 2026-10-31: baja a 4.000
+  ('Cervezas',    'Club Colombia',          6000,  3200, 18, 12),   -- 2026-11-08: sube a 6.000 (4.000 fue error)
   ('Cervezas',    'Corona',                 5000,  3000, 24,  6),
   ('Cervezas',    'Poker',                  3500,  2400, 18, 12),   -- 2026-10-31: 3.500
   ('Cervezas',    'Redd''s',                5000,  2500, null, 0),   -- sin control de existencias por ahora
