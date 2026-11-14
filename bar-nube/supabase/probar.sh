@@ -30,6 +30,9 @@ $PSQL -f catalogo.sql                # catálogo real encima del demo; repetirlo
 $PSQL -f catalogo.sql
 $PSQL -f pruebas_roles.sql
 $PSQL -f pruebas_combos.sql
+$PSQL -f rockola.sql
+$PSQL -f rockola.sql                  # idempotente
+$PSQL -f pruebas_rockola.sql
 echo "== concurrencia: 8 sesiones × 25 toques sobre el mismo producto"
 PROD=$($PSQL -At -c "select id from productos where nombre='Poker'")
 MESA=$($PSQL -At -c "select id from mesas where nombre='Mesa 3'")

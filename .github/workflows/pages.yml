@@ -1,5 +1,5 @@
 # Publica en GitHub Pages en cada push a main: la landing (landing/) en la raíz y el control
-# del bar (bar-nube/, solo el front estático) en /bar/.
+# del bar (bar-nube/, solo el front estático) en /bar/ y la rockola en /bar/rockola/.
 # Requiere activar Pages en Settings → Pages → Source: GitHub Actions.
 name: Desplegar sitio
 
@@ -38,6 +38,7 @@ jobs:
         run: |
           mkdir -p landing/dist/bar
           cp -r bar-nube/index.html bar-nube/app.css bar-nube/app.js bar-nube/config.js bar-nube/logo.png bar-nube/vendor landing/dist/bar/
+          cp -r bar-nube/rockola landing/dist/bar/rockola
       - uses: actions/upload-pages-artifact@v3
         with:
           path: landing/dist
