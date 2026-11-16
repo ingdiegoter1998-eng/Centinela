@@ -5,24 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rockola · Pantalla</title>
   <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="rockola.css">
   <link rel="stylesheet" href="tv.css">
 </head>
-<body class="tv">
+<body class="tv tema-noche">
+  <div id="fondo" aria-hidden="true"></div>
+  <div class="velo" aria-hidden="true"></div>
   <div class="tv-grid">
     <section class="tv-ahora">
-      <div class="tv-marca"><img src="../logo.png" alt=""><span>ROCKOLA</span></div>
+      <div class="tv-marca"><img src="../logo.png" alt=""><div><span class="bar">Callejón del Gato</span><span class="sub">Rockola</span></div></div>
+      <div class="tv-etiqueta">Suena ahora</div>
       <div id="ahora"></div>
     </section>
     <section class="tv-cola">
-      <h2>Siguientes <span id="n-cola"></span></h2>
+      <h2>Próximas canciones <span id="n-cola"></span></h2>
       <div id="cola"></div>
       <div class="tv-pedir">
         <div id="qr"></div>
-        <p>¡Pide tu canción!<br><small id="url"></small></p>
+        <p><b>Pide tu canción</b>WhatsApp <strong>310 866 0167</strong>escribe <em>"nombre de la canción"</em><small id="url"></small></p>
       </div>
     </section>
   </div>
+  <div id="aviso" class="tv-aviso" hidden></div>
   <div id="pausa" class="tv-pausa" hidden>Rockola en pausa</div>
   <script src="../config.js"></script>
   <script src="../vendor/supabase.js"></script>
