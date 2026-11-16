@@ -24,6 +24,25 @@ export function limpiarBusqueda(texto) {
     .replace(/\s+/g, ' ').trim();
 }
 
+// Modo «solo entre comillas»: el bot solo atiende mensajes escritos así: "besos en guerra morat". Acepta comillas
+// rectas, tipográficas (“ ”) y latinas («»). Devuelve lo de adentro, o null si el mensaje no viene entre comillas.
+export function entreComillas(texto) {
+  const m = String(texto || '').match(/^\s*["“”„«]\s*([\s\S]*?)\s*["“”«»]\s*$/);
+  return m && m[1].trim() ? m[1].trim() : null;
+}
+
+// ¿Este mensaje es para el bot? Devuelve el texto a procesar o null (se ignora en silencio).
+//   soloComillas   → exige que el mensaje venga entre comillas y las quita
+//   aceptarPropio  → atiende lo que tú escribes en el chat contigo mismo (fromMe && propio)
+// Lo que tú mismo escribes en el chat de OTRA persona (fromMe sin ser el chat propio) nunca se atiende.
+export function paraElBot({ texto, fromMe = false, propio = false, soloComillas = false, aceptarPropio = false }) {
+  const t = String(texto || '').trim();
+  if (!t) return null;
+  if (fromMe && !(aceptarPropio && propio)) return null;
+  if (!soloComillas) return t;
+  return entreComillas(t);
+}
+
 const sinAcentos = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 const pts = (n) => `${n} ${n === 1 ? 'punto' : 'puntos'}`;
 
@@ -35,7 +54,8 @@ export function mensajeDeError(e) {
   return m;
 }
 
-export function crearBot({ api, enviar, ahora = () => Date.now(), limitePorMinuto = 12 }) {
+export function crearBot({ api, enviar, ahora = () => Date.now(), limitePorMinuto = 12, comillas = false }) {
+  const Q = (t) => (comillas ? `"${t}"` : t);   // en modo comillas, los ejemplos del bot van entre comillas
   const pendientes = new Map();   // celular → { opciones, vence }
   const recientes = new Map();    // celular → [marcas de tiempo]   (anti-spam)
   const avisados = new Set();
@@ -51,11 +71,11 @@ export function crearBot({ api, enviar, ahora = () => Date.now(), limitePorMinut
   }
 
   const AYUDA = (saldo) => `🎶 *Rockola del Callejón del Gato*
-Escríbeme el nombre de la canción y el artista, por ejemplo: *besos en guerra morat*. Te muestro 3 opciones y eliges con el número.
+${comillas ? 'Escríbeme *entre comillas* el nombre de la canción y el artista, por ejemplo: *"besos en guerra morat"*. Lo que no vaya entre comillas no lo leo.' : 'Escríbeme el nombre de la canción y el artista, por ejemplo: *besos en guerra morat*.'} Te muestro 3 opciones y eliges con el número.
 
-• *puntos*: tu saldo${saldo != null ? ` (tienes ${pts(saldo)})` : ''}
-• *cola*: lo que suena y lo que sigue
-• *cancelar*: borra la búsqueda
+• *${Q('puntos')}*: tu saldo${saldo != null ? ` (tienes ${pts(saldo)})` : ''}
+• *${Q('cola')}*: lo que suena y lo que sigue
+• *${Q('cancelar')}*: borra la búsqueda
 
 Los puntos se ganan consumiendo: 1 punto por cada $1.000 😉`;
 
@@ -78,20 +98,20 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000 😉`;
 
   async function buscar(celular, texto) {
     const consulta = limpiarBusqueda(texto);
-    if (consulta.length < 2) return 'Dime qué canción quieres, por ejemplo: *besos en guerra morat* 🎵';
+    if (consulta.length < 2) return `Dime qué canción quieres, por ejemplo: *${Q('besos en guerra morat')}* 🎵`;
     const resultados = (await api.buscar(consulta)).slice(0, OPCIONES);
     if (!resultados.length) return `No encontré nada con «${consulta}» 😕 Prueba con el nombre de la canción y el artista.`;
     const opciones = await Promise.all(resultados.map(async (r) => ({ ...r, costo: await api.precio(r.proveedor, r.artista_ids) })));
     pendientes.set(celular, { opciones, vence: ahora() + VIDA_OPCIONES_MS });
     const est = await api.miEstado(celular);
-    return `Encontré esto:\n${opciones.map((o, i) => `${NUMEROS[i]} ${o.titulo} — ${o.artista} · ${pts(o.costo)}`).join('\n')}\n\nResponde con el número${opciones.length > 1 ? ` (1 a ${opciones.length})` : ''}. Tienes ${pts(est.saldo)}.`;
+    return `Encontré esto:\n${opciones.map((o, i) => `${NUMEROS[i]} ${o.titulo} — ${o.artista} · ${pts(o.costo)}`).join('\n')}\n\nResponde con el número${comillas ? ' entre comillas' : ''}${opciones.length > 1 ? ` (${Q('1')} a ${Q(String(opciones.length))})` : ''}. Tienes ${pts(est.saldo)}.`;
   }
 
   async function elegir(celular, nombre, n) {
     const p = pendientes.get(celular);
-    if (!p || p.vence < ahora()) { pendientes.delete(celular); return 'Esa búsqueda ya venció. Escríbeme otra vez la canción 🎵'; }
+    if (!p || p.vence < ahora()) { pendientes.delete(celular); return `Esa búsqueda ya venció. Escríbeme otra vez la canción${comillas ? ' entre comillas' : ''} 🎵`; }
     const pista = p.opciones[n - 1];
-    if (!pista) return `Elige un número del 1 al ${p.opciones.length}.`;
+    if (!pista) return `Elige un número del ${Q('1')} al ${Q(String(p.opciones.length))}.`;
     const r = await api.pedir(celular, nombre, pista);
     pendientes.delete(celular);
     const e = await api.estado();

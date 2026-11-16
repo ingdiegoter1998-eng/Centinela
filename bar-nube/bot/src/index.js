@@ -6,7 +6,7 @@ import makeWASocketMod, { useMultiFileAuthState, DisconnectReason, fetchLatestBa
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
 import { crearApi } from './api.js';
-import { crearBot } from './logica.js';
+import { crearBot, paraElBot } from './logica.js';
 import { crearEco } from './eco.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
 
@@ -21,9 +21,13 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !BOT_NUMBER) {
 // WhatsApp → Dispositivos vinculados → Vincular un dispositivo) o «codigo» (código de 8 caracteres por número de teléfono).
 const MODO = process.argv.includes('--codigo') ? 'codigo' : process.argv.includes('--qr') ? 'qr' : String(process.env.LINK_MODE || 'qr').toLowerCase();
 
-// Modo de prueba (PRUEBA_PROPIO=1): atiende también lo que tú mismo escribes en el chat contigo mismo («Tú» / «Mensajéate»)
-// desde la SIM del bot, para probar sin un segundo celular. Quita la variable cuando lo pongas en producción.
-const PRUEBA_PROPIO = process.env.PRUEBA_PROPIO === '1';
+// Solo entre comillas (SOLO_COMILLAS, activo por defecto; =0 para apagarlo): el bot únicamente atiende mensajes escritos
+// entre comillas, "besos en guerra morat". Así el número puede ser también un WhatsApp personal: lo que la gente escribe
+// normalmente se ignora en silencio.
+const SOLO_COMILLAS = process.env.SOLO_COMILLAS !== '0';
+// Chat contigo mismo (ACEPTAR_PROPIO, activo por defecto; =0 para apagarlo; PRUEBA_PROPIO=1 es el nombre antiguo): atiende lo que
+// tú mismo escribes en el chat contigo mismo («Tú» / «Mensajéate»). Lo que escribes a otras personas nunca se atiende.
+const ACEPTAR_PROPIO = process.env.ACEPTAR_PROPIO !== '0' || process.env.PRUEBA_PROPIO === '1';
 const digitos = (jid) => String(jid || '').split('@')[0].split(':')[0].replace(/\D/g, '');
 
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
@@ -46,6 +50,7 @@ const esperandoNumero = new Set(); // jids (LID) a los que ya se les pidió su n
 
 const bot = crearBot({
   api,
+  comillas: SOLO_COMILLAS,
   limitePorMinuto: Number(process.env.LIMITE_MENSAJES_POR_MINUTO || 12),
   enviar: async (celular, texto) => {
     const jid = jids.get(celular);
@@ -64,15 +69,16 @@ const textoDe = (m) => m.message?.conversation || m.message?.extendedTextMessage
 async function alMensaje(m) {
   const jid = m.key.remoteJid;
   if (!jid || jid === 'status@broadcast' || jid.endsWith('@g.us') || jid.endsWith('@newsletter')) return;   // solo chats uno a uno
-  const texto = textoDe(m).trim();
-  if (!texto) return;
+  const crudo = textoDe(m).trim();
   const propio = esChatPropio(jid);
   log.debug({ jid, fromMe: !!m.key.fromMe, propio }, 'mensaje recibido');
-  if (m.key.fromMe && !(PRUEBA_PROPIO && propio)) return;           // lo que yo mando a otros nunca se atiende
-  if (m.key.fromMe && esEco(m, texto)) return;                       // eco de una respuesta del bot
+  // ¿es para el bot? Sin comillas (si SOLO_COMILLAS) o escrito por mí a otra persona → se ignora en silencio.
+  const texto = paraElBot({ texto: crudo, fromMe: !!m.key.fromMe, propio, soloComillas: SOLO_COMILLAS, aceptarPropio: ACEPTAR_PROPIO });
+  if (texto === null) return;
+  if (m.key.fromMe && esEco(m, crudo)) return;                       // eco de una respuesta del bot
   const nombre = (m.pushName || '').slice(0, 60);
 
-  if (PRUEBA_PROPIO && propio) {                                     // chat contigo mismo: tu celular es el de la SIM
+  if (ACEPTAR_PROPIO && propio) {                                     // chat contigo mismo: tu celular es el de la SIM
     const celular = digitos(BOT_NUMBER);
     jids.set(celular, jid);
     await bot.manejar({ celular, nombre, texto });
@@ -86,7 +92,7 @@ async function alMensaje(m) {
     if (dicho && esperandoNumero.has(jid)) { resolvedor.recordar(jid, dicho); esperandoNumero.delete(jid); celular = dicho; }
     else {
       esperandoNumero.add(jid);
-      const aviso = 'Hola 👋 No alcanzo a ver tu número de celular. Escríbelo aquí (ej: *3001234567*) para guardarte los puntos.';
+      const aviso = `Hola 👋 No alcanzo a ver tu número de celular. Escríbelo aquí${SOLO_COMILLAS ? ' entre comillas' : ''} (ej: *${SOLO_COMILLAS ? '"3001234567"' : '3001234567'}*) para guardarte los puntos.`;
       recordarEnvio(await sock.sendMessage(jid, { text: aviso }), aviso);
       return;
     }
@@ -138,6 +144,6 @@ async function conectar() {
   });
 }
 
-if (PRUEBA_PROPIO) log.warn('MODO PRUEBA_PROPIO activo: el bot atiende tu chat contigo mismo (celular de prueba = BOT_NUMBER). Quítalo en producción.');
+log.info({ SOLO_COMILLAS, ACEPTAR_PROPIO }, SOLO_COMILLAS ? 'Solo atiendo mensajes entre comillas.' : 'Atiendo todos los mensajes (SOLO_COMILLAS=0).');
 process.on('unhandledRejection', (e) => log.error({ err: String(e) }, 'promesa sin atender'));
 conectar();

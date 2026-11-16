@@ -1,24 +1,25 @@
 # Bot de WhatsApp de la rockola
 
 El cliente le escribe a la SIM del bar (**310 866 0167**), pide la canción por texto y la paga con puntos.
+**El bot solo lee los mensajes escritos entre comillas**; todo lo demás lo ignora en silencio (ver «Solo entre comillas»).
 
 ```
-Cliente:  besos en guerra morat
+Cliente:  "besos en guerra morat"
 Bot:      Encontré esto:
           1️⃣ Besos en guerra — Morat · 8 puntos
           2️⃣ …
-          Responde con el número. Tienes 16 puntos.
-Cliente:  1
+          Responde con el número entre comillas ("1" a "3"). Tienes 16 puntos.
+Cliente:  "1"
 Bot:      ✅ Besos en guerra quedó en la cola. Va en el puesto 3. Gastaste 8 puntos, te quedan 8.
 ```
 
-Otros mensajes: `puntos` (saldo), `cola` (qué suena y qué sigue), `cancelar`, `hola` (ayuda). Quien escribe por primera vez
+Otros mensajes (siempre entre comillas): `"puntos"` (saldo), `"cola"` (qué suena y qué sigue), `"cancelar"`, `"hola"` (ayuda). Quien escribe por primera vez
 recibe los puntos de bienvenida. Todas las reglas (precio por género, máx. 2 canciones en cola, lista negra, canciones repetidas)
 las impone la base de datos, no el bot (`../supabase/rockola_puntos.sql`).
 
 > **Aviso:** esto usa Baileys, una librería **no oficial**. WhatsApp puede banear el número. Por eso: SIM solo para la rockola,
 > el bot responde con pausas de «persona escribiendo» y atiende un máximo de mensajes por minuto por cliente.
-> Las 10 pruebas de `npm test` cubren la conversación; la conexión real con WhatsApp **no se pudo probar fuera de un celular**:
+> Las pruebas de `npm test` cubren la conversación; la conexión real con WhatsApp **no se pudo probar fuera de un celular**:
 > sigue la lista «Primera vez» de abajo.
 
 ## Dónde puede correr
@@ -85,10 +86,19 @@ Después de vincular, los dos caminos siguen igual:
 
 Si antes intentaste vincular y quedó a medias, empieza limpio: `rm -rf auth`.
 
-## Probar sin un segundo celular
+## Solo entre comillas (para usar tu WhatsApp de siempre)
 
-Con la SIM del bot puedes probar escribiéndote a ti mismo: pon `PRUEBA_PROPIO=1` en el `.env` (o `PRUEBA_PROPIO=1 npm start`) y arranca. En WhatsApp del celular de la SIM abre el chat **contigo mismo** («Tú» o «Mensajéate»: búscate en la lista de contactos por tu propio número) y escribe `hola`, `morat`, `1`, `cola`… El bot responde en ese mismo chat y no se contesta a sí mismo en bucle. Tus puntos de prueba quedan a nombre del número de la SIM.
-Quita la variable (borra la línea del `.env`) cuando lo dejes en producción. Si el chat contigo mismo no responde, arranca con `LOG_LEVEL=debug`: cada mensaje que llega deja una línea («mensaje recibido») que dice si WhatsApp lo marcó como tuyo y como chat propio.
+Por defecto el bot **solo atiende mensajes que vienen entre comillas**: `"besos en guerra morat"`. Sirven las comillas rectas (`"`), las
+curvas (`“ ”`, las que pone el teclado del celular) y las latinas (`« »`). El mensaje entero tiene que ir envuelto: `hola "morat"` no cuenta.
+Lo que no viene así (una charla normal, «¿a qué hora abren?», una foto, un audio) el bot **no lo lee ni lo responde**, ni siquiera con
+la bienvenida. Por eso el mismo WhatsApp puede ser a la vez tu número de siempre y la rockola: solo contesta cuando alguien pide entre comillas.
+
+- **Tu chat contigo mismo** («Tú» o «Mensajéate») también funciona, siempre que escribas entre comillas: `"morat"`, `"1"`, `"cola"`.
+  Es la forma de probar sin un segundo celular. Tus puntos quedan a nombre del número de la SIM. El bot no se contesta a sí mismo en bucle.
+- **Lo que tú escribes a otras personas nunca lo atiende**, ni siquiera con comillas.
+- Para que atienda todo, sin comillas: `SOLO_COMILLAS=0` en el `.env` (y reinicia).
+- Para que no atienda tu chat contigo mismo: `ACEPTAR_PROPIO=0`. (`PRUEBA_PROPIO=1` es el nombre antiguo de lo mismo y sigue valiendo.)
+- Si el chat contigo mismo no responde, arranca con `LOG_LEVEL=debug`: cada mensaje que llega deja una línea («mensaje recibido») que dice si WhatsApp lo marcó como tuyo y como chat propio.
 
 ## Dejarlo prendido 24/7 (en Termux)
 
@@ -142,6 +152,6 @@ El servidor no necesita abrir ningún puerto: el bot solo hace conexiones hacia 
 
 ## Cosas a tener en cuenta
 
-- **Números «LID».** WhatsApp está cambiando a identificadores internos que no muestran el celular. Si el bot no puede ver el número de quien escribe, le pide que lo escriba una vez (`3001234567`) y lo recuerda en `numeros.json`. Ese número no se puede verificar: alguien podría escribir el de otra persona. Es un riesgo aceptado para un bar; si molesta, se cambia por un código de verificación.
+- **Números «LID».** WhatsApp está cambiando a identificadores internos que no muestran el celular. Si el bot no puede ver el número de quien escribe, le pide que lo escriba una vez (`"3001234567"`, entre comillas) y lo recuerda en `numeros.json`. Ese número no se puede verificar: alguien podría escribir el de otra persona. Es un riesgo aceptado para un bar; si molesta, se cambia por un código de verificación.
 - Los puntos por consumo los da el barman al cobrar, con ese mismo celular (`57` + número). Si el cliente escribe desde otro número, no verá sus puntos.
 - El bot solo atiende chats uno a uno; ignora grupos, estados y canales.
