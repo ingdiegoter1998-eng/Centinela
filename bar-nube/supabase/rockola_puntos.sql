@@ -38,10 +38,12 @@ create table if not exists rockola_artistas (
   genero     text references rockola_generos(genero) on update cascade on delete set null,
   primary key (proveedor, artista_id)
 );
--- De dónde salió el género: 'spotify' (automático, con las etiquetas del artista) o 'manual' (lo puso el personal;
--- el automático nunca lo pisa). null = nadie lo ha mirado todavía.
-alter table rockola_artistas add column if not exists origen    text check (origen in ('manual', 'spotify'));
+-- De dónde salió el género: 'auto' (automático, con las etiquetas de MusicBrainz; Spotify ya no entrega géneros) o
+-- 'manual' (lo puso el personal; el automático nunca lo pisa). null = nadie lo ha mirado todavía.
+alter table rockola_artistas add column if not exists origen    text;
 alter table rockola_artistas add column if not exists etiquetas text[] not null default '{}';
+alter table rockola_artistas drop constraint if exists rockola_artistas_origen_check;
+alter table rockola_artistas add constraint rockola_artistas_origen_check check (origen in ('manual', 'auto'));
 update rockola_artistas set origen = 'manual' where genero is not null and origen is null;
 
 create table if not exists rockola_prohibidas (          -- lista negra de canciones

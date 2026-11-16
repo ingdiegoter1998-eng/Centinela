@@ -1,5 +1,6 @@
-// Clasifica un artista por las etiquetas de género que Spotify le pone («colombian pop», «vallenato»…).
-// Es puro (sin red ni base) para poder probarlo. Cada etiqueta se traduce a uno de NUESTROS géneros con la
+// Clasifica un artista por sus etiquetas de género («colombian pop», «vallenato»…). Spotify ya no las entrega
+// (su API dejó de devolver `genres`), así que salen de MusicBrainz (gratis, sin llave).
+// La traducción de etiquetas es pura (sin red ni base) para poder probarla. Cada etiqueta se traduce a uno de NUESTROS géneros con la
 // primera regla que calce (las específicas van antes que las generales); luego se decide por votos.
 
 export const normalizar = (t) => String(t ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -86,4 +87,24 @@ export function elegirGenero(etiquetas, multiplicadores) {
   let mejor = null;
   for (const [m, v] of votos) if (!mejor || v > mejor.v || (v === mejor.v && m > mejor.m)) mejor = { m, v };
   return aciertos.find((g) => multiplicadores[g] === mejor.m) ?? null;
+}
+
+// ── MusicBrainz ─────────────────────────────────────────────────────────────────────────────
+// Busca al artista por nombre y devuelve sus etiquetas más votadas. `pedir` es fetch (se inyecta para probarlo).
+// Devuelve { ok: true, etiquetas } (vacías si no hay coincidencia clara) o { ok: false } si el servicio falló (no marcar, reintentar).
+export async function etiquetasMusicBrainz(nombre, pedir = fetch) {
+  const limpio = String(nombre ?? '').replace(/["\\]/g, ' ').trim();
+  if (!limpio) return { ok: true, etiquetas: [] };
+  let r;
+  try {
+    r = await pedir('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=3&query=' + encodeURIComponent(`artist:"${limpio}"`),
+      { headers: { 'User-Agent': 'RockolaBar/1.0', Accept: 'application/json' } });
+  } catch { return { ok: false }; }
+  if (!r.ok) return { ok: false };
+  const d = await r.json().catch(() => null);
+  if (!d) return { ok: false };
+  const quiere = normalizar(limpio);
+  const a = (d.artists ?? []).find((x) => (x.score ?? 0) >= 90 && normalizar(x.name) === quiere);
+  const etiquetas = (a?.tags ?? []).filter((t) => (t.count ?? 0) > 0).sort((x, y) => y.count - x.count).slice(0, 12).map((t) => t.name);
+  return { ok: true, etiquetas };
 }
