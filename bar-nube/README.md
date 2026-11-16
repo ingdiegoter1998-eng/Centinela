@@ -98,6 +98,11 @@ un artista sin género cuesta el base y queda en `rockola_artistas` para clasifi
   los puntos de esa factura. Si el barman salta o quita desde el celular, el reproductor del PC lo sigue solo (relee cada 4 s).
 - La pantalla web del cliente todavía pide sin puntos (límite de 2 por celular); falta decidir cómo identificar al cliente ahí.
 
+### Bot de WhatsApp (`bot/`)
+
+Pedir canciones con puntos por WhatsApp (Baileys, no oficial) desde un Android con Termux. Instalación paso a paso, vinculación del número y cómo
+dejarlo 24/7 en [`bot/README.md`](bot/README.md). No se publica en Pages: corre en el celular del bot.
+
 ## Qué conviene saber
 
 - **Costos visibles por la API**: la pantalla del barman esconde costos y ganancias, pero técnicamente puede leer la
