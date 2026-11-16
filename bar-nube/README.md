@@ -59,6 +59,25 @@ tarjeta). **Inventario** (alertas, entradas, conteo), **Ventas** (por jornada, g
 Todo se ve al instante en los demás celulares (Supabase Realtime) y, por si el WiFi falla un momento, se
 relee solo cada pocos segundos. Si no hay conexión aparece un aviso rojo y se recupera solo.
 
+## Panel de control (`admin/`)
+
+Página solo para el administrador, en `/bar/admin/` (enlace «Panel» en la barra de la app). Usa la misma sesión; el barman
+no entra. Todo lo que lee lo impone la base (RLS y funciones con `es_admin()`), no la pantalla, y no usa `service_role`.
+
+| Pestaña | Qué hay |
+|---|---|
+| Resumen | Dashboard semana a semana (12 semanas) o mes a mes (12 meses): ventas, ganancia, facturas, promedio, comparación con el periodo anterior, noches abiertas, días de la semana, productos y categorías, y la rockola (pedidos, personas, puntos) |
+| Reportes | Cualquier rango de jornadas: por producto, categoría, método de pago, día de la semana; CSV de cada tabla |
+| Facturas | Búsqueda y filtros (mesa, cliente, pago, quién cobró), anuladas con su responsable |
+| Inventario | Valor a costo, por reponer, stock negativo (compras sin cargar), existencias y últimos movimientos |
+| Rockola | Cola, pausar y saltar, **clasificar artistas por género**, géneros y multiplicadores, **lista negra**, pedidos recientes y reporte (géneros, canciones y artistas más pedidos) |
+| Puntos | **Dar puntos por celular con motivo** (solo admin, queda anotado quién), saldos, ficha y libro de cada cliente |
+| Trabajador | Comisión por categoría con reglas editables (arranca en 50 % de la ganancia de la cerveza no artesanal y 20 % de la venta de la artesanal), quién cobró y cuentas anuladas |
+
+Las jornadas van de 6:00 AM a 6:00 AM (Bogotá). Puesta en marcha: pegar `supabase/admin.sql` en el SQL Editor (después de
+`schema.sql`, `rockola.sql` y `rockola_puntos.sql`; es seguro repetirlo). Desde ese momento cada cobro y cada anulación
+guarda quién la hizo (`facturas.cobrada_por` / `anulada_por`); lo anterior aparece como «Sin registro».
+
 ## Rockola (`rockola/`)
 
 Los clientes piden por WhatsApp (con puntos); la página del QR solo muestra qué suena y la cola, y suena en vivo en el bar por orden de llegada. `rockola_pedir` (la que usaba la web con la llave pública) ya no es pública.
