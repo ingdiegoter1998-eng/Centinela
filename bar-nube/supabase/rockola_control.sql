@@ -1,3 +1,5 @@
+-- OJO (Supabase corre pg_safeupdate): todo UPDATE/DELETE lleva WHERE, aunque la tabla tenga una sola fila (`where id`).
+--   Un UPDATE sin WHERE falla en producción y no en el Postgres de pruebas; lo vigila supabase/sin_where.test.mjs.
 -- Rockola, parte 3: el controlador de Spotify Connect (cualquier celular de la cuenta que esté sonando).
 -- Se aplica DESPUÉS de schema.sql, rockola.sql y rockola_puntos.sql; es seguro repetirlo:  ./aplicar.sh rockola_control.sql
 -- (si vuelves a correr rockola_puntos.sql, corre este otra vez: redefine rockola_estado.)
@@ -200,12 +202,12 @@ create or replace function rockola_ctl_latido(p_dispositivo text default null, p
                                               p_reproduciendo boolean default false, p_error text default null) returns void
 language sql security definer set search_path = public as $$
   update rockola_reproductor set verificado_en = now(), dispositivo = p_dispositivo, dispositivo_id = p_dispositivo_id,
-         reproduciendo = coalesce(p_reproduciendo, false), error = left(p_error, 300)
+         reproduciendo = coalesce(p_reproduciendo, false), error = left(p_error, 300) where id
 $$;
 
 create or replace function rockola_ctl_pausa(p_pausada boolean) returns void
 language sql security definer set search_path = public as $$
-  update rockola_reproductor set pausada = coalesce(p_pausada, false)
+  update rockola_reproductor set pausada = coalesce(p_pausada, false) where id
 $$;
 
 -- Un solo «tick» a la vez: si otro está corriendo (el cron y el botón Saltar pueden coincidir), este se salta.
@@ -220,12 +222,12 @@ begin
 end $$;
 create or replace function rockola_ctl_soltar() returns void
 language sql security definer set search_path = public as $$
-  update rockola_reproductor set tick_hasta = null
+  update rockola_reproductor set tick_hasta = null where id
 $$;
 
 create or replace function rockola_ctl_preferido(p_id text) returns void
 language sql security definer set search_path = public as $$
-  update rockola_reproductor set preferido_id = p_id
+  update rockola_reproductor set preferido_id = p_id where id
 $$;
 
 -- Lo que llama pg_cron: despierta a la función de borde solo si hay trabajo.
