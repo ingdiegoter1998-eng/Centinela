@@ -122,3 +122,16 @@ test('normalizarCelular', () => {
   assert.equal(normalizarCelular('12345'), null);
   assert.equal(normalizarCelular('hola'), null);
 });
+
+import { crearEco } from '../src/eco.js';
+test('eco: no se contesta a sí mismo, ni por id ni por texto, y el olvido llega', () => {
+  let t = 0; const eco = crearEco({ ahora: () => t, vidaMs: 1000 });
+  eco.registrar({ key: { id: 'A1' } }, 'respuesta del bot');
+  assert.equal(eco.esEco({ key: { id: 'A1' } }, 'otro texto'), true, 'por id');
+  assert.equal(eco.esEco({ key: { id: 'ZZ' } }, 'respuesta del bot'), true, 'por texto (id tardío)');
+  assert.equal(eco.esEco({ key: { id: 'B2' } }, 'morat'), false, 'lo que escribe la persona sí se atiende');
+  t = 2000;
+  assert.equal(eco.esEco({ key: { id: 'ZZ' } }, 'respuesta del bot'), false, 'pasado el tiempo, el mismo texto de la persona vuelve a valer');
+  eco.registrar(undefined, 'sin id');   // sendMessage sin resultado no rompe
+  assert.equal(eco.esEco({ key: {} }, 'sin id'), true);
+});
