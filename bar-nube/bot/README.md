@@ -80,7 +80,7 @@ Hay dos formas de vincular; **la del QR es la que recomiendo** (es la más fiabl
 Imprime un código de 8 caracteres; en WhatsApp: *Vincular un dispositivo → Vincular con número de teléfono* y lo escribes. Ojo: el código vence en pocos minutos y a veces WhatsApp responde «No se pudo vincular el dispositivo» aunque esté bien escrito; si pasa, usa el QR.
 
 Después de vincular, los dos caminos siguen igual:
-3. El bot imprime «Vinculado» y «Conectado a WhatsApp» (justo antes puede decir «Reiniciando conexión»: es normal). **Déjalo prendido unos 2 minutos**: en ese rato el celular le manda al bot sus llaves de cifrado; si lo cortas a los 5 segundos, la sesión puede quedar a medias.
+3. El bot imprime «Vinculado» y «Conectado a WhatsApp» (justo antes puede decir «Reiniciando conexión»: es normal). **No lo cortes ni lo reinicies enseguida**: en esos primeros minutos el celular y el bot acuerdan sus llaves de cifrado y el log se llena de errores que son normales (mira la sección «Los primeros minutos tras vincular»).
 4. Escríbele (entre comillas, ver abajo) desde **otro celular** a 310 866 0167, o a ti mismo: `"hola"`. Debe responder con la bienvenida. Prueba: `"morat"` → elige `"1"` → `"cola"`. (Comprueba en `rockola/player.html` o en el TV que la canción entró.)
 5. Ya quedó vinculado: la sesión vive en la carpeta `auth/` (no la borres ni la subas). Para dejarlo 24/7 sigue «Dejarlo prendido».
 
@@ -100,24 +100,21 @@ la bienvenida. Por eso el mismo WhatsApp puede ser a la vez tu número de siempr
 - Para que no atienda tu chat contigo mismo: `ACEPTAR_PROPIO=0`. (`PRUEBA_PROPIO=1` es el nombre antiguo de lo mismo y sigue valiendo.)
 - Si el chat contigo mismo no responde, arranca con `LOG_LEVEL=debug`: cada mensaje que llega deja una línea («mensaje recibido») que dice si WhatsApp lo marcó como tuyo y como chat propio.
 
-## Si conecta pero no responde nada («Bad MAC», «No matching sessions found for message»)
+## Los primeros minutos tras vincular (y si «no responde nada»)
 
-Síntoma: en el log salen `failed to decrypt message`, `Bad MAC` y `No matching sessions found for message` una y otra vez, y el bot nunca
-llega a leer un mensaje (ni con comillas). No es la rockola ni las comillas: WhatsApp y el bot quedaron con **llaves de cifrado distintas**.
-Lo que suele causarlo: vincular varias veces seguidas, cortar el bot justo al vincular, o **dos copias del bot a la vez** con la misma carpeta `auth/`.
+Justo después de vincular es **normal** ver en el log, durante varios minutos, líneas como `error in handling message`, `failed to decrypt message`,
+`Bad MAC`, `No matching sessions found for message` y un `Timed Out` en `init queries`. WhatsApp y el bot todavía están acordando sus llaves de
+cifrado: Baileys le pide al celular que reenvíe y se arregla solo. En una vinculación real tardó un buen rato y después respondió bien.
+**No hagas nada: déjalo prendido** y pruébalo de vez en cuando con `"hola"`.
 
-Lo que hace el bot solo (no tienes que hacer nada): si ve 6 mensajes seguidos sin poder descifrar y ninguno bien leído, **borra las llaves de
-conversación** (`session-*` y `sender-key-*`, la vinculación no se toca) y se reinicia para que se renegocien; con `start.sh` vuelve a levantarse solo
-a los 10 s. Si a los pocos minutos vuelve a fallar, ya no insiste: se detiene y dice que hay que **vincular de nuevo**. Además, no deja correr dos
-copias a la vez (archivo `auth.lock`).
+El bot **no borra ni reinicia nada solo** (una versión anterior lo hacía y le dañó una sesión que estaba sana). Si llegan 30 fallos seguidos y
+ninguna lectura buena, solo imprime un aviso con estos pasos. Si pasan 15 minutos más sin que lea nada, **en este orden y parando en cuanto funcione**:
 
-A mano:
-1. **Una sola copia.** Cierra Termux del todo (en su notificación toca **EXIT**) y ábrelo otra vez. Así no queda ningún proceso viejo.
-2. `cd ~/Centinela/bar-nube/bot && npm run reparar` (borra las llaves de conversación) y `npm start`. Escríbele `"hola"` y mira si responde.
-3. Si sigue igual, **vincular de nuevo desde cero**:
-   - En el celular de la SIM: WhatsApp → Dispositivos vinculados → toca cada dispositivo del bot (y los que hayan quedado de intentos viejos) → **Cerrar sesión**.
-   - En Termux: `rm -rf auth && npm start`, escanea el QR y **espera 2 minutos** antes de escribirle.
-4. Si aun así falla desde cero, es la librería (Baileys 6.x con el cambio de WhatsApp a identificadores «LID»); habría que subir a Baileys 7. Avísale a quien mantiene el bot.
+1. **Reiniciar** el bot: `Ctrl+C` y `./start.sh`. Antes, cierra Termux del todo (en su notificación toca **EXIT**) y ábrelo otra vez: dos copias del
+   bot a la vez se pisan las llaves (por eso hay un candado, `auth.lock`, que no deja arrancar una segunda).
+2. `npm run reparar` (con el bot apagado): borra solo las llaves de conversación (`session-*`, `sender-key-*`) y deja la vinculación. Luego `./start.sh`.
+3. **Último recurso, vincular de nuevo**: en el celular de la SIM, WhatsApp → Dispositivos vinculados → cierra sesión en cada dispositivo del bot
+   (también los de intentos viejos). En Termux: `rm -rf auth && ./start.sh`, escanea el QR y no lo cortes en un buen rato.
 
 ## Dejarlo prendido 24/7 (en Termux)
 
