@@ -147,7 +147,7 @@ create or replace function rockola_activar(p_activa boolean) returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if not es_personal() then raise exception 'sin permiso'; end if;
-  update rockola_config set activa = p_activa;
+  update rockola_config set activa = p_activa where id;
 end $$;
 
 -- ── Permisos ────────────────────────────────────────────────────────────────────────────────
