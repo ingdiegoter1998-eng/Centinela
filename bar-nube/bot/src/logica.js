@@ -11,7 +11,7 @@
 const OPCIONES = 3;
 const VIDA_OPCIONES_MS = 5 * 60 * 1000;
 const NUMEROS = ['1)', '2)', '3)'];
-export const LEMA = 'Pon, tu música, tu caos';
+export const LEMA = 'Pon tu música, tu caos';
 
 // «Pónme besos en guerra de morat» → «besos en guerra morat»
 export function limpiarBusqueda(texto) {

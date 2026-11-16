@@ -203,7 +203,7 @@ test('paraElBot: SOLO_COMILLAS=0 atiende todo, pero igual ignora lo tuyo hacia o
 
 const EMOJI = /[\p{Extended_Pictographic}\u20E3\uFE0F]/u;
 test('ninguna respuesta del bot lleva emojis ni stickers, con o sin comillas, y la ayuda trae el lema', async () => {
-  assert.equal(LEMA, 'Pon, tu música, tu caos');
+  assert.equal(LEMA, 'Pon tu música, tu caos');
   for (const comillas of [false, true]) {
     const a = montar({ comillas, registrado: false });
     const b = montar({ comillas, resultados: [] });
