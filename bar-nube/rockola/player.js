@@ -72,7 +72,11 @@
     $('sp-detalle').textContent = (sp.cuenta ? 'Cuenta: ' + sp.cuenta + '. ' : '') +
       (bien ? (r.pausada ? 'Música en pausa. ' : '') : (r.error || 'Aún no hay un latido. ') + ' ') + 'Última revisión hace ' + hace(r.verificado_en) + '.' +
       (sp.error ? ' ' + sp.error : '');
-    $('btn-pausar').textContent = r.pausada ? 'Reanudar música' : 'Pausar música';
+    // Hay una canción «sonando» en la rockola pero Spotify dice que no reproduce (se pausó en el celular, o el bafle se desconectó).
+    const detenida = !!(bien && estado && estado.sonando && !r.reproduciendo && !r.pausada);
+    if (detenida) $('sp-detalle').textContent += ' Spotify está en pausa en el celular aunque la rockola tiene una canción sonando: toca «Reanudar música» o dale play en Spotify (y revisa que el Bluetooth del bafle siga conectado).';
+    $('btn-pausar').textContent = (r.pausada || detenida) ? 'Reanudar música' : 'Pausar música';
+    sp.__detenida = detenida;
   }
 
   function pintarDispositivos() {
@@ -127,7 +131,7 @@
 
   $('btn-spotify').addEventListener('click', conectarSpotify);
   $('btn-desconectar').addEventListener('click', () => { if (confirm('¿Desconectar la cuenta de Spotify? La rockola dejará de sonar hasta volver a conectarla.')) hacer('desconectar', null, 'Spotify desconectado'); });
-  $('btn-pausar').addEventListener('click', () => hacer(sp && sp.reproductor && sp.reproductor.pausada ? 'reanudar' : 'pausar'));
+  $('btn-pausar').addEventListener('click', () => hacer(sp && sp.reproductor && (sp.reproductor.pausada || sp.__detenida) ? 'reanudar' : 'pausar'));
   $('btn-saltar').addEventListener('click', () => hacer('saltar', null, 'Saltada'));
   $('btn-pedidos').addEventListener('click', async () => {
     const { error } = await db.rpc('rockola_activar', { p_activa: !(estado && estado.activa) });
