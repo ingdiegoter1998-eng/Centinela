@@ -64,6 +64,7 @@ Los clientes escanean un QR, buscan una canción y la piden; suena en vivo en el
 | Pantalla | URL (tras publicar) | Quién |
 |---|---|---|
 | Cliente | `/bar/rockola/?mesa=5` (un QR por mesa) | Cualquiera, sin cuenta |
+| Pantalla del TV | `/bar/rockola/tv.html` | Sin login: se deja abierta en el PC del TV (pantalla completa, F11). Muestra lo que suena, la cola y un QR para pedir |
 | Reproductor | `/bar/rockola/player.html` | Personal (mismo usuario y clave de la app), en el PC/tablet del bar con la pestaña abierta |
 
 Puesta en marcha (una vez):
