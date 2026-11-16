@@ -2,7 +2,8 @@
 // Usa «client credentials»: el secreto vive solo aquí, como secreto de la función, nunca en el repo.
 //   supabase secrets set SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=...
 //   supabase functions deploy rockola-buscar --no-verify-jwt
-// GET ?q=texto  →  [{ proveedor, pista_id, titulo, artista, portada, duracion_ms }]
+// GET ?q=texto  →  [{ proveedor, pista_id, titulo, artista, artista_ids, portada, duracion_ms }]
+// (artista_ids sirve para calcular el precio en puntos según el género: rockola_precio en la base)
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -41,6 +42,7 @@ Deno.serve(async (req) => {
       pista_id: t.id,
       titulo: t.name,
       artista: (t.artists ?? []).map((a: any) => a.name).join(', '),
+      artista_ids: (t.artists ?? []).map((a: any) => a.id),
       portada: t.album?.images?.[1]?.url ?? t.album?.images?.[0]?.url ?? '',
       duracion_ms: t.duration_ms ?? 0,
     })));

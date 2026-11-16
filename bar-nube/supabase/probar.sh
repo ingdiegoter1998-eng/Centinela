@@ -14,7 +14,7 @@ $COMO "$BIN/initdb -D $DIR/data -A trust -U postgres" >/dev/null
 $COMO "$BIN/pg_ctl -D $DIR/data -o '-p $PUERTO -k $DIR -c listen_addresses=' -l $DIR/log -w start" >/dev/null
 PSQL="psql -h $DIR -p $PUERTO -U postgres -v ON_ERROR_STOP=1 -q"
 # Lo que Supabase ya trae y el esquema da por hecho:
-$PSQL -d postgres -c "create role anon nologin; create role authenticated nologin; create publication supabase_realtime;" >/dev/null
+$PSQL -d postgres -c "create role anon nologin; create role authenticated nologin; create role service_role nologin; create publication supabase_realtime;" >/dev/null
 $PSQL -d postgres -c "create database bar" >/dev/null
 export PGHOST=$DIR PGPORT=$PUERTO PGUSER=postgres PGDATABASE=bar
 # Lo que Supabase Auth trae: tabla de usuarios y auth.uid() (lee el «sub» del token de la sesión).
@@ -33,6 +33,9 @@ $PSQL -f pruebas_combos.sql
 $PSQL -f rockola.sql
 $PSQL -f rockola.sql                  # idempotente
 $PSQL -f pruebas_rockola.sql
+$PSQL -f rockola_puntos.sql
+$PSQL -f rockola_puntos.sql          # idempotente
+$PSQL -f pruebas_puntos.sql
 echo "== concurrencia: 8 sesiones × 25 toques sobre el mismo producto"
 PROD=$($PSQL -At -c "select id from productos where nombre='Poker'")
 MESA=$($PSQL -At -c "select id from mesas where nombre='Mesa 3'")

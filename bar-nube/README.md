@@ -81,6 +81,20 @@ Reglas (las impone la base, no la pantalla): máx. 2 pedidos en cola por celular
 está en cola o sonó hace menos de 60 min, y el personal puede saltar, quitar o pausar los pedidos. Los ajustes viven en `rockola_config`.
 La cola ordena por `puntos` y luego por llegada; hoy `puntos` es siempre 0, así que el futuro sistema de puntos solo tiene que llenarlo.
 
+### Puntos y precio por género (`supabase/rockola_puntos.sql`)
+
+Se aplica después de `rockola.sql` (`./supabase/aplicar.sh rockola_puntos.sql`). Reglas, todas ajustables en `rockola_config`:
+**1 punto = $1.000 consumidos** (`punto_pesos`), una canción normal cuesta **8 puntos** (`precio_base_puntos`, dos cervezas) y quien se
+registra recibe **16** (`puntos_bienvenida`, dos canciones). El género del artista multiplica el precio (`rockola_generos`: ranchera ×3);
+un artista sin género cuesta el base y queda en `rockola_artistas` para clasificarlo con `rockola_clasificar`. El saldo es la suma del libro
+`rockola_puntos` (solo se agregan filas). Quitar una canción pendiente devuelve sus puntos. `rockola_prohibidas` es la lista negra.
+
+- **Personal** (app): `rockola_dar_puntos_factura(factura, celular, nombre)` da `total ÷ 1.000` puntos por una factura pagada (una sola vez por factura);
+  `rockola_cortesia` solo el administrador.
+- **Bot de WhatsApp** (llave `service_role`, que nunca sale del servidor del bot): `rockola_registrar`, `rockola_mi_estado`, `rockola_pedir_puntos`.
+  El celular lo prueba WhatsApp, por eso solo el bot gasta puntos.
+- La pantalla web del cliente todavía pide sin puntos (límite de 2 por celular); falta decidir cómo identificar al cliente ahí.
+
 ## Qué conviene saber
 
 - **Costos visibles por la API**: la pantalla del barman esconde costos y ganancias, pero técnicamente puede leer la
