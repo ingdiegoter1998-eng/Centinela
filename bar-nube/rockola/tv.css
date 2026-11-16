@@ -73,3 +73,5 @@ body.tema-dorado .velo { background: linear-gradient(90deg, rgba(8, 5, 2, .72) 0
 .tv-frase figcaption { margin-top: .8vh; font: 500 1.15vw/1.2 var(--serif-t); letter-spacing: .3em; text-transform: uppercase; color: var(--acento); text-shadow: 0 .1vw .8vw #000; }
 .tv-frase figcaption:empty { display: none; }
 @media (prefers-reduced-motion: reduce) { .tv-frase { transition: none; } }
+
+.tv-bafle { top: 5.2vw; }

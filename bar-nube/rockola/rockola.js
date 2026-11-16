@@ -18,6 +18,7 @@
   function pintar() {
     if (!estado) return;
     $('pausa').hidden = estado.activa;
+    $('bafle').hidden = !(estado.reproductor && estado.reproductor.conectado && !estado.reproductor.ok);
     limpiar($('ahora'));
     $('ahora').append(estado.sonando ? pista(estado.sonando, null, 'ahora') : el('p', { class: 'vacio' }, 'Silencio sospechoso… ¡pon la primera!'));
     limpiar($('cola'));

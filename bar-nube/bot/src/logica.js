@@ -6,13 +6,15 @@
 //   api.miEstado(celular)            → { registrado, saldo, en_cola, max_pendientes }
 //   api.registrar(celular, nombre)   → saldo (abona la bienvenida si es nuevo)
 //   api.pedir(celular, nombre, pista)→ { id, costo, saldo }   (lanza Error con mensaje claro si no se puede)
-//   api.estado()                     → { activa, sonando, cola: [{ id, titulo, artista, nombre, mesa }] }
+//   api.estado()                     → { activa, sonando, cola: [{ id, titulo, artista, nombre, mesa }], reproductor?: { conectado, ok } }
 
 const OPCIONES = 3;
 const VIDA_OPCIONES_MS = 5 * 60 * 1000;
 export const VIDA_NUMERO_SUELTO_MS = 3 * 60 * 1000;   // un número sin comillas solo vale si las opciones se mostraron hace menos de esto
 const NUMEROS = ['1)', '2)', '3)'];
 export const LEMA = 'Pon tu música, tu caos';
+export const SIN_BAFLE = 'El bafle está desconectado y por ahora no recibo pedidos (no te cobro nada). Avísale al barman.';
+const bafleCaido = (e) => !!(e && e.reproductor && e.reproductor.conectado && !e.reproductor.ok);
 
 // «Pónme besos en guerra de morat» → «besos en guerra morat»
 export function limpiarBusqueda(texto) {
@@ -113,11 +115,13 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000.`;
     if (!e.cola.length) lineas.push('La cola está vacía, ¡pon la primera!');
     else if (e.cola.length > 5) lineas.push(`…y ${e.cola.length - 5} más`);
     if (!e.activa) lineas.push('\nLos pedidos están en pausa por ahora.');
+    if (bafleCaido(e)) lineas.push('\n' + SIN_BAFLE);
     return lineas.join('\n');
   }
 
   async function buscar(celular, texto) {
     const consulta = limpiarBusqueda(texto);
+    if (bafleCaido(await api.estado())) return SIN_BAFLE;      // no se muestran opciones que no van a poder pedirse
     if (consulta.length < 2) return `Dime qué canción quieres, por ejemplo: *${Q('besos en guerra morat')}*.`;
     const resultados = (await api.buscar(consulta)).slice(0, OPCIONES);
     if (!resultados.length) return `No encontré nada con «${consulta}». Prueba con el nombre de la canción y el artista.`;

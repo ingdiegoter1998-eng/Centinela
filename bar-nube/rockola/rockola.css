@@ -38,3 +38,6 @@ small, .suave { color:var(--suave); font-size:.85rem; }
 .controles { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
 .estado-sp { font-size:.9rem; color:var(--suave); }
 .grande img { width:100%; max-width:320px; border-radius:14px; display:block; margin:10px auto; }
+.tarjeta { background:var(--tarjeta); border:1px solid var(--borde); border-radius:12px; padding:14px; margin:14px 0; }
+.tarjeta.ok { border-color:var(--verde); } .tarjeta.mal { border-color:var(--rojo); }
+.tarjeta p { margin:6px 0 10px; }
