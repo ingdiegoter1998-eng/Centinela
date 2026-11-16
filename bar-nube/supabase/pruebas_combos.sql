@@ -11,20 +11,20 @@ do $$ begin
   assert (select precio || '/' || costo from productos where nombre = 'Mata Cuchos') = '1000/250', 'Mata Cuchos';
   assert (select precio from productos where nombre = 'Lucky Strike') = 1500, 'Lucky Strike sigue a 1.500';
   assert not (select en_promos from productos where nombre = 'Lucky Strike'), 'Lucky fuera de promos';
-  assert (select precio from productos where nombre = 'Combo Poker + Mata Cuchos') = 3800, 'combo 3.800';
+  assert (select precio from productos where nombre = 'Combo Poker + Mata Cuchos') = 4800, 'combo 4.800';
   assert (select string_agg(p.nombre, ',' order by p.nombre) from combo_componentes c join productos p on p.id = c.producto_id
            where c.combo_id = _id_prod('Combo Poker + Mata Cuchos')) = 'Mata Cuchos,Poker', 'componentes del combo';
   assert (select count(*) from productos where nombre = 'Lucky Strike') = 1, 'sin duplicar Lucky';
 end $$;
 rollback;
 
-begin;  -- el combo cobra 3.800, descuenta 1 Poker + 1 Mata Cuchos, y quitar/anular lo devuelven
+begin;  -- el combo cobra 4.800, descuenta 1 Poker + 1 Mata Cuchos, y quitar/anular lo devuelven
 do $$ declare m bigint := _id_mesa('Mesa 1'); c bigint := _id_prod('Combo Poker + Mata Cuchos');
   p0 int := _stock('Poker'); k0 int := _stock('Mata Cuchos');
 begin
   perform agregar(m, c, 2);
   assert _stock('Poker') = p0 - 2 and _stock('Mata Cuchos') = k0 - 2, 'descuenta componentes';
-  assert (select total from v_cuentas_abiertas where mesa_id = m) = 7600, 'total combo';
+  assert (select total from v_cuentas_abiertas where mesa_id = m) = 9600, 'total combo';
   assert (select costo from lineas where producto_id = c) = 2650, format('costo combo: %s', (select costo from lineas where producto_id = c));
   perform quitar(m, c);
   assert _stock('Poker') = p0 - 1 and _stock('Mata Cuchos') = k0 - 1, 'quitar devuelve';

@@ -33,9 +33,11 @@ permisos); lo que cada rol puede lo impone la base (RLS y funciones), no la pant
 | `diego` | admin (super administrador) | Todo: mesas, inventario (sumar/contar), ventas y ganancias, catálogo y precios |
 | `barman` (José Manuel) | barman | Abrir, editar y cobrar cuentas; ver el inventario sin modificarlo; consultar el historial de facturas de cualquier jornada (lo vendido y cómo pagaron, sin costos ni ganancias). No ve el resumen de Ventas ni el catálogo |
 
-Detalle: Supabase exige claves de 6+ caracteres y aquí se usan claves cortas, así que la app (y `crear_usuarios.sh`) le
-suma el sufijo fijo `-bar` a lo que se escribe. Por dentro el usuario es `<usuario>@bar.local`. El registro público
-está cerrado: usuarios nuevos solo con el script.
+Detalle: por dentro el usuario es `<usuario>@bar.local` (Supabase pide un correo). Las claves deben ser **largas (12+ caracteres, mejor
+una frase)** y se escriben tal cual: antes la app le sumaba un sufijo fijo `-bar` a una clave corta, y como ese sufijo estaba en el repo público
+solo escondía una clave corta. `crear_usuarios.sh` rechaza claves de menos de 12 caracteres. Mientras las claves viejas no se roten, la
+pantalla de entrada todavía prueba una segunda vez con el sufijo (`SUFIJO_VIEJO` en `app.js` y `rockola/player.js`); se borra en cuanto se roten.
+El registro público está cerrado: usuarios nuevos solo con el script.
 
 **Cerveza artesanal por litros**: la pinta (490 ml) y el vaso (330 ml) descuentan del mismo recipiente («Cerveza
 artesanal negra (litros)», se cuenta en ml y se muestra en litros). El administrador lo ajusta con *Mover* en Inventario,
@@ -59,11 +61,11 @@ relee solo cada pocos segundos. Si no hay conexión aparece un aviso rojo y se r
 
 ## Rockola (`rockola/`)
 
-Los clientes escanean un QR, buscan una canción y la piden; suena en vivo en el bar por orden de llegada.
+Los clientes piden por WhatsApp (con puntos); la página del QR solo muestra qué suena y la cola, y suena en vivo en el bar por orden de llegada. `rockola_pedir` (la que usaba la web con la llave pública) ya no es pública.
 
 | Pantalla | URL (tras publicar) | Quién |
 |---|---|---|
-| Cliente | `/bar/rockola/?mesa=5` (un QR por mesa) | Cualquiera, sin cuenta |
+| Cliente | `/bar/rockola/?mesa=5` (un QR por mesa) | Cualquiera: ve la cola y qué suena; para pedir lo manda al WhatsApp del bot (`ROCKOLA_WHATSAPP` en `config.js`) |
 | Pantalla del TV | `/bar/rockola/tv.html` | Sin login: se deja abierta en el PC del TV (pantalla completa, F11). Muestra lo que suena, la cola y un QR para pedir |
 | Reproductor | `/bar/rockola/player.html` | Personal (mismo usuario y clave de la app), en el PC/tablet del bar con la pestaña abierta |
 

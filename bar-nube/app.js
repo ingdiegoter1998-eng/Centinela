@@ -40,7 +40,7 @@
   let perfil = null;                                   // { nombre, rol } de quien inició sesión
   const esAdmin = () => perfil?.rol === 'admin';
   const dominio = '@bar.local';                        // Supabase pide un correo: el usuario es «<usuario>@bar.local»
-  const sufijo = '-bar';                               // y exige 6+ caracteres: a la clave escrita se le suma esto (ver crear_usuarios.sh)
+  const SUFIJO_VIEJO = '-bar';                         // TEMPORAL: las claves antiguas eran «corta» + «-bar» (público en el repo). Se borra en cuanto se roten por claves largas (ver crear_usuarios.sh)
 
   // Existencias que se ven de un producto. Si se vende por porciones de un recipiente (cerveza de barril),
   // son las porciones que alcanzan; el recipiente (unidad 'ml') se muestra en litros.
@@ -744,7 +744,11 @@
       const f = new FormData(e.target);
       const boton = e.target.querySelector('button');
       boton.disabled = true;
-      const { error } = await db.auth.signInWithPassword({ email: String(f.get('usuario')).trim().toLowerCase() + dominio, password: String(f.get('clave')) + sufijo });
+      const correo = String(f.get('usuario')).trim().toLowerCase() + dominio, clave = String(f.get('clave'));
+      let { error } = await db.auth.signInWithPassword({ email: correo, password: clave });
+      if (error && /invalid login/i.test(error.message)) {          // clave antigua (aún sin rotar): se acepta solo mientras exista
+        ({ error } = await db.auth.signInWithPassword({ email: correo, password: clave + SUFIJO_VIEJO }));
+      }
       if (error) {
         boton.disabled = false;
         const sinRed = /fetch|network|abort|timeout/i.test(error.message);

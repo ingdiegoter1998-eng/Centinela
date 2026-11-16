@@ -1,5 +1,5 @@
 (function () {
-  const { params, db, buscar, el, pista, toast, limpiar, pedirError } = window.Rockola;
+  const { cfg, params, db, el, pista, limpiar } = window.Rockola;
   const SONDEO_MS = 4000;
 
   // Id anónimo del celular: solo sirve para el límite de pedidos y para marcar «los míos».
@@ -14,24 +14,6 @@
 
   const $ = (id) => document.getElementById(id);
   let estado = null;
-  let pidiendo = false;
-
-  async function pedir(p, boton) {
-    if (pidiendo) return;
-    pidiendo = true; boton.disabled = true;
-    try {
-      const { error } = await db.rpc('rockola_pedir', {
-        p_cliente: cliente, p_mesa: mesa, p_proveedor: p.proveedor, p_pista: p.pista_id,
-        p_titulo: p.titulo, p_artista: p.artista, p_portada: p.portada, p_duracion_ms: p.duracion_ms,
-      });
-      if (error) throw error;
-      toast('¡Listo! «' + p.titulo + '» quedó en la cola', 'ok');
-      limpiar($('resultados')); $('q').value = '';
-      await refrescar();
-    } catch (e) {
-      toast(pedirError(e), 'error'); boton.disabled = false;
-    } finally { pidiendo = false; }
-  }
 
   function pintar() {
     if (!estado) return;
@@ -54,21 +36,10 @@
     } catch (e) { /* sin red: se reintenta solo en el próximo ciclo */ }
   }
 
-  $('form-buscar').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const box = $('resultados');
-    limpiar(box); box.append(el('p', { class: 'vacio' }, 'Buscando…'));
-    try {
-      const lista = await buscar($('q').value);
-      limpiar(box);
-      if (!lista.length) box.append(el('p', { class: 'vacio' }, 'Nada por ahí. Prueba con otro nombre.'));
-      lista.forEach((p) => {
-        const b = el('button', { class: 'btn principal chico', type: 'button' }, 'Pedir');
-        b.addEventListener('click', () => pedir(p, b));
-        box.append(pista(p, b));
-      });
-    } catch (e) { limpiar(box); box.append(el('p', { class: 'vacio' }, pedirError(e))); }
-  });
+  // Pedir es por WhatsApp (con puntos). El botón abre el chat con el bot y ya trae un saludo entre comillas.
+  const wa = String(cfg.ROCKOLA_WHATSAPP || '').replace(/\D/g, '');
+  if (wa) $('btn-wa').href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent('"hola"');
+  else $('pedir-wa').hidden = true;
 
   refrescar();
   setInterval(() => { if (!document.hidden) refrescar(); }, SONDEO_MS);

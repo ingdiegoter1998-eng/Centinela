@@ -12,6 +12,9 @@ small, .suave { color:var(--suave); font-size:.85rem; }
 .lema { display:block; font-style:italic; margin-top:2px; }
 .buscar { display:flex; gap:8px; margin-top:14px; }
 .buscar input { flex:1; min-width:0; padding:14px; border-radius:12px; border:1px solid var(--borde); background:var(--tarjeta); font-size:1.05rem; }
+.pedir-wa { text-align:center; background:var(--tarjeta); border:1px solid var(--borde); border-radius:12px; padding:14px; margin-top:14px; }
+.pedir-wa p { margin:0 0 12px; }
+.pedir-wa a { display:inline-block; text-decoration:none; }
 .pista { display:flex; align-items:center; gap:12px; background:var(--tarjeta); border:1px solid var(--borde); border-radius:12px; padding:8px; margin-bottom:8px; }
 .pista img, .pista .sin { width:52px; height:52px; border-radius:8px; background:var(--tarjeta-2); flex:none; object-fit:cover; }
 .pista .info { flex:1; min-width:0; }
