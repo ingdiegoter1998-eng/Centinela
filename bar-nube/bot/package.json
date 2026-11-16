@@ -1,0 +1,17 @@
+{
+  "name": "rockola-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bot de WhatsApp de la rockola del bar (Baileys, no oficial). Corre en Termux o en un PC.",
+  "type": "module",
+  "engines": { "node": ">=20.6" },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "@whiskeysockets/baileys": "^6.7.0",
+    "pino": "^9.0.0"
+  }
+}
