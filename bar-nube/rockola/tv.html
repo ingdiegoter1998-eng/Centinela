@@ -9,6 +9,12 @@
   <link rel="stylesheet" href="tv.css">
 </head>
 <body class="tv">
+  <div id="escena" aria-hidden="true">
+    <div class="luna"></div><div class="estrellas"></div>
+    <svg id="ciudad" viewBox="0 0 1000 200" preserveAspectRatio="none"></svg>
+    <div class="muro"></div><div class="farol"><i></i></div><div class="calle"></div>
+  </div>
+  <div id="mascotas"></div>
   <div class="tv-grid">
     <section class="tv-ahora">
       <div class="tv-marca"><img src="../logo.png" alt=""><span>ROCKOLA</span></div>
@@ -19,7 +25,7 @@
       <div id="cola"></div>
       <div class="tv-pedir">
         <div id="qr"></div>
-        <p>¡Pide tu canción!<br><small id="url"></small></p>
+        <p><b>¡Pide tu canción!</b><br>WhatsApp <b>310 866 0167</b><br>escribe <em>"nombre de la canción"</em><br><small id="url"></small></p>
       </div>
     </section>
   </div>
@@ -27,6 +33,7 @@
   <script src="../config.js"></script>
   <script src="../vendor/supabase.js"></script>
   <script src="comun.js"></script>
+  <script src="mascotas.js"></script>
   <script src="tv.js"></script>
 </body>
 </html>

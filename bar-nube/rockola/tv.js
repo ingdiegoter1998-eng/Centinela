@@ -3,22 +3,33 @@
   const { db, el, limpiar } = window.Rockola;
   const $ = (id) => document.getElementById(id);
   const FILAS = 8;
-  let estado = null;
+  let estado = null, cancionActual = null, cambio = false, vistos = null;
 
   const quien = (p) => (p.nombre ? p.nombre + ' · ' : '') + (p.mesa ? 'Mesa ' + p.mesa : '');
 
   function pintar() {
     if (!estado) return;
     $('pausa').hidden = estado.activa;
+    if (window.Mascotas) {
+      window.Mascotas.pausa(!estado.activa);
+      window.Mascotas.cola(estado.cola.length);
+      const clave = estado.sonando ? [estado.sonando.titulo, estado.sonando.artista, estado.sonando.empezo_en].join('|') : '';
+      if (clave && cancionActual !== null && clave !== cancionActual) { window.Mascotas.cancion(); cambio = true; } else cambio = false;
+      cancionActual = clave || (cancionActual === null ? '' : cancionActual);
+      // Pedidos nuevos en la cola: una mascota lleva el cartel (la primera carga no anuncia nada)
+      const llaves = estado.cola.map((p) => [p.titulo, p.artista, p.mesa, p.nombre].join('|'));
+      if (vistos) estado.cola.forEach((p, i) => { if (!vistos.has(llaves[i])) window.Mascotas.pedido(p.nombre || (p.mesa ? 'Mesa ' + p.mesa : ''), p.titulo); });
+      vistos = new Set(llaves);
+    }
     const a = $('ahora'); limpiar(a);
     const s = estado.sonando;
     if (s) {
-      a.append(
-        s.portada && /^https:\/\//.test(s.portada) ? el('img', { class: 'tv-portada', src: s.portada, alt: '' }) : el('div', { class: 'tv-portada' }),
+      a.append(...[
+        s.portada && /^https:\/\//.test(s.portada) ? el('img', { class: 'tv-portada' + (cambio ? ' nueva' : ''), src: s.portada, alt: '' }) : el('div', { class: 'tv-portada' }),
         el('div', { class: 'tv-titulo' }, s.titulo),
         el('div', { class: 'tv-artista' }, s.artista || ''),
         quien(s) ? el('div', { class: 'tv-quien' }, 'Pidió: ' + quien(s)) : null,
-        el('div', { class: 'tv-barra' }, el('i', { id: 'progreso' })));
+        el('div', { class: 'tv-barra' }, el('i', { id: 'progreso' }))].filter(Boolean));
       progreso();
     } else {
       a.append(el('div', { class: 'tv-silencio' }, 'Silencio sospechoso… ¡pon la primera! 🎶'));
@@ -31,7 +42,10 @@
         el('div', { class: 'quien' }, quien(p))));
     });
     if (!estado.cola.length) c.append(el('div', { class: 'tv-vacio' }, 'La cola está vacía.'));
-    const resto = estado.cola.length - FILAS;
+    // Cuántas filas caben de verdad en el alto disponible (en TV de otra proporción caben más o menos)
+    let ocultas = 0;
+    while (c.lastElementChild && c.lastElementChild.className === 'tv-fila' && c.lastElementChild.getBoundingClientRect().bottom > c.getBoundingClientRect().bottom + 1) { c.lastElementChild.remove(); ocultas++; }
+    const resto = estado.cola.length - Math.min(FILAS, estado.cola.length) + ocultas;
     $('n-cola').textContent = estado.cola.length ? '(' + estado.cola.length + (resto > 0 ? ', +' + resto + ' más' : '') + ')' : '';
   }
   function progreso() {
@@ -60,6 +74,7 @@
   lib.onerror = () => { $('qr').hidden = true; };      // sin internet para la librería: queda el enlace escrito
   document.head.append(lib);
 
+  if (window.Mascotas) window.Mascotas.iniciar();
   refrescar();
   setInterval(refrescar, 3000);
   setInterval(progreso, 1000);
