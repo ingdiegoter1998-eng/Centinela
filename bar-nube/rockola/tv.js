@@ -28,7 +28,7 @@
         el('div', { class: 'tv-barra' }, el('i', { id: 'progreso' }))].filter(Boolean));
       progreso();
     } else {
-      a.append(el('div', { class: 'tv-silencio' }, 'Silencio sospechoso… ¡pon la primera! 🎶'));
+      a.append(el('div', { class: 'tv-silencio' }, 'Silencio sospechoso… ¡pon la primera!'));
     }
     const c = $('cola'); limpiar(c);
     estado.cola.slice(0, FILAS).forEach((p, i) => {
