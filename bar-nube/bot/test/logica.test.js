@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot, LEMA } from '../src/logica.js';
+import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot, LEMA, numeroSuelto, textoParaElBot, VIDA_NUMERO_SUELTO_MS } from '../src/logica.js';
 import { normalizarCelular } from '../src/numero.js';
 
 function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo = 8, comillas = false } = {}) {
@@ -161,7 +161,7 @@ test('modo comillas: la ayuda y las instrucciones piden escribir entre comillas'
   assert.match(enviados.at(-1), /\*"puntos"\*/);
   assert.doesNotMatch(enviados.at(-1), /\*\*/, 'negrita de WhatsApp es un solo asterisco');
   await bot.manejar({ ...dec(), texto: 'morat' });
-  assert.match(enviados.at(-1), /Responde con el número entre comillas \("1" a "2"\)/);
+  assert.match(enviados.at(-1), /Responde con el número \(1 a 2\), con o sin comillas/);
   await bot.manejar({ ...dec(), texto: '1' });
   assert.match(enviados.at(-1), /quedó en la cola/);
 });
@@ -218,4 +218,71 @@ test('ninguna respuesta del bot lleva emojis ni stickers, con o sin comillas, y 
     assert.ok(enviados.some((r) => r.includes(`_${LEMA}_`)), 'la bienvenida/ayuda lleva el lema');
   }
   for (const e of ['fetch failed', 'permission denied for function x']) assert.doesNotMatch(mensajeDeError(new Error(e)), EMOJI);
+});
+
+test('numeroSuelto: solo 1, 2 o 3 (con punto o paréntesis opcional)', () => {
+  assert.equal(numeroSuelto('1'), '1');
+  assert.equal(numeroSuelto(' 2 '), '2');
+  assert.equal(numeroSuelto('3.'), '3');
+  assert.equal(numeroSuelto('1)'), '1');
+  for (const t of ['0', '4', '12', 'uno', '"1"', '1 2', 'morat 1', '', undefined]) assert.equal(numeroSuelto(t), null, String(t));
+});
+
+test('tieneBusqueda: vale 3 minutos tras mostrar opciones, y se gasta al elegir', async () => {
+  const { bot, avanzar } = montar({ comillas: true });
+  const A = '573001111111', B = '573002222222';
+  assert.equal(bot.tieneBusqueda(A), false, 'sin búsqueda no hay número suelto');
+  await bot.manejar({ celular: A, nombre: 'A', texto: 'morat' });
+  assert.equal(bot.tieneBusqueda(A), true);
+  assert.equal(bot.tieneBusqueda(B), false, 'cada persona tiene la suya');
+  avanzar(VIDA_NUMERO_SUELTO_MS - 1000);
+  assert.equal(bot.tieneBusqueda(A), true, 'justo antes de los 3 minutos');
+  avanzar(2000);
+  assert.equal(bot.tieneBusqueda(A), false, 'pasados los 3 minutos ya no (aunque la búsqueda viva 5)');
+  await bot.manejar({ celular: A, nombre: 'A', texto: 'morat' });
+  await bot.manejar({ celular: A, nombre: 'A', texto: '1' });
+  assert.equal(bot.tieneBusqueda(A), false, 'al elegir se gasta');
+});
+
+test('textoParaElBot: sin comillas no entra, salvo un número suelto con búsqueda abierta', async () => {
+  const o = { soloComillas: true, aceptarPropio: true };
+  let consultas = 0;
+  const abierta = (v) => async () => { consultas++; return v; };
+
+  assert.equal(await textoParaElBot({ ...o, texto: '"morat"' }, abierta(false)), 'morat', 'con comillas, como siempre');
+  assert.equal(await textoParaElBot({ ...o, texto: '"1"' }, abierta(false)), '1');
+  assert.equal(consultas, 0, 'con comillas ni se pregunta por la búsqueda');
+
+  assert.equal(await textoParaElBot({ ...o, texto: '1' }, abierta(true)), '1', 'número suelto con búsqueda abierta');
+  assert.equal(await textoParaElBot({ ...o, texto: ' 2. ' }, abierta(true)), '2');
+  assert.equal(await textoParaElBot({ ...o, texto: '1' }, abierta(false)), null, 'número suelto sin búsqueda: silencio');
+
+  consultas = 0;
+  for (const t of ['morat', 'hola', '4', '10', 'quiero la 1', 'cola']) assert.equal(await textoParaElBot({ ...o, texto: t }, abierta(true)), null, t);
+  assert.equal(consultas, 0, 'solo se consulta cuando el texto es 1, 2 o 3');
+
+  // lo que tú le escribes a otras personas nunca se atiende, ni un número suelto
+  assert.equal(await textoParaElBot({ ...o, fromMe: true, propio: false, texto: '1' }, abierta(true)), null);
+  assert.equal(await textoParaElBot({ ...o, fromMe: true, propio: true, texto: '1' }, abierta(true)), '1', 'en el chat contigo mismo sí');
+  assert.equal(await textoParaElBot({ ...o, aceptarPropio: false, fromMe: true, propio: true, texto: '1' }, abierta(true)), null);
+
+  // sin modo comillas se atiende todo, como antes
+  assert.equal(await textoParaElBot({ soloComillas: false, texto: ' morat ' }, abierta(false)), 'morat');
+});
+
+test('flujo completo: busca con comillas y elige con "1" sin comillas', async () => {
+  const { bot, enviados, pedidos } = montar({ comillas: true });
+  const dato = { celular: '573001112233', nombre: 'Camila' };
+  const entrada = async (crudo) => {
+    const t = await textoParaElBot({ soloComillas: true, texto: crudo }, async () => bot.tieneBusqueda(dato.celular));
+    if (t !== null) await bot.manejar({ ...dato, texto: t });
+    return t;
+  };
+  assert.equal(await entrada('1'), null, 'antes de buscar, un 1 suelto se ignora');
+  assert.equal(await entrada('"besos en guerra morat"'), 'besos en guerra morat');
+  assert.match(enviados.at(-1), /Encontré esto/);
+  assert.equal(await entrada('1'), '1');
+  assert.deepEqual(pedidos, [[dato.celular, 'a']]);
+  assert.match(enviados.at(-1), /quedó en la cola/);
+  assert.equal(await entrada('1'), null, 'ya eligió: otro 1 suelto se ignora');
 });

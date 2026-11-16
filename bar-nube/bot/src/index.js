@@ -6,7 +6,7 @@ import makeWASocketMod, { useMultiFileAuthState, DisconnectReason, fetchLatestBa
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
 import { crearApi } from './api.js';
-import { crearBot, paraElBot } from './logica.js';
+import { crearBot, textoParaElBot } from './logica.js';
 import { crearEco } from './eco.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
 import { crearVigilante, esFalloDeDescifrado, seLeyoBien } from './vigilante.js';
@@ -109,7 +109,10 @@ async function alMensaje(m) {
   const propio = esChatPropio(jid);
   log.debug({ jid, fromMe: !!m.key.fromMe, propio }, 'mensaje recibido');
   // ¿es para el bot? Sin comillas (si SOLO_COMILLAS) o escrito por mí a otra persona → se ignora en silencio.
-  const texto = paraElBot({ texto: crudo, fromMe: !!m.key.fromMe, propio, soloComillas: SOLO_COMILLAS, aceptarPropio: ACEPTAR_PROPIO });
+  // Excepción a las comillas: un «1», «2» o «3» suelto vale si esa persona acaba de recibir opciones de una búsqueda (últimos 3 min).
+  const texto = await textoParaElBot(
+    { texto: crudo, fromMe: !!m.key.fromMe, propio, soloComillas: SOLO_COMILLAS, aceptarPropio: ACEPTAR_PROPIO },
+    async () => { const c = propio ? digitos(BOT_NUMBER) : (await resolvedor.de(m)).celular; return !!c && bot.tieneBusqueda(c); });
   if (texto === null) return;
   if (m.key.fromMe && esEco(m, crudo)) return;                       // eco de una respuesta del bot
   const nombre = (m.pushName || '').slice(0, 60);
