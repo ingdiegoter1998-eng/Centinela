@@ -7,6 +7,7 @@ import pino from 'pino';
 import qrcode from 'qrcode-terminal';
 import { crearApi } from './api.js';
 import { crearBot } from './logica.js';
+import { crearEco } from './eco.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
 
 const makeWASocket = makeWASocketMod.default || makeWASocketMod;
@@ -20,6 +21,11 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !BOT_NUMBER) {
 // WhatsApp → Dispositivos vinculados → Vincular un dispositivo) o «codigo» (código de 8 caracteres por número de teléfono).
 const MODO = process.argv.includes('--codigo') ? 'codigo' : process.argv.includes('--qr') ? 'qr' : String(process.env.LINK_MODE || 'qr').toLowerCase();
 
+// Modo de prueba (PRUEBA_PROPIO=1): atiende también lo que tú mismo escribes en el chat contigo mismo («Tú» / «Mensajéate»)
+// desde la SIM del bot, para probar sin un segundo celular. Quita la variable cuando lo pongas en producción.
+const PRUEBA_PROPIO = process.env.PRUEBA_PROPIO === '1';
+const digitos = (jid) => String(jid || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
 const api = crearApi({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY });
 const resolvedor = crearResolvedor({});
@@ -27,6 +33,14 @@ const pausa = (ms) => new Promise((r) => setTimeout(r, ms));
 const alAzar = (a, b) => a + Math.random() * (b - a);
 
 let sock = null;
+// Lo que el propio bot envió (en el chat contigo mismo sus respuestas vuelven como «fromMe»; ver eco.js).
+const eco = crearEco();
+const recordarEnvio = (resultado, texto) => eco.registrar(resultado, texto);
+const esEco = (m, texto) => eco.esEco(m, texto);
+const esChatPropio = (jid) => {
+  const d = digitos(jid);
+  return d !== '' && [digitos(sock?.user?.id), digitos(sock?.user?.lid), digitos(BOT_NUMBER)].includes(d);
+};
 const jids = new Map();           // celular → jid al que se le responde (el mismo por el que escribió)
 const esperandoNumero = new Set(); // jids (LID) a los que ya se les pidió su número
 
@@ -39,7 +53,7 @@ const bot = crearBot({
     try {
       await sock.sendPresenceUpdate('composing', jid);
       await pausa(alAzar(900, 2200));                     // «escribiendo…» como una persona
-      await sock.sendMessage(jid, { text: texto });
+      recordarEnvio(await sock.sendMessage(jid, { text: texto }), texto);
       await sock.sendPresenceUpdate('paused', jid);
     } catch (e) { log.error({ err: e.message }, 'no se pudo enviar'); }
   },
@@ -49,11 +63,22 @@ const textoDe = (m) => m.message?.conversation || m.message?.extendedTextMessage
 
 async function alMensaje(m) {
   const jid = m.key.remoteJid;
-  if (!jid || m.key.fromMe || jid === 'status@broadcast' || jid.endsWith('@g.us') || jid.endsWith('@newsletter')) return;   // solo chats uno a uno
+  if (!jid || jid === 'status@broadcast' || jid.endsWith('@g.us') || jid.endsWith('@newsletter')) return;   // solo chats uno a uno
   const texto = textoDe(m).trim();
   if (!texto) return;
-  const quien = await resolvedor.de(m);
+  const propio = esChatPropio(jid);
+  log.debug({ jid, fromMe: !!m.key.fromMe, propio }, 'mensaje recibido');
+  if (m.key.fromMe && !(PRUEBA_PROPIO && propio)) return;           // lo que yo mando a otros nunca se atiende
+  if (m.key.fromMe && esEco(m, texto)) return;                       // eco de una respuesta del bot
   const nombre = (m.pushName || '').slice(0, 60);
+
+  if (PRUEBA_PROPIO && propio) {                                     // chat contigo mismo: tu celular es el de la SIM
+    const celular = digitos(BOT_NUMBER);
+    jids.set(celular, jid);
+    await bot.manejar({ celular, nombre, texto });
+    return;
+  }
+  const quien = await resolvedor.de(m);
 
   let celular = quien.celular;
   if (!celular) {   // identificador interno sin número: se le pide una sola vez
@@ -61,7 +86,8 @@ async function alMensaje(m) {
     if (dicho && esperandoNumero.has(jid)) { resolvedor.recordar(jid, dicho); esperandoNumero.delete(jid); celular = dicho; }
     else {
       esperandoNumero.add(jid);
-      await sock.sendMessage(jid, { text: 'Hola 👋 No alcanzo a ver tu número de celular. Escríbelo aquí (ej: *3001234567*) para guardarte los puntos.' });
+      const aviso = 'Hola 👋 No alcanzo a ver tu número de celular. Escríbelo aquí (ej: *3001234567*) para guardarte los puntos.';
+      recordarEnvio(await sock.sendMessage(jid, { text: aviso }), aviso);
       return;
     }
     if (dicho) { jids.set(celular, jid); await bot.manejar({ celular, nombre, texto: 'hola' }); return; }
@@ -112,5 +138,6 @@ async function conectar() {
   });
 }
 
+if (PRUEBA_PROPIO) log.warn('MODO PRUEBA_PROPIO activo: el bot atiende tu chat contigo mismo (celular de prueba = BOT_NUMBER). Quítalo en producción.');
 process.on('unhandledRejection', (e) => log.error({ err: String(e) }, 'promesa sin atender'));
 conectar();

@@ -85,6 +85,11 @@ Después de vincular, los dos caminos siguen igual:
 
 Si antes intentaste vincular y quedó a medias, empieza limpio: `rm -rf auth`.
 
+## Probar sin un segundo celular
+
+Con la SIM del bot puedes probar escribiéndote a ti mismo: pon `PRUEBA_PROPIO=1` en el `.env` (o `PRUEBA_PROPIO=1 npm start`) y arranca. En WhatsApp del celular de la SIM abre el chat **contigo mismo** («Tú» o «Mensajéate»: búscate en la lista de contactos por tu propio número) y escribe `hola`, `morat`, `1`, `cola`… El bot responde en ese mismo chat y no se contesta a sí mismo en bucle. Tus puntos de prueba quedan a nombre del número de la SIM.
+Quita la variable (borra la línea del `.env`) cuando lo dejes en producción. Si el chat contigo mismo no responde, arranca con `LOG_LEVEL=debug`: cada mensaje que llega deja una línea («mensaje recibido») que dice si WhatsApp lo marcó como tuyo y como chat propio.
+
 ## Dejarlo prendido 24/7 (en Termux)
 
 Android mata las apps en segundo plano para ahorrar batería; esto es lo que lo evita:
