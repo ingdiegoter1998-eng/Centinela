@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { generoDeEtiqueta, elegirGenero, REGLAS } from './clasificar.mjs';
+import { generoDeEtiqueta, elegirGenero, etiquetasMusicBrainz, REGLAS } from './clasificar.mjs';
 
 // Los géneros que existen salen de generos.sql: toda regla debe apuntar a uno (si no, la base rechazaría la clave foránea).
 const sql = readFileSync(new URL('../../generos.sql', import.meta.url), 'utf8');
@@ -38,4 +38,14 @@ test('una etiqueta suelta de cantina no encarece a un artista de pop; en empate 
 test('sin etiquetas conocidas no hay género', () => {
   assert.equal(elegirGenero([], MULT), null);
   assert.equal(elegirGenero(['polka', 'zxqv'], MULT), null);
+});
+
+test('MusicBrainz: toma las etiquetas más votadas del artista con el mismo nombre', async () => {
+  const respuesta = (cuerpo, ok = true) => async () => ({ ok, json: async () => cuerpo });
+  const r = await etiquetasMusicBrainz('Darío Gómez', respuesta({ artists: [
+    { name: 'Dario Gomez', score: 100, tags: [{ name: 'despecho', count: 3 }, { name: 'popular', count: 1 }, { name: 'ruido', count: 0 }] }] }));
+  assert.deepEqual(r, { ok: true, etiquetas: ['despecho', 'popular'] });
+  assert.deepEqual(await etiquetasMusicBrainz('Otro', respuesta({ artists: [{ name: 'Alguien más', score: 100, tags: [{ name: 'pop', count: 5 }] }] })), { ok: true, etiquetas: [] });
+  assert.deepEqual(await etiquetasMusicBrainz('X', respuesta({}, false)), { ok: false });
+  assert.deepEqual(await etiquetasMusicBrainz('X', async () => { throw new Error('red'); }), { ok: false });
 });
