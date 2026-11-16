@@ -38,6 +38,11 @@ create table if not exists rockola_artistas (
   genero     text references rockola_generos(genero) on update cascade on delete set null,
   primary key (proveedor, artista_id)
 );
+-- De dónde salió el género: 'spotify' (automático, con las etiquetas del artista) o 'manual' (lo puso el personal;
+-- el automático nunca lo pisa). null = nadie lo ha mirado todavía.
+alter table rockola_artistas add column if not exists origen    text check (origen in ('manual', 'spotify'));
+alter table rockola_artistas add column if not exists etiquetas text[] not null default '{}';
+update rockola_artistas set origen = 'manual' where genero is not null and origen is null;
 
 create table if not exists rockola_prohibidas (          -- lista negra de canciones
   proveedor text not null default 'spotify',
@@ -150,8 +155,8 @@ language plpgsql security definer set search_path = public as $$
 begin
   if not es_personal() then raise exception 'sin permiso'; end if;
   if p_genero is not null and not exists (select 1 from rockola_generos where genero = p_genero) then raise exception 'género desconocido: %', p_genero; end if;
-  insert into rockola_artistas (proveedor, artista_id, nombre, genero) values (p_proveedor, p_artista_id, coalesce(p_nombre, ''), p_genero)
-  on conflict (proveedor, artista_id) do update set genero = excluded.genero, nombre = case when excluded.nombre = '' then rockola_artistas.nombre else excluded.nombre end;
+  insert into rockola_artistas (proveedor, artista_id, nombre, genero, origen) values (p_proveedor, p_artista_id, coalesce(p_nombre, ''), p_genero, 'manual')
+  on conflict (proveedor, artista_id) do update set genero = excluded.genero, origen = 'manual', nombre = case when excluded.nombre = '' then rockola_artistas.nombre else excluded.nombre end;
 end $$;
 
 -- ── Bot de WhatsApp (service_role) ──────────────────────────────────────────────────────────

@@ -351,7 +351,8 @@
           ${tabla([['#'], ['Canción'], ['']], e.cola.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.titulo)}<small>${esc(p.artista)}${quien(p) ? ` · ${quien(p)}` : ''}</small></td>
             <td class="n"><button type="button" class="btn chico" data-act="quitar" data-id="${p.id}" data-confirmar="¿Quitar «${esc(p.titulo)}» de la cola? Si se pagó con puntos, se devuelven.">Quitar</button> ${prohibir({ ...p, proveedor: 'spotify' })}</td></tr>`), 'La cola está vacía.')}</section>
         <section class="panel"><h2>Artistas por clasificar (${porClasificar.length})</h2>
-          <p class="nota">Mientras no tengan género se cobran a precio base. Elegir el género fija el precio de todas sus canciones.</p>
+          <p class="nota">Los artistas nuevos se clasifican solos con las etiquetas de Spotify cuando alguien los busca. Aquí quedan los que Spotify no supo ubicar; mientras no tengan género se cobran a precio base. Elegir el género a mano fija el precio de todas sus canciones y el automático ya no lo toca.</p>
+          <p><button type="button" class="btn chico" data-act="auto-clasificar">Clasificar con Spotify</button></p>
           ${tabla([['Artista'], ['Pedidos', 1], ['Género']], porClasificar.map((a) => `<tr><td>${esc(a.nombre)}</td><td class="n">${a.pedidos}</td>
             <td><form class="caja" data-form="clasificar" data-proveedor="${esc(a.proveedor)}" data-artista="${esc(a.artista_id)}" data-nombre="${esc(a.nombre)}"><select name="genero" required><option value="">Elegir…</option>${opcionesGenero('')}</select><button class="btn chico principal">Guardar</button></form></td></tr>`), 'Todos los artistas tienen género.')}
           ${artistas.length ? `<details><summary class="nota">Ver y cambiar los ${artistas.length} ya clasificados</summary>${tabla([['Artista'], ['Género']], artistas.map((a) => `<tr><td>${esc(a.nombre || a.artista_id)}</td>
@@ -494,6 +495,13 @@
 
   // ── Acciones y formularios ───────────────────────────────────────────────────────────────
   const acciones = {
+    async 'auto-clasificar'() {
+      const { data, error } = await db.functions.invoke('rockola-buscar', { body: { accion: 'clasificar_pendientes' } });
+      if (error) { const c = await error.context?.json?.().catch(() => null); throw new Error(c?.error || error.message); }
+      aviso(`Spotify clasificó ${data.clasificados} de ${data.revisados} artistas revisados.` + (data.restantes ? ` Faltan ${data.restantes}: vuelve a tocar el botón.` : ''), 'success');
+      await refrescar(true);
+      return false;
+    },
     csv: (el) => descargar(el.dataset.nombre),
     preset: async (el) => { await aplicarPreset(el.dataset.preset); await refrescar(true); },
     activar: (el) => rpc('rockola_activar', { p_activa: el.dataset.activa === 'true' }),

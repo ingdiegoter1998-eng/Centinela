@@ -106,6 +106,7 @@ begin
   -- cortesías: solo admin; clasificar: personal
   begin perform rockola_cortesia('573001112233', 50); assert false, 'barman da cortesía'; exception when others then assert sqlerrm = 'sin permiso', sqlerrm; end;
   perform rockola_clasificar('spotify', 'nuevo', 'Artista Nuevo', 'ranchera');
+  assert (select origen from rockola_artistas where artista_id = 'nuevo') = 'manual', 'lo clasificado por el personal queda como manual (el automático no lo pisa)';
   assert rockola_precio('spotify', '{nuevo}') = 24, 'al clasificar cambia el precio';
   begin perform rockola_clasificar('spotify', 'nuevo', '', 'inventado'); assert false, 'género inexistente'; exception when others then assert sqlerrm like 'género desconocido%', sqlerrm; end;
   begin perform rockola_pedir_puntos('573001112233', 'X', '1', 'spotify', 'p', 't', 'a', '{}', '', 1); assert false, 'barman no usa la llave del bot'; exception when insufficient_privilege then null; end;
