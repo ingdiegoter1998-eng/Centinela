@@ -15,7 +15,7 @@ export const REGLAS = [
   [/regional mexican|musica mexicana|mexican (pop|folk)/, 'regional mexicano'],
   [/vallenato romantico/, 'vallenato romantico'], [/vallenato/, 'vallenato'],
   [/carrilera/, 'carrilera'], [/guasca/, 'guasca'], [/parrandera|parranda/, 'parrandera'], [/despecho/, 'despecho'],
-  [/plancha/, 'musica de plancha'], [/popular colombian|musica popular|colombian popular/, 'popular colombiana'],
+  [/plancha/, 'musica de plancha'], [/popular colombian|musica popular|colombian popular|^popular$/, 'popular colombiana'],
   // Tropical y baile latino
   [/salsa brava/, 'salsa brava'], [/salsa romantica/, 'salsa romantica'], [/salsa choke|choke/, 'salsa choke'], [/timba/, 'timba'], [/salsa/, 'salsa'],
   [/\bson cubano\b|^son$/, 'son cubano'], [/mambo/, 'mambo'], [/guaracha/, 'guaracha'], [/merengue/, 'merengue'],

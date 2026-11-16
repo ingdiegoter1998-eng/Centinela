@@ -72,13 +72,15 @@ async function clasificarArtistas(ids: string[], nombres: Map<string, string>, l
   if (faltan.length) for (const [id, n] of await nombresSpotify(faltan)) nombres.set(id, n);
   const { data: gs } = await db.from('rockola_generos').select('genero, multiplicador');
   const mult: Record<string, number> = Object.fromEntries((gs ?? []).map((g: any) => [g.genero, Number(g.multiplicador)]));
-  let clasificados = 0, revisados = 0;
+  let clasificados = 0, revisados = 0, ultimo = 0;
   for (const id of pendientes) {
     if (Date.now() > fin) break;
     const nombre = nombres.get(id) || existe.get(id) || '';
     if (!nombre) continue;
+    await esperar(Math.max(0, 1100 - (Date.now() - ultimo)));   // MusicBrainz: máximo 1 consulta por segundo
+    ultimo = Date.now();
     const mb = await etiquetasMusicBrainz(nombre);
-    if (!mb.ok) { await esperar(1100); continue; }   // el servicio falló: no se marca, se reintenta después
+    if (!mb.ok) continue;   // el servicio falló: no se marca, se reintenta después
     const genero = elegirGenero(mb.etiquetas, mult);
     console.log('artista', nombre, JSON.stringify(mb.etiquetas), '->', genero);
     const fila = { genero, origen: 'auto', etiquetas: mb.etiquetas };
@@ -91,7 +93,6 @@ async function clasificarArtistas(ids: string[], nombres: Map<string, string>, l
       const { error: e2 } = await db.from('rockola_artistas').upsert({ proveedor: 'spotify', artista_id: id, nombre, ...fila }, { onConflict: 'proveedor,artista_id', ignoreDuplicates: true });
       if (!e2) { revisados++; if (genero) clasificados++; }
     }
-    await esperar(1100);
   }
   return { revisados, clasificados };
 }
@@ -136,13 +137,13 @@ Deno.serve(async (req) => {
       portada: t.album?.images?.[1]?.url ?? t.album?.images?.[0]?.url ?? '',
       duracion_ms: t.duration_ms ?? 0,
     }));
-    // El género no puede tumbar la búsqueda: se le da hasta 6 s y, si no alcanza o falla, se responde igual.
+    // El género no puede tumbar la búsqueda: se le da hasta 3,5 s y, si no alcanza o falla, se responde igual.
     const nombres = new Map<string, string>();
     for (const t of d.tracks?.items ?? []) for (const a of t.artists ?? []) if (a?.id && a?.name) nombres.set(a.id, a.name);
     try {
       await Promise.race([
-        clasificarArtistas(pistas.flatMap((p: any) => p.artista_ids), nombres, 6000),
-        esperar(7000),
+        clasificarArtistas(pistas.flatMap((p: any) => p.artista_ids), nombres, 3500),
+        esperar(5000),
       ]);
     } catch (e) { console.error('clasificar:', (e as Error).message ?? e); }
     return json(pistas);
