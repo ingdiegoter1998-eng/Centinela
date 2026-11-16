@@ -1,6 +1,7 @@
 -- Panel de administración: reportes, dashboard, comisión del trabajador, trazabilidad y herramientas de rockola.
 -- Se corre DESPUÉS de schema.sql, rockola.sql y rockola_puntos.sql. Es seguro repetirlo.
--- Pegar completo en Supabase → SQL Editor → Run.
+-- Pegar completo en Supabase → SQL Editor → Run. (schema.sql ya trae también las columnas y funciones de trazabilidad, así que
+-- volver a correr schema.sql no las pierde.)
 --
 -- Todo es solo para el administrador (es_admin()): ninguna función da acceso al barman ni a la llave pública.
 -- «Jornada» = noche de servicio: corte a las 6:00 AM de Bogotá (la madrugada es de la noche anterior).

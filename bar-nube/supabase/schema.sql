@@ -98,8 +98,12 @@ create table if not exists facturas (
   estado      text   not null default 'abierta' check (estado in ('abierta', 'pagada', 'anulada')),
   metodo_pago text   not null default '' check (metodo_pago in ('', 'efectivo', 'transferencia', 'tarjeta')),
   abierta_en  timestamptz not null default now(),
-  cerrada_en  timestamptz
+  cerrada_en  timestamptz,
+  cobrada_por uuid,                                        -- quién cobró (auth.uid())
+  anulada_por uuid                                         -- quién anuló
 );
+alter table facturas add column if not exists cobrada_por uuid;
+alter table facturas add column if not exists anulada_por uuid;
 -- Una mesa tiene a lo sumo una cuenta abierta (dos celulares tocando la misma mesa no la duplican).
 create unique index if not exists una_factura_abierta_por_mesa on facturas (mesa_id) where estado = 'abierta';
 create index if not exists facturas_cerrada_en on facturas (cerrada_en) where estado = 'pagada';
@@ -277,7 +281,7 @@ begin
   perform pg_advisory_xact_lock(70001);   -- numeración consecutiva sin huecos ni repetidos
   update facturas
      set numero = (select coalesce(max(numero), 0) + 1 from facturas),
-         estado = 'pagada', metodo_pago = p_metodo, cerrada_en = now()
+         estado = 'pagada', metodo_pago = p_metodo, cerrada_en = now(), cobrada_por = auth.uid()
    where id = v_fac;
   return v_fac;
 end $$;
@@ -292,7 +296,7 @@ begin
   if v_fac is null then return; end if;
   perform _mover_stock(l.producto_id, -l.cantidad) from lineas l where l.factura_id = v_fac;
   if exists (select 1 from lineas where factura_id = v_fac) then
-    update facturas set estado = 'anulada', cerrada_en = now() where id = v_fac;
+    update facturas set estado = 'anulada', cerrada_en = now(), anulada_por = auth.uid() where id = v_fac;
   else
     delete from facturas where id = v_fac;
   end if;
