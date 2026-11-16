@@ -81,7 +81,7 @@ Imprime un código de 8 caracteres; en WhatsApp: *Vincular un dispositivo → Vi
 
 Después de vincular, los dos caminos siguen igual:
 3. El bot imprime «Vinculado» y «Conectado a WhatsApp» (justo antes puede decir «Reiniciando conexión»: es normal). **No lo cortes ni lo reinicies enseguida**: en esos primeros minutos el celular y el bot acuerdan sus llaves de cifrado y el log se llena de errores que son normales (mira la sección «Los primeros minutos tras vincular»).
-4. Escríbele (entre comillas, ver abajo) desde **otro celular** a 310 866 0167, o a ti mismo: `"hola"`. Debe responder con la bienvenida. Prueba: `"morat"` → elige `"1"` → `"cola"`. (Comprueba en `rockola/player.html` o en el TV que la canción entró.)
+4. Escríbele (entre comillas, ver abajo) desde **otro celular** a 310 866 0167: `"hola"`. (Escribirte a ti mismo también sirve, pero es más frágil: ver «Solo entre comillas».) Debe responder con la bienvenida. Prueba: `"morat"` → elige `"1"` → `"cola"`. (Comprueba en `rockola/player.html` o en el TV que la canción entró.)
 5. Ya quedó vinculado: la sesión vive en la carpeta `auth/` (no la borres ni la subas). Para dejarlo 24/7 sigue «Dejarlo prendido».
 
 Si antes intentaste vincular y quedó a medias, empieza limpio: `rm -rf auth`.
@@ -96,7 +96,13 @@ la bienvenida. Por eso el mismo WhatsApp puede ser a la vez tu número de siempr
 - **Excepción: el número de la respuesta.** Cuando el bot acaba de mostrar las opciones, basta con escribir `1`, `2` o `3` **sin comillas** (también `1.` o `1)`).
   Solo vale si esa persona buscó una canción hace menos de 3 minutos y todavía no ha elegido; un «1» suelto en cualquier otro momento se ignora.
 - **Tu chat contigo mismo** («Tú» o «Mensajéate») también funciona, siempre que escribas entre comillas: `"morat"`, `"1"`, `"cola"`.
-  Es la forma de probar sin un segundo celular. Tus puntos quedan a nombre del número de la SIM. El bot no se contesta a sí mismo en bucle.
+  Tus puntos quedan a nombre del número de la SIM. El bot no se contesta a sí mismo en bucle.
+  **Ojo, es el camino más frágil.** Funciona un rato y de pronto deja de leer (en el log, una racha de `Bad MAC` /
+  `No matching sessions found for message` en el chat `…@lid` con `fromMe: true`); reiniciar el bot lo ha vuelto a poner a funcionar otro rato.
+  La causa no está confirmada; la sospecha es que, al hablar la cuenta consigo misma, WhatsApp la direcciona con el número y con un identificador
+  interno («LID») y Baileys 6 las confunde.
+  **Para probar de verdad, escríbele desde otro número** (el de un amigo o familiar): esa es la ruta que usarán los clientes, y es la normal para Baileys.
+  Si solo falla el chat contigo mismo y con otro número todo va bien, no hay nada que arreglar.
 - **Lo que tú escribes a otras personas nunca lo atiende**, ni siquiera con comillas.
 - Para que atienda todo, sin comillas: `SOLO_COMILLAS=0` en el `.env` (y reinicia).
 - Para que no atienda tu chat contigo mismo: `ACEPTAR_PROPIO=0`. (`PRUEBA_PROPIO=1` es el nombre antiguo de lo mismo y sigue valiendo.)
