@@ -456,7 +456,7 @@
       const [com, detalle, reglas, cats] = await Promise.all([
         rpc('admin_comision', { p_desde: r.desde, p_hasta: r.hasta }),
         rpc('admin_detalle', { p_desde: r.desde, p_hasta: r.hasta }),
-        leer(db.from('comision_reglas').select('categoria_id, pct, base, nota')),
+        leer(db.from('comision_reglas').select('categoria_id, pct, base, monto, nota')),
         leer(db.from('categorias').select('id, nombre').order('orden')),
       ]);
       return { r, com, detalle, reglas, cats };
@@ -464,23 +464,25 @@
     html({ r, com, detalle, reglas, cats }) {
       const nombreCat = Object.fromEntries(cats.map((c) => [c.id, c.nombre]));
       const libres = cats.filter((c) => !reglas.some((x) => x.categoria_id === c.id));
-      const BASE = { ganancia: 'de la ganancia', venta: 'de la venta' };
+      const BASE = { ganancia: 'de la ganancia', venta: 'de la venta', unidad: 'fijos por cada unidad' };
+      const valorRegla = (c) => (c.base === 'unidad' ? pesos(c.monto) : `${c.pct} %`);
+      const baseOpc = (sel) => `<option value="ganancia" ${sel === 'ganancia' ? 'selected' : ''}>% de la ganancia</option><option value="venta" ${sel === 'venta' ? 'selected' : ''}>% de la venta</option><option value="unidad" ${sel === 'unidad' ? 'selected' : ''}>$ fijos por unidad</option>`;
       return `<div class="cab"><h1>Trabajador</h1></div>${filtroRango(r)}
       <div class="rejilla">${kpi('Comisión del rango', pesos(com.total))}${kpi('Facturas anuladas', String(detalle.anuladas.length), `<small>${pesos(detalle.anuladas.reduce((t, a) => t + a.total, 0))} en cuentas descartadas</small>`)}</div>
       <div class="rejilla dos">
-        <section class="panel"><h2>Comisión por categoría</h2>${tabla([['Categoría'], ['Regla'], ['Base', 1], ['Comisión', 1]], com.detalle.map((c) => `<tr><td>${esc(c.categoria)}<small>${esc(c.nota)}</small></td><td>${c.pct} % ${BASE[c.base]}</td><td class="n">${pesos(c.base === 'venta' ? c.venta : c.ganancia)}</td><td class="n"><b>${pesos(c.comision)}</b></td></tr>`), 'Sin ventas con comisión en este rango.')}
+        <section class="panel"><h2>Comisión por categoría</h2>${tabla([['Categoría'], ['Regla'], ['Sobre', 1], ['Comisión', 1]], com.detalle.map((c) => `<tr><td>${esc(c.categoria)}<small>${esc(c.nota)}</small></td><td>${valorRegla(c)} ${BASE[c.base]}</td><td class="n">${c.base === 'unidad' ? `${num(c.unidades)} unid.` : pesos(c.base === 'venta' ? c.venta : c.ganancia)}</td><td class="n"><b>${pesos(c.comision)}</b></td></tr>`), 'Sin ventas con comisión en este rango.')}
           <p class="nota">Total a pagar: <b>${pesos(com.total)}</b>. Las reglas se editan abajo; el cálculo usa el precio y el costo con que se vendió cada producto.</p>
-          ${botonCsv('comision', ['Categoría', 'Porcentaje', 'Base', 'Unidades', 'Venta', 'Ganancia', 'Comisión'], com.detalle.map((c) => [c.categoria, c.pct, c.base, c.unidades, c.venta, c.ganancia, c.comision]), `${r.desde}_${r.hasta}`)}</section>
+          ${botonCsv('comision', ['Categoría', 'Porcentaje', 'Monto por unidad', 'Base', 'Unidades', 'Venta', 'Ganancia', 'Comisión'], com.detalle.map((c) => [c.categoria, c.pct, c.monto, c.base, c.unidades, c.venta, c.ganancia, c.comision]), `${r.desde}_${r.hasta}`)}</section>
         <section class="panel"><h2>Reglas de comisión</h2>
           ${reglas.map((x) => `<form class="caja" data-form="regla" style="margin-bottom:8px"><input type="hidden" name="categoria" value="${x.categoria_id}"><b style="min-width:150px">${esc(nombreCat[x.categoria_id])}</b>
-            <input name="pct" type="number" min="0" max="100" step="0.5" value="${x.pct}" style="width:80px"> %
-            <select name="base"><option value="ganancia" ${x.base === 'ganancia' ? 'selected' : ''}>de la ganancia</option><option value="venta" ${x.base === 'venta' ? 'selected' : ''}>de la venta</option></select>
+            <input name="valor" type="number" min="0" step="any" value="${x.base === 'unidad' ? x.monto : x.pct}" style="width:100px" required>
+            <select name="base">${baseOpc(x.base)}</select>
             <input name="nota" value="${esc(x.nota)}" placeholder="Nota" maxlength="100"><button class="btn chico">Guardar</button>
             <button type="button" class="btn peligro chico" data-act="quitar-regla" data-cat="${x.categoria_id}" data-confirmar="¿Quitar la comisión de «${esc(nombreCat[x.categoria_id])}»?">Quitar</button></form>`).join('') || '<p class="vacio">Sin reglas.</p>'}
           ${libres.length ? `<form class="caja" data-form="regla" style="margin-top:10px"><label>Agregar categoría<select name="categoria">${libres.map((c) => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select></label>
-            <label>%<input name="pct" type="number" min="0" max="100" step="0.5" value="20" style="width:80px"></label><label>Base<select name="base"><option value="ganancia">de la ganancia</option><option value="venta">de la venta</option></select></label>
+            <label>Valor<input name="valor" type="number" min="0" step="any" value="4000" style="width:100px" required></label><label>Regla<select name="base">${baseOpc('unidad')}</select></label>
             <button class="btn principal">Agregar</button></form>` : ''}
-          <p class="nota">Base «de la ganancia» = (precio − costo). La cerveza artesanal usa «de la venta» mientras su costo no esté cargado.</p></section>
+          <p class="nota">«Valor» es un porcentaje en las reglas de % y pesos en la de «$ fijos por unidad». La cerveza artesanal paga $4.000 por cada una vendida, sea cual sea la presentación.</p></section>
       </div>
       <div class="rejilla dos" style="margin-top:12px">
         <section class="panel"><h2>Quién cobró</h2>${tabla([['Usuario'], ['Facturas', 1], ['Vendido', 1]], detalle.cajeros.map((c) => `<tr><td>${esc(c.nombre)}${c.nombre === 'Sin registro' ? '<small>facturas anteriores a este panel</small>' : ''}</td><td class="n">${c.facturas}</td><td class="n">${pesos(c.venta)}</td></tr>`), 'Sin facturas.')}</section>
@@ -527,7 +529,12 @@
       await rpc('rockola_prohibir', { p_proveedor: 'spotify', p_pista_id: id, p_titulo: String(f.get('titulo') || ''), p_motivo: String(f.get('motivo') || '') });
       aviso('Quedó en la lista negra.', 'success');
     },
-    regla: (f) => leer(db.from('comision_reglas').upsert({ categoria_id: Number(f.get('categoria')), pct: Number(f.get('pct')), base: String(f.get('base')), nota: String(f.get('nota') || '') })),
+    regla: (f) => {
+      const base = String(f.get('base')), valor = Number(f.get('valor'));
+      if (!(valor >= 0)) throw new Error('El valor no puede ser negativo.');
+      if (base !== 'unidad' && valor > 100) throw new Error('Un porcentaje no puede pasar de 100.');
+      return leer(db.from('comision_reglas').upsert({ categoria_id: Number(f.get('categoria')), base, pct: base === 'unidad' ? 0 : valor, monto: base === 'unidad' ? Math.round(valor) : 0, nota: String(f.get('nota') || '') }));
+    },
   };
 
   document.addEventListener('click', async (e) => {

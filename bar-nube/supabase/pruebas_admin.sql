@@ -69,6 +69,10 @@ begin
   update comision_reglas set base = 'venta';
   r := admin_comision(hoy, hoy);
   assert (r->>'total')::int = round((select sum(l.cantidad * l.precio) from lineas l join facturas f on f.id = l.factura_id where f.estado = 'pagada') * 0.5), 'comisión sobre la venta';
+  update comision_reglas set base = 'unidad', pct = 0, monto = 4000;
+  r := admin_comision(hoy, hoy);
+  assert (r->>'total')::int = 4000 * (select sum(l.cantidad) from lineas l join facturas f on f.id = l.factura_id where f.estado = 'pagada'), 'comisión fija: $4.000 por unidad';
+  assert (r->'detalle'->0->>'monto')::int = 4000, 'el detalle trae el monto';
 
   -- lista negra: prohibir saca la canción de la cola y devuelve puntos
   perform rockola_prohibir('spotify', 'malo', 'Canción mala', 'no va con el bar');
