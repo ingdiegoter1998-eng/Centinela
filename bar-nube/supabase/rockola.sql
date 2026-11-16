@@ -153,7 +153,7 @@ end $$;
 revoke all on rockola_cola, rockola_config from anon;
 grant select on rockola_cola, rockola_config to authenticated;
 revoke execute on function rockola_estado(text), rockola_pedir(text, text, text, text, text, text, text, int),
-  rockola_siguiente(), rockola_saltar(), rockola_quitar(bigint), rockola_activar(boolean) from public;
+  rockola_siguiente(), rockola_saltar(), rockola_quitar(bigint), rockola_activar(boolean) from public, anon;   -- Supabase da EXECUTE a anon por defecto
 grant execute on function rockola_estado(text) to anon, authenticated;
 grant execute on function rockola_pedir(text, text, text, text, text, text, text, int) to anon, authenticated;
 grant execute on function rockola_siguiente(), rockola_saltar(), rockola_quitar(bigint), rockola_activar(boolean) to authenticated;
