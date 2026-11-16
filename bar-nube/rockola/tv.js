@@ -19,6 +19,7 @@
     vistos = new Set(llaves);
     const a = $('ahora'); limpiar(a); a.classList.toggle('nueva', !!cambio);
     const s = estado.sonando;
+    document.querySelector('.tv-etiqueta').style.visibility = s ? '' : 'hidden';        // en silencio, la frase ocupa el lugar sin el rótulo "suena ahora"
     if (s) {
       a.append(...[
         s.portada && /^https:\/\//.test(s.portada) ? el('img', { class: 'tv-portada', src: s.portada, alt: '' }) : el('div', { class: 'tv-portada' }),
@@ -28,7 +29,7 @@
         el('div', { class: 'tv-barra' }, el('i', { id: 'progreso' }))].filter(Boolean));
       progreso();
     } else {
-      a.append(el('div', { class: 'tv-silencio' }, 'Silencio sospechoso… ¡pon la primera!'));
+      pintaSilencio(a);
     }
     const c = $('cola'); limpiar(c);
     estado.cola.slice(0, FILAS).forEach((p, i) => {
@@ -85,6 +86,48 @@
       setTimeout(siguiente, 7200);
     })();
   }
+
+  // Frases al azar: frases.json = [{ "texto": "...", "autor": "..." }] (autor = artista que inspiró la frase). Se barajan todas y no se repite
+  // ninguna hasta haberlas visto todas. Con la rockola en silencio ocupan el lugar de "suena ahora" y cambian cada ~60 s (TV_FRASES_CADA_S o ?frases=seg);
+  // con música sonando sale una abajo, 14 s, cada ~60 s. Son frases parafraseadas, no citas: sin comillas y "Inspirada en ...", salvo las del bar.
+  let frases = [], mazo = [], ultima = null, fraseSil = null;
+  const cadaFrase = (Number(window.Rockola.params.get('frases')) || Number((window.Rockola.cfg || {}).TV_FRASES_CADA_S) || 60) * 1000;
+  const sonando = () => !!(estado && estado.sonando);
+  function proxima() {
+    if (!frases.length) return null;
+    if (!mazo.length) {
+      mazo = frases.slice();
+      for (let i = mazo.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [mazo[i], mazo[j]] = [mazo[j], mazo[i]]; }
+      if (mazo.length > 1 && mazo[mazo.length - 1] === ultima) mazo.unshift(mazo.pop());
+    }
+    return (ultima = mazo.pop());
+  }
+  const pieFrase = (f) => { const a = f.autor ? String(f.autor).trim() : ''; return !a ? '' : /callej[oó]n/i.test(a) ? a : 'Inspirada en ' + a; };
+  function pintaSilencio(cont) {
+    if (!fraseSil) fraseSil = proxima();
+    if (!fraseSil) return;
+    cont.append(el('div', { class: 'tv-silencio' }, fraseSil.texto.trim()), pieFrase(fraseSil) ? el('div', { class: 'tv-silencio-autor' }, pieFrase(fraseSil)) : null);
+  }
+  (async function () {
+    try { const r = await fetch('frases.json', { cache: 'no-cache' }); const d = await r.json(); frases = (Array.isArray(d) ? d : []).filter((f) => f && typeof f.texto === 'string' && f.texto.trim()); } catch (e) { return; }
+    if (!frases.length) return;
+    if (estado && !sonando()) pintar();                                       // el estado llegó antes que las frases
+    // En silencio: cambia la frase con fundido cada minuto
+    setInterval(() => {
+      if (sonando()) { fraseSil = null; return; }
+      const a = $('ahora'); a.classList.add('sale');
+      setTimeout(() => { fraseSil = proxima(); limpiar(a); pintaSilencio(a); a.classList.remove('sale'); }, 1400);
+    }, cadaFrase);
+    // Con música: una frase abajo, 14 s
+    const caja = $('frase'), visible = 14000;
+    (function una() {
+      if (document.hidden || !$('aviso').hidden || !sonando()) return setTimeout(una, 5000);       // en silencio ya hay una en pantalla; con aviso de pedido, espera
+      const f = proxima();
+      caja.firstChild.textContent = f.texto.trim(); caja.lastChild.textContent = pieFrase(f);
+      caja.classList.add('on');
+      setTimeout(() => { caja.classList.remove('on'); setTimeout(una, Math.max(5000, cadaFrase - visible)); }, visible);
+    })();
+  })();
 
   // Fondos en video (carpeta fondos/), con rotación y tema de color por fondo. Configurable en config.js:
   //   TV_FONDOS: [{ src: 'fondos/x.mp4', tema: 'noche' | 'dorado' }, ...]   TV_FONDO_ROTAR_S: segundos entre fondos (240 por defecto)
