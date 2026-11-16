@@ -7,7 +7,7 @@
   const SP_ID = cfg.SPOTIFY_CLIENT_ID || '';
   const REDIRECT = location.origin + location.pathname;
   const SCOPES = 'streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state';
-  const dominio = '@bar.local', sufijo = '-bar';        // igual que el resto de la app (ver README)
+  const dominio = '@bar.local', SUFIJO_VIEJO = '-bar';        // igual que la app; el sufijo es TEMPORAL (claves antiguas sin rotar)
 
   let estado = null, corriendo = false, cambiando = false, actual = null, temporizador = null;
   let sdk = null, deviceId = null, volumen = 0.7;
@@ -174,7 +174,9 @@
   $('login').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const f = new FormData(ev.target);
-    const { error } = await db.auth.signInWithPassword({ email: String(f.get('usuario')).trim().toLowerCase() + dominio, password: String(f.get('clave')) + sufijo });
+    const correo = String(f.get('usuario')).trim().toLowerCase() + dominio, clave = String(f.get('clave'));
+    let { error } = await db.auth.signInWithPassword({ email: correo, password: clave });
+    if (error && /invalid login/i.test(error.message)) ({ error } = await db.auth.signInWithPassword({ email: correo, password: clave + SUFIJO_VIEJO }));
     if (error) $('login-error').textContent = 'Usuario o clave incorrectos'; else mostrarPanel();
   });
 
