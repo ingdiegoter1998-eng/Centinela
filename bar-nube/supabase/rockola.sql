@@ -2,8 +2,9 @@
 -- Se aplica DESPUÉS de schema.sql (usa es_personal()) y es seguro repetirlo:  ./aplicar.sh rockola.sql
 -- OJO: schema.sql le quita a `anon` todos los permisos al final; si lo vuelves a correr, corre este otra vez.
 --
--- Seguridad: el cliente anónimo NO toca tablas. Solo puede llamar a rockola_estado() y rockola_pedir(),
--- que validan todo (rockola activa, límite por celular, sin repetidas). El personal controla el
+-- Seguridad: el cliente anónimo NO toca tablas. Solo puede llamar a rockola_estado() (lectura). Pedir ya no es
+-- público: rockola_pedir (reglas: rockola activa, límite por celular, sin repetidas) queda solo para quien tenga
+-- permiso explícito; los clientes piden por el bot de WhatsApp. El personal controla el
 -- reproductor con rockola_siguiente / rockola_saltar / rockola_quitar / rockola_activar.
 --
 -- Puntos (para después): cada pedido guarda `puntos` (hoy siempre 0) y la cola ordena por puntos
@@ -152,8 +153,11 @@ end $$;
 -- ── Permisos ────────────────────────────────────────────────────────────────────────────────
 revoke all on rockola_cola, rockola_config from anon;
 grant select on rockola_cola, rockola_config to authenticated;
-revoke execute on function rockola_estado(text), rockola_pedir(text, text, text, text, text, text, text, int),
-  rockola_siguiente(), rockola_saltar(), rockola_quitar(bigint), rockola_activar(boolean) from public, anon;   -- Supabase da EXECUTE a anon por defecto
+revoke execute on function rockola_estado(text), rockola_siguiente(), rockola_saltar(), rockola_quitar(bigint),
+  rockola_activar(boolean) from public, anon;   -- Supabase da EXECUTE a anon por defecto
+-- rockola_pedir ya NO es pública: con la llave anon (que está en config.js) cualquiera podía escribir texto libre
+-- en la pantalla del TV, llenar la cola o saltarse los puntos. Los pedidos entran por rockola_pedir_puntos (bot de
+-- WhatsApp, service_role) y por la función verificada de la web (ver rockola_puntos.sql / rockola_web.sql).
+revoke execute on function rockola_pedir(text, text, text, text, text, text, text, int) from public, anon, authenticated;
 grant execute on function rockola_estado(text) to anon, authenticated;
-grant execute on function rockola_pedir(text, text, text, text, text, text, text, int) to anon, authenticated;
 grant execute on function rockola_siguiente(), rockola_saltar(), rockola_quitar(bigint), rockola_activar(boolean) to authenticated;

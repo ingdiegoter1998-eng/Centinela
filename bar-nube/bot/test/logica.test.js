@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot, LEMA, numeroSuelto, textoParaElBot, VIDA_NUMERO_SUELTO_MS } from '../src/logica.js';
 import { normalizarCelular } from '../src/numero.js';
 
-function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo = 8, comillas = false } = {}) {
+function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo = 8, comillas = false, reproductor } = {}) {
   const enviados = []; const pedidos = []; const estado = { registrado, saldo, en_cola: encola, max_pendientes: 2 };
   let reloj = 1_000_000;
   const api = {
@@ -13,7 +13,7 @@ function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo =
     precio: async (_p, ids) => (ids[0] === 'v' ? 24 : costo),
     miEstado: async () => ({ ...estado }),
     registrar: async () => { estado.registrado = true; return 16; },
-    estado: async () => ({ activa: true, sonando: { titulo: 'La Tortura', artista: 'Shakira', nombre: 'Luis', mesa: '4' }, cola: [{ id: 7, titulo: 'X', artista: 'Y', nombre: 'Camila', mesa: '' }] }),
+    estado: async () => ({ activa: true, reproductor, sonando: { titulo: 'La Tortura', artista: 'Shakira', nombre: 'Luis', mesa: '4' }, cola: [{ id: 7, titulo: 'X', artista: 'Y', nombre: 'Camila', mesa: '' }] }),
     pedir: async (cel, nombre, p) => {
       pedidos.push([cel, p.pista_id]);
       const c = p.pista_id === 'b' ? 24 : costo;
@@ -285,4 +285,21 @@ test('flujo completo: busca con comillas y elige con "1" sin comillas', async ()
   assert.deepEqual(pedidos, [[dato.celular, 'a']]);
   assert.match(enviados.at(-1), /quedó en la cola/);
   assert.equal(await entrada('1'), null, 'ya eligió: otro 1 suelto se ignora');
+});
+
+test('con el bafle desconectado no ofrece canciones ni cobra, y la cola lo avisa', async () => {
+  const { bot, enviados, pedidos } = montar({ reproductor: { conectado: true, ok: false } });
+  await bot.manejar({ ...dec(), texto: 'besos en guerra morat' });
+  assert.match(enviados.at(-1), /bafle está desconectado/);
+  assert.equal(pedidos.length, 0);
+  await bot.manejar({ ...dec(), texto: 'cola' });
+  assert.match(enviados.at(-1), /bafle está desconectado/);
+});
+
+test('con el bafle bien (o sin controlador instalado) todo sigue igual', async () => {
+  for (const reproductor of [undefined, { conectado: false, ok: false }, { conectado: true, ok: true }]) {
+    const { bot, enviados } = montar({ reproductor });
+    await bot.manejar({ ...dec(), texto: 'besos en guerra morat' });
+    assert.match(enviados.at(-1), /1\) Besos en guerra/);
+  }
 });

@@ -40,7 +40,7 @@
   let perfil = null;                                   // { nombre, rol } de quien inició sesión
   const esAdmin = () => perfil?.rol === 'admin';
   const dominio = '@bar.local';                        // Supabase pide un correo: el usuario es «<usuario>@bar.local»
-  const sufijo = '-bar';                               // y exige 6+ caracteres: a la clave escrita se le suma esto (ver crear_usuarios.sh)
+  const SUFIJO_VIEJO = '-bar';                         // TEMPORAL: las claves antiguas eran «corta» + «-bar» (público en el repo). Se borra en cuanto se roten por claves largas (ver crear_usuarios.sh)
 
   // Existencias que se ven de un producto. Si se vende por porciones de un recipiente (cerveza de barril),
   // son las porciones que alcanzan; el recipiente (unidad 'ml') se muestra en litros.
@@ -370,7 +370,7 @@
       const fila = (p, i) => `<div class="fila"><span class="f-nombre">${i + 1}. ${esc(p.titulo)}<small>${esc(p.artista)}${quien(p) ? ` · ${quien(p)}` : ''}</small></span>
         <button type="button" class="btn peligro chico" data-rk="quitar" data-id="${p.id}" data-confirmar="¿Quitar «${esc(p.titulo)}» de la cola? Si se pagó con puntos, se devuelven.">Quitar</button></div>`;
       return `<div class="cab"><h1>Rockola</h1></div>
-        <p class="nota">${e.activa ? 'Recibiendo pedidos.' : '<b>En pausa:</b> no se aceptan pedidos nuevos.'} El sonido sale del PC con <code>rockola/player.html</code> abierto.</p>
+        <p class="nota">${e.activa ? 'Recibiendo pedidos.' : '<b>En pausa:</b> no se aceptan pedidos nuevos.'} El sonido sale del celular del bafle (app de Spotify); el panel para conectarlo y controlarlo es <code>rockola/player.html</code>.</p>
         <div class="acciones">
           <button type="button" class="btn" data-rk="activar" data-activa="${e.activa ? 'false' : 'true'}">${e.activa ? 'Pausar pedidos' : 'Reanudar pedidos'}</button>
           ${e.sonando ? `<button type="button" class="btn peligro" data-rk="saltar" data-confirmar="¿Saltar «${esc(e.sonando.titulo)}»? Sus puntos no se devuelven.">Saltar</button>` : ''}
@@ -744,7 +744,11 @@
       const f = new FormData(e.target);
       const boton = e.target.querySelector('button');
       boton.disabled = true;
-      const { error } = await db.auth.signInWithPassword({ email: String(f.get('usuario')).trim().toLowerCase() + dominio, password: String(f.get('clave')) + sufijo });
+      const correo = String(f.get('usuario')).trim().toLowerCase() + dominio, clave = String(f.get('clave'));
+      let { error } = await db.auth.signInWithPassword({ email: correo, password: clave });
+      if (error && /invalid login/i.test(error.message)) {          // clave antigua (aún sin rotar): se acepta solo mientras exista
+        ({ error } = await db.auth.signInWithPassword({ email: correo, password: clave + SUFIJO_VIEJO }));
+      }
       if (error) {
         boton.disabled = false;
         const sinRed = /fetch|network|abort|timeout/i.test(error.message);

@@ -33,15 +33,17 @@ permisos); lo que cada rol puede lo impone la base (RLS y funciones), no la pant
 | `diego` | admin (super administrador) | Todo: mesas, inventario (sumar/contar), ventas y ganancias, catálogo y precios |
 | `barman` (José Manuel) | barman | Abrir, editar y cobrar cuentas; ver el inventario sin modificarlo; consultar el historial de facturas de cualquier jornada (lo vendido y cómo pagaron, sin costos ni ganancias). No ve el resumen de Ventas ni el catálogo |
 
-Detalle: Supabase exige claves de 6+ caracteres y aquí se usan claves cortas, así que la app (y `crear_usuarios.sh`) le
-suma el sufijo fijo `-bar` a lo que se escribe. Por dentro el usuario es `<usuario>@bar.local`. El registro público
-está cerrado: usuarios nuevos solo con el script.
+Detalle: por dentro el usuario es `<usuario>@bar.local` (Supabase pide un correo). Las claves deben ser **largas (12+ caracteres, mejor
+una frase)** y se escriben tal cual: antes la app le sumaba un sufijo fijo `-bar` a una clave corta, y como ese sufijo estaba en el repo público
+solo escondía una clave corta. `crear_usuarios.sh` rechaza claves de menos de 12 caracteres. Mientras las claves viejas no se roten, la
+pantalla de entrada todavía prueba una segunda vez con el sufijo (`SUFIJO_VIEJO` en `app.js` y `rockola/player.js`); se borra en cuanto se roten.
+El registro público está cerrado: usuarios nuevos solo con el script.
 
 **Cerveza artesanal por litros**: la pinta (490 ml) y el vaso (330 ml) descuentan del mismo recipiente («Cerveza
 artesanal negra (litros)», se cuenta en ml y se muestra en litros). El administrador lo ajusta con *Mover* en Inventario,
 escribiendo litros.
 
-**Combos y cigarrillos**: un combo (ej.: «Combo Poker + Mata Cuchos», $3.800) es un producto con su propio precio
+**Combos y cigarrillos**: un combo (ej.: «Combo Poker + Mata Cuchos», $4.800) es un producto con su propio precio
 que descuenta del inventario lo que lo compone (tabla `combo_componentes`); su costo se calcula al vender con los costos
 vigentes. Un producto con `en_promos = false` (Lucky Strike) no puede entrar a ningún combo: la base lo rechaza.
 
@@ -57,25 +59,55 @@ tarjeta). **Inventario** (alertas, entradas, conteo), **Ventas** (por jornada, g
 Todo se ve al instante en los demás celulares (Supabase Realtime) y, por si el WiFi falla un momento, se
 relee solo cada pocos segundos. Si no hay conexión aparece un aviso rojo y se recupera solo.
 
+## Panel de control (`admin/`)
+
+Página solo para el administrador, en `/bar/admin/` (enlace «Panel» en la barra de la app). Usa la misma sesión; el barman
+no entra. Todo lo que lee lo impone la base (RLS y funciones con `es_admin()`), no la pantalla, y no usa `service_role`.
+
+| Pestaña | Qué hay |
+|---|---|
+| Resumen | Dashboard semana a semana (12 semanas) o mes a mes (12 meses): ventas, ganancia, facturas, promedio, comparación con el periodo anterior, noches abiertas, días de la semana, productos y categorías, y la rockola (pedidos, personas, puntos) |
+| Reportes | Cualquier rango de jornadas: por producto, categoría, método de pago, día de la semana; CSV de cada tabla |
+| Facturas | Búsqueda y filtros (mesa, cliente, pago, quién cobró), anuladas con su responsable |
+| Inventario | Valor a costo, por reponer, stock negativo (compras sin cargar), existencias y últimos movimientos |
+| Rockola | Cola, pausar y saltar, **clasificar artistas por género**, géneros y multiplicadores, **lista negra**, pedidos recientes y reporte (géneros, canciones y artistas más pedidos) |
+| Puntos | **Dar puntos por celular con motivo** (solo admin, queda anotado quién), saldos, ficha y libro de cada cliente |
+| Trabajador | Comisión por categoría con reglas editables (arranca en 50 % de la ganancia de la cerveza no artesanal y 20 % de la venta de la artesanal), quién cobró y cuentas anuladas |
+
+Las jornadas van de 6:00 AM a 6:00 AM (Bogotá). Puesta en marcha: pegar `supabase/admin.sql` en el SQL Editor (después de
+`schema.sql`, `rockola.sql` y `rockola_puntos.sql`; es seguro repetirlo). Desde ese momento cada cobro y cada anulación
+guarda quién la hizo (`facturas.cobrada_por` / `anulada_por`); lo anterior aparece como «Sin registro».
+
 ## Rockola (`rockola/`)
 
-Los clientes escanean un QR, buscan una canción y la piden; suena en vivo en el bar por orden de llegada.
+Los clientes piden por WhatsApp (con puntos); la página del QR solo muestra qué suena y la cola, y suena en vivo en el bar por orden de llegada. `rockola_pedir` (la que usaba la web con la llave pública) ya no es pública.
 
 | Pantalla | URL (tras publicar) | Quién |
 |---|---|---|
-| Cliente | `/bar/rockola/?mesa=5` (un QR por mesa) | Cualquiera, sin cuenta |
+| Cliente | `/bar/rockola/?mesa=5` (un QR por mesa) | Cualquiera: ve la cola y qué suena; para pedir lo manda al WhatsApp del bot (`ROCKOLA_WHATSAPP` en `config.js`) |
 | Pantalla del TV | `/bar/rockola/tv.html` | Sin login: se deja abierta en el PC del TV (pantalla completa, F11). Muestra lo que suena, la cola y un QR para pedir |
-| Reproductor | `/bar/rockola/player.html` | Personal (mismo usuario y clave de la app), en el PC/tablet del bar con la pestaña abierta |
+| Panel del bafle | `/bar/rockola/player.html` | Personal (mismo usuario y contraseña de la app). Conecta la cuenta de Spotify (admin, una vez), muestra si el bafle responde y controla: pausar música, saltar, volumen, pausar pedidos y elegir celular. **La música no sale de esta página**: no tiene que quedar abierta |
+
+**Cómo suena (Spotify Connect):** un celular cualquiera con la app de Spotify abierta con la cuenta Premium del bar, conectado al bafle por Bluetooth,
+es el reproductor (suena con la pantalla apagada y fuera de la app, como cualquier Spotify). La función `rockola-control` es el DJ: mientras haya cola o
+canción sonando, `pg_cron` la despierta cada ~5 s; ella mira qué toca Spotify, pone la siguiente canción de la cola, la deja encolada ~20 s antes de que
+acabe la actual (sin silencios) y cierra las que terminan. Si el barman cambia de canción desde la app de Spotify, la base lo reconoce. Con la cola vacía la
+rockola no toca nada ni interrumpe lo que suene en Spotify; en cuanto alguien pide, empieza. Detalles de la economía: si Spotify no puede tocar una canción
+(no existe, no está disponible) se marca «fallida» y los puntos se devuelven; si el problema es el celular o la red, la canción vuelve a la cola. Con la cuenta
+conectada y el bafle sin responder más de 3 minutos, **la base rechaza los pedidos nuevos** (nadie paga por algo que no va a sonar) y la TV, la página del QR
+y el bot avisan. El refresh token de Spotify vive en `rockola_spotify`, que ni el anónimo ni el personal pueden leer por la API.
 
 Puesta en marcha (una vez):
-1. `./supabase/aplicar.sh rockola.sql` (después de `schema.sql`; si vuelves a correr `schema.sql`, corre este otra vez).
-2. **Spotify** (necesita una cuenta **Premium** en el PC del bar): crear una app en developer.spotify.com, agregar como Redirect URI
-   `https://<usuario>.github.io/Centinela/bar/rockola/player.html`, y poner su Client ID en `config.js` (`SPOTIFY_CLIENT_ID`, público).
-3. Búsqueda para los clientes: `supabase secrets set SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=...` y
-   `supabase functions deploy rockola-buscar --no-verify-jwt` (el secreto vive solo en Supabase).
-4. En el PC del bar: abrir el reproductor, entrar, *Conectar Spotify* y *Arrancar rockola* (el navegador exige ese clic para dejar sonar).
-
-Probar sin Spotify: agregar `?demo` a ambas URLs (canciones de mentira de 15 s).
+1. Base de datos (SQL Editor de Supabase o `./supabase/aplicar.sh`), en orden: `rockola.sql`, `rockola_puntos.sql`, `rockola_control.sql`. El último programa el cron;
+   si avisa que no pudo activar `pg_cron` o `pg_net`, actívalos en Database → Extensions y corre `rockola_control.sql` otra vez (hace falta pg_cron 1.5 o más, intervalos en segundos).
+2. **Spotify** (cuenta **Premium**): app en developer.spotify.com con Redirect URI `https://<usuario>.github.io/Centinela/bar/rockola/player.html`
+   y su Client ID en `config.js` (`SPOTIFY_CLIENT_ID`, público; el login es PKCE, sin secreto en el navegador ni en la función de control).
+3. Funciones (el secreto de cliente solo lo usa el buscador):
+   `supabase secrets set SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=...`,
+   `supabase functions deploy rockola-buscar --no-verify-jwt` y `supabase functions deploy rockola-control --no-verify-jwt`.
+4. Abrir `player.html`, entrar como administrador y tocar **Conectar Spotify**. En el celular del bafle: abrir Spotify con esa cuenta, emparejar el bafle por Bluetooth,
+   quitarle a Spotify la optimización de batería (si Android lo mata, se corta la música) y dejarlo conectado al cargador. Si el panel dice «El bafle no responde»,
+   abre Spotify en ese celular y dale play/pausa a cualquier cosa una vez para que aparezca como dispositivo.
 
 Reglas (las impone la base, no la pantalla): máx. 2 pedidos en cola por celular, cola de 30, una canción no se repite si
 está en cola o sonó hace menos de 60 min, y el personal puede saltar, quitar o pausar los pedidos. Los ajustes viven en `rockola_config`.

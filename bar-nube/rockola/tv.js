@@ -10,6 +10,7 @@
   function pintar() {
     if (!estado) return;
     $('pausa').hidden = estado.activa;
+    $('bafle').hidden = !(estado.reproductor && estado.reproductor.conectado && !estado.reproductor.ok);   // el celular del bafle no responde
     const clave = estado.sonando ? [estado.sonando.titulo, estado.sonando.artista, estado.sonando.empezo_en].join('|') : '';
     cambio = clave && cancionActual !== null && clave !== cancionActual;
     cancionActual = clave || (cancionActual === null ? '' : cancionActual);

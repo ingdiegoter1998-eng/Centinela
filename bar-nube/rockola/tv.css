@@ -78,3 +78,5 @@ body.tema-dorado { --acento: #f2bb55; --texto: #f8eedb; --suave: #d8c8a8; --pane
 #ahora.nueva > * { animation: entra 1.1s ease both; } #ahora.nueva > *:nth-child(2) { animation-delay: .12s; } #ahora.nueva > *:nth-child(3) { animation-delay: .24s; } #ahora.nueva > *:nth-child(4) { animation-delay: .36s; }
 @keyframes entra { from { opacity: 0; transform: translateY(1.2vh); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #ahora.nueva > *, .tv-aviso { animation: none; } #fondo video, .tv-frase, #ahora { transition: none; } }
+
+.tv-bafle { top: 4.4vw; }
