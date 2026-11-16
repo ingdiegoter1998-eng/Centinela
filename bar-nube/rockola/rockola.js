@@ -37,7 +37,7 @@
     if (!estado) return;
     $('pausa').hidden = estado.activa;
     limpiar($('ahora'));
-    $('ahora').append(estado.sonando ? pista(estado.sonando, null, 'ahora') : el('p', { class: 'vacio' }, 'Silencio sospechoso… ¡pon la primera! 🎶'));
+    $('ahora').append(estado.sonando ? pista(estado.sonando, null, 'ahora') : el('p', { class: 'vacio' }, 'Silencio sospechoso… ¡pon la primera!'));
     limpiar($('cola'));
     estado.cola.forEach((p, i) => $('cola').append(pista(p, el('div', { class: 'n' }, String(i + 1)), p.mio ? 'mio' : '')));
     if (!estado.cola.length) $('cola').append(el('p', { class: 'vacio' }, 'La cola está vacía.'));

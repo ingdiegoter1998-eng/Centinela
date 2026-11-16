@@ -372,8 +372,8 @@
       return `<div class="cab"><h1>Rockola</h1></div>
         <p class="nota">${e.activa ? 'Recibiendo pedidos.' : '<b>En pausa:</b> no se aceptan pedidos nuevos.'} El sonido sale del PC con <code>rockola/player.html</code> abierto.</p>
         <div class="acciones">
-          <button type="button" class="btn" data-rk="activar" data-activa="${e.activa ? 'false' : 'true'}">${e.activa ? '⏸ Pausar pedidos' : '▶ Reanudar pedidos'}</button>
-          ${e.sonando ? `<button type="button" class="btn peligro" data-rk="saltar" data-confirmar="¿Saltar «${esc(e.sonando.titulo)}»? Sus puntos no se devuelven.">⏭ Saltar</button>` : ''}
+          <button type="button" class="btn" data-rk="activar" data-activa="${e.activa ? 'false' : 'true'}">${e.activa ? 'Pausar pedidos' : 'Reanudar pedidos'}</button>
+          ${e.sonando ? `<button type="button" class="btn peligro" data-rk="saltar" data-confirmar="¿Saltar «${esc(e.sonando.titulo)}»? Sus puntos no se devuelven.">Saltar</button>` : ''}
         </div>
         <h2 class="categoria">Sonando ahora</h2>
         <div class="tabla">${e.sonando ? `<div class="fila"><span class="f-nombre">${esc(e.sonando.titulo)}<small>${esc(e.sonando.artista)}${quien(e.sonando) ? ` · ${quien(e.sonando)}` : ''}</small></span></div>` : '<p class="vacio">Nada suena.</p>'}</div>

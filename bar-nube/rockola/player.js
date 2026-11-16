@@ -116,13 +116,13 @@
   // ── Pantalla ──────────────────────────────────────────────────────────────────────────────
   function pintar() {
     if (!estado) return;
-    $('btn-pausa').textContent = estado.activa ? '⏸ Pausar pedidos' : '▶ Reanudar pedidos';
+    $('btn-pausa').textContent = estado.activa ? 'Pausar pedidos' : 'Reanudar pedidos';
     limpiar($('ahora'));
     const s = estado.sonando;
     $('ahora').append(s ? pista(s, null, 'ahora') : el('p', { class: 'vacio' }, corriendo ? 'Esperando pedidos…' : 'Detenida'));
     limpiar($('cola'));
     estado.cola.forEach((p, i) => {
-      const quitar = el('button', { class: 'btn chico', type: 'button' }, '✕');
+      const quitar = el('button', { class: 'btn chico', type: 'button' }, 'Quitar');
       quitar.addEventListener('click', async () => {
         const { error } = await db.rpc('rockola_quitar', { p_id: p.id });
         if (error) toast(pedirError(error), 'error'); else refrescar();

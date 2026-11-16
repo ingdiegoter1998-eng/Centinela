@@ -6,11 +6,11 @@ El cliente le escribe a la SIM del bar (**310 866 0167**), pide la canción por 
 ```
 Cliente:  "besos en guerra morat"
 Bot:      Encontré esto:
-          1️⃣ Besos en guerra — Morat · 8 puntos
-          2️⃣ …
+          1) Besos en guerra — Morat · 8 puntos
+          2) …
           Responde con el número entre comillas ("1" a "3"). Tienes 16 puntos.
 Cliente:  "1"
-Bot:      ✅ Besos en guerra quedó en la cola. Va en el puesto 3. Gastaste 8 puntos, te quedan 8.
+Bot:      Besos en guerra quedó en la cola. Va en el puesto 3. Gastaste 8 puntos, te quedan 8.
 ```
 
 Otros mensajes (siempre entre comillas): `"puntos"` (saldo), `"cola"` (qué suena y qué sigue), `"cancelar"`, `"hola"` (ayuda). Quien escribe por primera vez
@@ -80,7 +80,7 @@ Hay dos formas de vincular; **la del QR es la que recomiendo** (es la más fiabl
 Imprime un código de 8 caracteres; en WhatsApp: *Vincular un dispositivo → Vincular con número de teléfono* y lo escribes. Ojo: el código vence en pocos minutos y a veces WhatsApp responde «No se pudo vincular el dispositivo» aunque esté bien escrito; si pasa, usa el QR.
 
 Después de vincular, los dos caminos siguen igual:
-3. El bot imprime «Vinculado» y «Conectado a WhatsApp ✅» (justo antes puede decir «Reiniciando conexión»: es normal). **Déjalo prendido unos 2 minutos**: en ese rato el celular le manda al bot sus llaves de cifrado; si lo cortas a los 5 segundos, la sesión puede quedar a medias.
+3. El bot imprime «Vinculado» y «Conectado a WhatsApp» (justo antes puede decir «Reiniciando conexión»: es normal). **Déjalo prendido unos 2 minutos**: en ese rato el celular le manda al bot sus llaves de cifrado; si lo cortas a los 5 segundos, la sesión puede quedar a medias.
 4. Escríbele (entre comillas, ver abajo) desde **otro celular** a 310 866 0167, o a ti mismo: `"hola"`. Debe responder con la bienvenida. Prueba: `"morat"` → elige `"1"` → `"cola"`. (Comprueba en `rockola/player.html` o en el TV que la canción entró.)
 5. Ya quedó vinculado: la sesión vive en la carpeta `auth/` (no la borres ni la subas). Para dejarlo 24/7 sigue «Dejarlo prendido».
 

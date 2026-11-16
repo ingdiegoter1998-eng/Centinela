@@ -62,7 +62,7 @@ function sesionDanada() {
       log.error({ borrados: n }, 'Los mensajes no se pueden descifrar («Bad MAC»). Limpié las llaves de conversación y reinicio para que se renegocien.');
       process.exit(1);          // start.sh lo vuelve a levantar solo a los 10 s; con `npm start` hay que arrancarlo otra vez
     }
-    console.error(`\n⚠️  Sigue sin poder descifrar los mensajes aunque ya limpié la sesión: la vinculación quedó dañada.
+    console.error(`\nSigue sin poder descifrar los mensajes aunque ya limpié la sesión: la vinculación quedó dañada.
 Hay que vincular de nuevo, en este orden:
   1. En el celular de la SIM: WhatsApp → Dispositivos vinculados → toca el dispositivo del bot → Cerrar sesión (borra también los viejos).
   2. Cierra Termux del todo (en la notificación toca EXIT) y ábrelo otra vez.
@@ -143,7 +143,7 @@ async function alMensaje(m) {
     if (dicho && esperandoNumero.has(jid)) { resolvedor.recordar(jid, dicho); esperandoNumero.delete(jid); celular = dicho; }
     else {
       esperandoNumero.add(jid);
-      const aviso = `Hola 👋 No alcanzo a ver tu número de celular. Escríbelo aquí${SOLO_COMILLAS ? ' entre comillas' : ''} (ej: *${SOLO_COMILLAS ? '"3001234567"' : '3001234567'}*) para guardarte los puntos.`;
+      const aviso = `Hola. No alcanzo a ver tu número de celular. Escríbelo aquí${SOLO_COMILLAS ? ' entre comillas' : ''} (ej: *${SOLO_COMILLAS ? '"3001234567"' : '3001234567'}*) para guardarte los puntos.`;
       recordarEnvio(await sock.sendMessage(jid, { text: aviso }), aviso);
       return;
     }
@@ -181,8 +181,8 @@ async function conectar() {
       console.log('\n=== ESCANEA ESTE QR (se renueva solo cada ~20 s) ===\nEn WhatsApp del celular de la SIM: Ajustes → Dispositivos vinculados → Vincular un dispositivo, y apunta la cámara a la pantalla.\nSi el dibujo se ve cortado, achica la letra (en Termux: pellizca la pantalla) o ensancha la ventana.\n');
       qrcode.generate(qr, { small: true });
     }
-    if (isNewLogin) console.log('\n✅ Vinculado. NO lo cortes todavía: déjalo prendido unos 2 minutos mientras WhatsApp termina de sincronizar con el bot.\n');
-    if (connection === 'open') log.info('Conectado a WhatsApp ✅');
+    if (isNewLogin) console.log('\nVinculado. NO lo cortes todavía: déjalo prendido unos 2 minutos mientras WhatsApp termina de sincronizar con el bot.\n');
+    if (connection === 'open') log.info('Conectado a WhatsApp');
     if (connection === 'close') {
       const codigo = lastDisconnect?.error?.output?.statusCode;
       if (codigo === DisconnectReason.loggedOut) {
