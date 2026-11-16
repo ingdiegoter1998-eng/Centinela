@@ -42,6 +42,9 @@ $PSQL -f pruebas_admin.sql
 $PSQL -f rockola_control.sql
 $PSQL -f rockola_control.sql         # idempotente
 $PSQL -f pruebas_control.sql
+$PSQL -f generos.sql                  # catálogo de géneros encima de rockola_puntos.sql; repetirlo no duplica
+$PSQL -f generos.sql
+$PSQL -At -c "select case when (select multiplicador from rockola_generos where genero='ranchera')=3 and (select multiplicador from rockola_generos where genero='general')=1 and (select count(*) from rockola_generos)>100 then 'generos OK' else 'FALLO generos' end" | tee /dev/stderr | grep -q 'generos OK'
 echo "== concurrencia: 8 sesiones × 25 toques sobre el mismo producto"
 PROD=$($PSQL -At -c "select id from productos where nombre='Poker'")
 MESA=$($PSQL -At -c "select id from mesas where nombre='Mesa 3'")

@@ -74,7 +74,7 @@
       (sp.error ? ' ' + sp.error : '');
     // Hay una canción «sonando» en la rockola pero Spotify dice que no reproduce (se pausó en el celular, o el bafle se desconectó).
     const detenida = !!(bien && estado && estado.sonando && !r.reproduciendo && !r.pausada);
-    if (detenida) $('sp-detalle').textContent += ' Spotify está en pausa en el celular aunque la rockola tiene una canción sonando: toca «Reanudar música» o dale play en Spotify (y revisa que el Bluetooth del bafle siga conectado).';
+    if (detenida) $('sp-detalle').textContent += ' Spotify está en pausa en el celular aunque la rockola tiene una canción sonando. La rockola intenta reanudarla sola; si no arranca, toca «Reanudar música» y revisa que el Bluetooth del bafle siga conectado.';
     $('btn-pausar').textContent = (r.pausada || detenida) ? 'Reanudar música' : 'Pausar música';
     sp.__detenida = detenida;
   }

@@ -1,7 +1,7 @@
 // node --test supabase/functions/rockola-control   (sin red: base y Spotify de mentira, con reloj controlado)
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { tick, elegirDispositivo, VENTANA_ENCOLAR_MS, GRACIA_MS } from './tick.mjs';
+import { tick, elegirDispositivo, VENTANA_ENCOLAR_MS, GRACIA_MS, REANUDAR_CADA_MS } from './tick.mjs';
 import { SpotifyError } from './spotify.mjs';
 
 // ── Base de mentira: misma lógica que rockola_ctl_* en SQL (la cola en memoria) ──
@@ -9,7 +9,7 @@ function crearMundo({ cola = [], conectado = true, dispositivos = [{ id: 'cel', 
   const m = {
     t: 1_000_000, cola: cola.map((c, i) => ({ id: i + 1, estado: 'pendiente', en_spotify: false, confirmada: false, duracion_ms: 180_000, titulo: c, pista_id: c })),
     reproductor: { conectado, pausada: false, preferido_id: null }, latidos: [], reembolsos: [], llamadas: [],
-    sp: { dispositivos, activo, reproduciendo: false, item: null, progreso: 0, cola: [], falla: null, fallaTocar: null },
+    sp: { dispositivos, activo, reproduciendo: false, item: null, progreso: 0, cola: [], falla: null, fallaTocar: null, fallaReanudar: null },
   };
   const top = () => m.cola.filter((c) => c.estado === 'pendiente')[0] || null;
   const pub = (c) => c && { id: c.id, pista_id: c.pista_id, titulo: c.titulo, duracion_ms: c.duracion_ms, empezo_en: c.empezo ? new Date(c.empezo).toISOString() : null, confirmada: c.confirmada, en_spotify: c.en_spotify };
@@ -44,8 +44,10 @@ function crearMundo({ cola = [], conectado = true, dispositivos = [{ id: 'cel', 
     async dispositivos() { return sp.dispositivos; },
     async tocar(id, dev) { m.llamadas.push(['tocar', id, dev]); if (sp.fallaTocar) throw sp.fallaTocar; Object.assign(sp, { item: id, progreso: 0, reproduciendo: true, activo: true }); },
     async encolar(id, dev) { m.llamadas.push(['encolar', id, dev]); sp.cola.push(id); },
+    async reanudar(dev) { m.llamadas.push(['reanudar', dev]); if (sp.fallaReanudar) throw sp.fallaReanudar; sp.reproduciendo = true; },
   };
-  m.tick = () => tick({ db: m.db, sp: m.spotify, ahora: () => m.t });
+  m.memoria = {};
+  m.tick = () => tick({ db: m.db, sp: m.spotify, ahora: () => m.t, memoria: m.memoria });
   // El tiempo pasa y Spotify avanza como avanzaría: sigue su cola o se detiene al final.
   m.pasar = (ms) => {
     m.t += ms;
@@ -192,6 +194,52 @@ test('pausa del panel: congela todo; si alguien reanuda desde Spotify, se entien
   e((await m.tick()).accion, 'pausada'); e(m.estado(1), 'sonando');
   m.sp.reproduciendo = true; m.sp.progreso = 10_000;
   const r = await m.tick(); assert.notEqual(r.accion, 'pausada'); e(m.reproductor.pausada, false);
+});
+
+test('Spotify queda en pausa a mitad de canción sin que nadie la pausara en el panel: el DJ la reanuda solo', async () => {
+  const m = crearMundo({ cola: ['a', 'b'] });
+  await m.tick(); m.pasar(40_000);
+  m.sp.reproduciendo = false;                                   // alguien la pausó en la app, o el celular la soltó
+  const r = await m.tick(); e(r.accion, 'reanudo'); assert.deepEqual(m.llamadas.at(-1), ['reanudar', 'cel']);
+  e(m.sp.reproduciendo, true); e(m.estado(1), 'sonando');       // sigue la misma canción, no se salta nada
+});
+
+test('recién tocada y todavía «en pausa» en Spotify: se espera la gracia antes de reanudar', async () => {
+  const m = crearMundo({ cola: ['a'] });
+  await m.tick(); m.sp.reproduciendo = false; m.sp.progreso = 1_000; m.pasar(2_000);
+  e((await m.tick()).accion, 'sonando'); assert.equal(m.llamadas.filter((l) => l[0] === 'reanudar').length, 0);
+});
+
+test('si Spotify no obedece, no se insiste en cada tick sino cada REANUDAR_CADA_MS', async () => {
+  const m = crearMundo({ cola: ['a'] });
+  await m.tick(); m.pasar(40_000); m.sp.reproduciendo = false;
+  e((await m.tick()).accion, 'reanudo');
+  m.sp.reproduciendo = false;                                   // el celular la vuelve a soltar (Bluetooth caído, etc.)
+  m.pasar(5_000); e((await m.tick()).accion, 'sonando');
+  m.pasar(REANUDAR_CADA_MS); e((await m.tick()).accion, 'reanudo');
+  e(m.llamadas.filter((l) => l[0] === 'reanudar').length, 2);
+});
+
+test('la pausa del panel gana: el DJ no reanuda mientras esté activa', async () => {
+  const m = crearMundo({ cola: ['a'] });
+  await m.tick(); m.pasar(40_000); m.sp.reproduciendo = false; m.reproductor.pausada = true;
+  for (let i = 0; i < 3; i++) { m.pasar(20_000); e((await m.tick()).accion, 'pausada'); }
+  assert.equal(m.llamadas.filter((l) => l[0] === 'reanudar').length, 0);
+});
+
+test('detenida en 0 mucho antes del final (nunca arrancó): se reanuda, no se da por terminada', async () => {
+  const m = crearMundo({ cola: ['a', 'b'] });
+  await m.tick(); m.pasar(20_000);
+  Object.assign(m.sp, { reproduciendo: false, progreso: 0 });   // «tocar» respondió 204 pero el celular no la arrancó
+  e((await m.tick()).accion, 'reanudo'); e(m.estado(1), 'sonando'); e(m.estado(2), 'pendiente');
+});
+
+test('reanudar falla (dispositivo o cuenta): queda el aviso en el latido y la canción sigue sonando en la base', async () => {
+  const m = crearMundo({ cola: ['a'] });
+  await m.tick(); m.pasar(40_000); m.sp.reproduciendo = false;
+  m.sp.fallaReanudar = new SpotifyError(404, 'NO_ACTIVE_DEVICE');
+  const r = await m.tick(); e(r.accion, 'reanudar_fallo'); e(m.estado(1), 'sonando');
+  assert.ok(m.latidos.at(-1).error);
 });
 
 test('elegirDispositivo: el preferido, luego el activo, luego un celular; ignora los restringidos', () => {
