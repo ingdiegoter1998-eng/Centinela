@@ -89,10 +89,11 @@
     try {
       const { data, error } = await db.rpc(saltar ? 'rockola_saltar' : 'rockola_siguiente');
       if (error) throw error;
-      if (!data) { actual = null; clearTimeout(temporizador); temporizador = setTimeout(() => { cambiando = false; avanzar(); }, 4000); await refrescar(); return; }
+      if (!data) { actual = null; ultimoCambio = Date.now(); clearTimeout(temporizador); temporizador = setTimeout(() => { cambiando = false; avanzar(); }, 4000); await refrescar(); return; }
       try { await sonar(data); } catch (e) { toast(pedirError(e), 'error'); actual = null; temporizador = setTimeout(() => { cambiando = false; avanzar(true); }, 1500); return; }
       await refrescar();
     } catch (e) { toast(pedirError(e), 'error'); temporizador = setTimeout(() => { cambiando = false; avanzar(); }, 5000); return; }
+    ultimoCambio = Date.now();
     cambiando = false;
   }
   // La cola vacía se vigila: en cuanto alguien pide, arranca sola (por eso «avanzar» se reintenta cada 4 s).
@@ -130,9 +131,24 @@
     });
     if (!estado.cola.length) $('cola').append(el('p', { class: 'vacio' }, 'Cola vacía.'));
   }
+  // El barman puede saltar o quitar desde su celular: la base cambia y este reproductor lo sigue.
+  // Solo se hace caso a lecturas iniciadas después del último cambio propio (una lectura vieja no debe revivir una canción).
+  let ultimoCambio = 0;
+  function seguirALaBase() {
+    if (!corriendo || cambiando || !estado) return;
+    const s = estado.sonando;
+    if (s && (!actual || actual.id !== s.id)) {
+      sonar(s).catch((e) => { toast(pedirError(e), 'error'); actual = null; });
+    } else if (!s && actual) {
+      clearTimeout(temporizador); actual = null;
+      if (sdk && sdk.pause) sdk.pause();
+      temporizador = setTimeout(() => avanzar(), 4000);      // cola vacía tras el salto: vuelve a vigilar
+    }
+  }
   async function refrescar() {
+    const inicio = Date.now();
     const { data } = await db.rpc('rockola_estado');
-    if (data) { estado = data; pintar(); }
+    if (data) { estado = data; pintar(); if (inicio >= ultimoCambio) seguirALaBase(); }
   }
 
   async function mostrarPanel() {
