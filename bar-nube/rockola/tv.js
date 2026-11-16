@@ -92,8 +92,8 @@
   (function () {
     const cfg = window.Rockola.cfg || {}, params = window.Rockola.params;
     let lista = Array.isArray(cfg.TV_FONDOS) && cfg.TV_FONDOS.length ? cfg.TV_FONDOS : [
-      { src: 'fondos/noche-colina.mp4', poster: 'fondos/noche-colina.jpg', tema: 'noche' },
-      { src: 'fondos/caballero-flores.mp4', poster: 'fondos/caballero-flores.jpg', tema: 'dorado' },
+      { src: 'fondos/noche-colina.mp4', poster: 'fondos/noche-colina.webp', tema: 'noche' },
+      { src: 'fondos/caballero-flores.mp4', poster: 'fondos/caballero-flores.webp', tema: 'dorado' },
     ];
     if (params.get('fondo')) lista = [{ src: params.get('fondo'), tema: params.get('tema') || 'noche' }];
     lista = lista.filter((f) => f && typeof f.src === 'string' && /^(https:\/\/|[\w./%-]+$)/.test(f.src))
