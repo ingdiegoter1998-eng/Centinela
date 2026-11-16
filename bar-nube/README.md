@@ -119,7 +119,7 @@ Se aplica después de `rockola.sql` (`./supabase/aplicar.sh rockola_puntos.sql`)
 **1 punto = $1.000 consumidos** (`punto_pesos`), una canción normal cuesta **8 puntos** (`precio_base_puntos`, dos cervezas) y quien se
 registra recibe **16** (`puntos_bienvenida`, dos canciones). El género del artista multiplica el precio (`rockola_generos`: ranchera ×3);
 un artista sin género cuesta el base y queda en `rockola_artistas` para clasificarlo con `rockola_clasificar`. El saldo es la suma del libro
-`rockola_puntos` (solo se agregan filas). Quitar una canción pendiente devuelve sus puntos. `rockola_prohibidas` es la lista negra.
+`rockola_puntos` (solo se agregan filas). **Clasificación automática:** `rockola-buscar` mira las etiquetas de género de Spotify de cada artista nuevo que aparece en una búsqueda y le asigna uno de nuestros géneros (`functions/rockola-buscar/clasificar.mjs`; gana el multiplicador con más etiquetas y, en empate, el más caro). Lo guarda con `origen = 'spotify'` y las etiquetas; lo que el personal clasifica queda `origen = 'manual'` y nunca se pisa. El botón «Clasificar con Spotify» del panel (Rockola) procesa hasta 40 artistas pendientes por toque. Hay que volver a desplegar la función: `supabase functions deploy rockola-buscar --no-verify-jwt`. Quitar una canción pendiente devuelve sus puntos. `rockola_prohibidas` es la lista negra.
 
 - **Personal** (app): `rockola_dar_puntos_factura(factura, celular, nombre)` da `total ÷ 1.000` puntos por una factura pagada (una sola vez por factura);
   `rockola_cortesia` solo el administrador.

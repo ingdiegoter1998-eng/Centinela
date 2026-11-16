@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test bar-nube/supabase/functions/rockola-control/*.test.mjs bar-nube/supabase/sin_where.test.mjs
+      - run: node --test bar-nube/supabase/functions/rockola-control/*.test.mjs bar-nube/supabase/functions/rockola-buscar/*.test.mjs bar-nube/supabase/sin_where.test.mjs
 
   sql:
     name: Reglas SQL (Postgres desechable)
