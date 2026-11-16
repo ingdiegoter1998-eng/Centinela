@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0a0807">
-  <title>Reproductor · Rockola</title>
+  <title>Bafle · Rockola</title>
   <link rel="icon" type="image/png" href="../logo.png">
   <link rel="stylesheet" href="rockola.css">
 </head>
@@ -12,28 +12,43 @@
   <main>
     <form class="login" id="login" hidden>
       <img src="../logo.png" alt="" style="width:80px;border-radius:50%;margin:0 auto">
-      <h1 style="text-align:center">Reproductor</h1>
+      <h1 style="text-align:center">Bafle</h1>
       <input name="usuario" placeholder="Usuario" autocapitalize="none" autocomplete="username" required>
-      <input name="clave" type="password" placeholder="Clave" autocomplete="current-password" required>
+      <input name="clave" type="password" placeholder="Contraseña" autocomplete="current-password" required>
       <button class="btn principal">Entrar</button>
       <p id="login-error" class="suave" style="text-align:center;color:var(--rojo)"></p>
     </form>
 
     <div id="panel" hidden>
-      <h1>Reproductor de la rockola</h1>
-      <p class="estado-sp" id="estado-sp"></p>
-      <div class="controles">
-        <button class="btn principal" id="btn-spotify" hidden>Conectar Spotify</button>
-        <button class="btn principal" id="btn-arrancar" hidden>Arrancar rockola</button>
-        <button class="btn" id="btn-saltar">Saltar</button>
-        <button class="btn" id="btn-pausa">Pausar pedidos</button>
-        <button class="btn" id="btn-salir">Salir</button>
-      </div>
-      <label class="suave">Volumen <input type="range" id="volumen" min="0" max="100" value="70"></label>
+      <h1>Bafle de la rockola</h1>
+      <p class="suave">La música sale de cualquier celular con la app de Spotify abierta con la cuenta del bar (y el bafle por Bluetooth).
+         Aquí solo se vigila y se controla; esta pantalla no tiene que quedarse abierta.</p>
+
+      <section class="tarjeta" id="caja-estado">
+        <b id="sp-titulo">Revisando…</b>
+        <p class="suave" id="sp-detalle"></p>
+        <div class="controles">
+          <button class="btn principal" id="btn-spotify" hidden>Conectar Spotify</button>
+          <button class="btn chico" id="btn-desconectar" hidden>Desconectar</button>
+        </div>
+      </section>
+
+      <section id="caja-control" hidden>
+        <div class="controles">
+          <button class="btn" id="btn-pausar">Pausar música</button>
+          <button class="btn" id="btn-saltar">Saltar</button>
+          <button class="btn" id="btn-pedidos">Pausar pedidos</button>
+        </div>
+        <label class="suave">Volumen <input type="range" id="volumen" min="0" max="100" value="60"></label>
+        <h2>Celulares de la cuenta</h2>
+        <div id="dispositivos"></div>
+      </section>
+
       <h2>Sonando ahora</h2>
       <div id="ahora" class="grande"></div>
       <h2>Cola</h2>
       <div id="cola"></div>
+      <div class="controles"><button class="btn chico" id="btn-salir">Salir</button></div>
     </div>
   </main>
   <script src="../config.js"></script>

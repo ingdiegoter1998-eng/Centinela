@@ -370,7 +370,7 @@
       const fila = (p, i) => `<div class="fila"><span class="f-nombre">${i + 1}. ${esc(p.titulo)}<small>${esc(p.artista)}${quien(p) ? ` · ${quien(p)}` : ''}</small></span>
         <button type="button" class="btn peligro chico" data-rk="quitar" data-id="${p.id}" data-confirmar="¿Quitar «${esc(p.titulo)}» de la cola? Si se pagó con puntos, se devuelven.">Quitar</button></div>`;
       return `<div class="cab"><h1>Rockola</h1></div>
-        <p class="nota">${e.activa ? 'Recibiendo pedidos.' : '<b>En pausa:</b> no se aceptan pedidos nuevos.'} El sonido sale del PC con <code>rockola/player.html</code> abierto.</p>
+        <p class="nota">${e.activa ? 'Recibiendo pedidos.' : '<b>En pausa:</b> no se aceptan pedidos nuevos.'} El sonido sale del celular del bafle (app de Spotify); el panel para conectarlo y controlarlo es <code>rockola/player.html</code>.</p>
         <div class="acciones">
           <button type="button" class="btn" data-rk="activar" data-activa="${e.activa ? 'false' : 'true'}">${e.activa ? 'Pausar pedidos' : 'Reanudar pedidos'}</button>
           ${e.sonando ? `<button type="button" class="btn peligro" data-rk="saltar" data-confirmar="¿Saltar «${esc(e.sonando.titulo)}»? Sus puntos no se devuelven.">Saltar</button>` : ''}

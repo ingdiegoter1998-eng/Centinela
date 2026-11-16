@@ -1,22 +1,19 @@
-// Reproductor: corre en el PC/tablet del bar con una pestaña abierta. Saca la siguiente canción de la cola
-// (rockola_siguiente), la pone a sonar en Spotify (Web Playback SDK, requiere Premium) y cuando termina pide otra.
-// ?demo → no usa Spotify: «reproduce» cada canción de mentira por 15 s, para probar todo el flujo.
+// Panel del bafle. La música NO sale de esta página: la toca el celular que tenga Spotify abierto con la cuenta del bar
+// (Spotify Connect), dirigido por la función `rockola-control`. Aquí se conecta la cuenta (una sola vez, el administrador),
+// se ve si el bafle responde y se controla: pausar, saltar, volumen, pausar pedidos, elegir celular.
 (function () {
-  const { cfg, demo, db, el, pista, toast, limpiar, pedirError } = window.Rockola;
+  const { cfg, db, el, pista, toast, limpiar, pedirError } = window.Rockola;
   const $ = (id) => document.getElementById(id);
   const SP_ID = cfg.SPOTIFY_CLIENT_ID || '';
   const REDIRECT = location.origin + location.pathname;
-  const SCOPES = 'streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state';
+  const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-private';
   const dominio = '@bar.local', SUFIJO_VIEJO = '-bar';        // igual que la app; el sufijo es TEMPORAL (claves antiguas sin rotar)
+  const FUNCION = cfg.SUPABASE_URL + '/functions/v1/rockola-control';
 
-  let estado = null, corriendo = false, cambiando = false, actual = null, temporizador = null;
-  let sdk = null, deviceId = null, volumen = 0.7;
+  let estado = null, sp = null, perfil = '';
 
   // ── Spotify: inicio de sesión PKCE (sin secreto en el navegador) ──────────────────────────
   const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  const leer = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
-  const guardar = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
   async function conectarSpotify() {
     const verif = b64(crypto.getRandomValues(new Uint8Array(48)));
     const reto = b64(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verif)));
@@ -26,150 +23,118 @@
       code_challenge_method: 'S256', code_challenge: reto,
     });
   }
-  async function pedirToken(cuerpo) {
-    const r = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ client_id: SP_ID, ...cuerpo }),
+
+  // Llama a la función de borde con la sesión del usuario.
+  async function llamar(accion, datos) {
+    const { data } = await db.auth.getSession();
+    const r = await fetch(FUNCION, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: cfg.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + (data.session ? data.session.access_token : '') },
+      body: JSON.stringify({ accion, ...(datos || {}) }),
     });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error_description || 'Spotify rechazó el inicio de sesión');
-    const t = { acceso: d.access_token, refresco: d.refresh_token || (leer('sp-token') || {}).refresco, vence: Date.now() + d.expires_in * 1000 };
-    guardar('sp-token', t);
-    return t;
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.error) throw new Error(d.error || 'La función del bafle no respondió (¿está desplegada?)');
+    return d;
   }
-  async function token() {
-    let t = leer('sp-token');
-    if (!t) return null;
-    if (t.vence < Date.now() + 60000) t = await pedirToken({ grant_type: 'refresh_token', refresh_token: t.refresco });
-    return t.acceso;
-  }
+  const hacer = (accion, datos, ok) => llamar(accion, datos).then((d) => { if (ok) toast(ok, 'ok'); refrescarTodo(); return d; }).catch((e) => toast(pedirError(e), 'error'));
+
   async function terminarConexion() {         // vuelve de Spotify con ?code=...
     const code = new URLSearchParams(location.search).get('code');
     if (!code) return;
-    try {
-      await pedirToken({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT, code_verifier: sessionStorage.getItem('sp-verif') || '' });
-    } catch (e) { toast(pedirError(e), 'error'); }
     history.replaceState({}, '', REDIRECT);
-  }
-
-  // ── Reproducción ──────────────────────────────────────────────────────────────────────────
-  function iniciarSDK() {
-    return new Promise((ok, mal) => {
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        sdk = new Spotify.Player({ name: 'Rockola del bar', getOAuthToken: (cb) => token().then(cb), volume: volumen });
-        sdk.addListener('ready', ({ device_id }) => { deviceId = device_id; ok(); });
-        sdk.addListener('initialization_error', ({ message }) => mal(new Error(message)));
-        sdk.addListener('authentication_error', () => { localStorage.removeItem('sp-token'); mal(new Error('Spotify: vuelve a conectar')); });
-        sdk.addListener('account_error', () => mal(new Error('Spotify: la cuenta necesita Premium')));
-        sdk.addListener('player_state_changed', (s) => {
-          // Terminó la canción: quedó en pausa, en 0, y la que sonaba ya figura entre las anteriores.
-          if (s && actual && !cambiando && s.paused && s.position === 0 && s.track_window.previous_tracks.some((t) => t.id === actual.pista_id)) avanzar();
-        });
-        sdk.connect();
-      };
-      const s = document.createElement('script'); s.src = 'https://sdk.scdn.co/spotify-player.js'; s.onerror = () => mal(new Error('No cargó el SDK de Spotify'));
-      document.head.append(s);
-    });
-  }
-  async function sonar(p) {
-    clearTimeout(temporizador);
-    actual = p;
-    const respaldo = (p.duracion_ms || 240000) + 4000;       // por si el SDK no avisa el final
-    if (demo) { temporizador = setTimeout(() => avanzar(), p.duracion_ms || 15000); return; }
-    const r = await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + deviceId, {
-      method: 'PUT', headers: { Authorization: 'Bearer ' + (await token()), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uris: ['spotify:track:' + p.pista_id] }),
-    });
-    if (!r.ok) throw new Error('Spotify no pudo poner «' + p.titulo + '» (' + r.status + ')');
-    temporizador = setTimeout(() => avanzar(), respaldo);
-  }
-  async function avanzar(saltar) {
-    if (cambiando || !corriendo) return;
-    cambiando = true;
     try {
-      const { data, error } = await db.rpc(saltar ? 'rockola_saltar' : 'rockola_siguiente');
-      if (error) throw error;
-      if (!data) { actual = null; ultimoCambio = Date.now(); clearTimeout(temporizador); temporizador = setTimeout(() => { cambiando = false; avanzar(); }, 4000); await refrescar(); return; }
-      try { await sonar(data); } catch (e) { toast(pedirError(e), 'error'); actual = null; temporizador = setTimeout(() => { cambiando = false; avanzar(true); }, 1500); return; }
-      await refrescar();
-    } catch (e) { toast(pedirError(e), 'error'); temporizador = setTimeout(() => { cambiando = false; avanzar(); }, 5000); return; }
-    ultimoCambio = Date.now();
-    cambiando = false;
-  }
-  // La cola vacía se vigila: en cuanto alguien pide, arranca sola (por eso «avanzar» se reintenta cada 4 s).
-
-  async function arrancar() {
-    $('btn-arrancar').disabled = true;
-    try {
-      if (!demo) {
-        if (!sdk) await iniciarSDK();
-        sdk.activateElement();
-      }
-      corriendo = true;
-      $('btn-arrancar').hidden = true;
-      await refrescar();
-      if (estado && estado.sonando) await sonar(estado.sonando);   // quedó una sonando de antes (se recargó la pestaña): se retoma
-      else await avanzar();
-    } catch (e) { toast(pedirError(e), 'error'); $('btn-arrancar').disabled = false; }
+      const d = await llamar('conectar', { code, verificador: sessionStorage.getItem('sp-verif') || '', redirect: REDIRECT });
+      toast('Spotify conectado' + (d.cuenta ? ': ' + d.cuenta : ''), 'ok');
+    } catch (e) { toast(pedirError(e), 'error'); }
+    sessionStorage.removeItem('sp-verif');
   }
 
   // ── Pantalla ──────────────────────────────────────────────────────────────────────────────
-  function pintar() {
+  const hace = (iso) => { if (!iso) return 'nunca'; const s = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; };
+
+  function pintarEstado() {
+    const caja = $('caja-estado');
+    if (!sp) { $('sp-titulo').textContent = 'Revisando…'; return; }
+    const r = sp.reproductor || {};
+    $('btn-spotify').hidden = sp.conectado || !SP_ID || perfil !== 'admin';
+    $('btn-desconectar').hidden = !sp.conectado || perfil !== 'admin';
+    $('caja-control').hidden = !sp.conectado;
+    caja.classList.remove('ok', 'mal');
+    if (!SP_ID) { $('sp-titulo').textContent = 'Falta SPOTIFY_CLIENT_ID en config.js.'; $('sp-detalle').textContent = ''; return; }
+    if (!sp.conectado) {
+      $('sp-titulo').textContent = 'Spotify sin conectar';
+      $('sp-detalle').textContent = perfil === 'admin' ? 'Toca «Conectar Spotify» e inicia sesión con la cuenta Premium del bar. Se hace una sola vez.' : 'El administrador tiene que conectar la cuenta de Spotify una vez.';
+      return;
+    }
+    const bien = !!(r.dispositivo && !r.error && r.verificado_en && Date.now() - Date.parse(r.verificado_en) < 180000);
+    caja.classList.add(bien ? 'ok' : 'mal');
+    $('sp-titulo').textContent = bien ? 'Bafle listo: ' + r.dispositivo : 'El bafle no responde';
+    $('sp-detalle').textContent = (sp.cuenta ? 'Cuenta: ' + sp.cuenta + '. ' : '') +
+      (bien ? (r.pausada ? 'Música en pausa. ' : '') : (r.error || 'Aún no hay un latido. ') + ' ') + 'Última revisión hace ' + hace(r.verificado_en) + '.' +
+      (sp.error ? ' ' + sp.error : '');
+    $('btn-pausar').textContent = r.pausada ? 'Reanudar música' : 'Pausar música';
+  }
+
+  function pintarDispositivos() {
+    const c = $('dispositivos'); limpiar(c);
+    const lista = (sp && sp.dispositivos) || [];
+    lista.forEach((d) => {
+      const b = el('button', { class: 'btn chico', type: 'button' }, d.is_active ? 'Es este' : 'Usar este');
+      if (d.is_active) b.disabled = true;
+      b.addEventListener('click', () => hacer('transferir', { device_id: d.id }, 'Listo: ' + d.name));
+      c.append(el('div', { class: 'pista' }, el('div', { class: 'info' }, el('b', {}, d.name), el('span', {}, d.type + (d.volume_percent != null ? ' · volumen ' + d.volume_percent + '%' : ''))), b));
+    });
+    if (!lista.length) c.append(el('p', { class: 'vacio' }, 'Ningún celular con Spotify abierto. Ábrelo en el del bafle (con la pantalla encendida un momento) y vuelve aquí.'));
+  }
+
+  function pintarCola() {
     if (!estado) return;
-    $('btn-pausa').textContent = estado.activa ? 'Pausar pedidos' : 'Reanudar pedidos';
+    $('btn-pedidos').textContent = estado.activa ? 'Pausar pedidos' : 'Reanudar pedidos';
     limpiar($('ahora'));
     const s = estado.sonando;
-    $('ahora').append(s ? pista(s, null, 'ahora') : el('p', { class: 'vacio' }, corriendo ? 'Esperando pedidos…' : 'Detenida'));
+    $('ahora').append(s ? pista(s, null, 'ahora') : el('p', { class: 'vacio' }, 'Nada suena.'));
     limpiar($('cola'));
-    estado.cola.forEach((p, i) => {
+    estado.cola.forEach((p) => {
       const quitar = el('button', { class: 'btn chico', type: 'button' }, 'Quitar');
       quitar.addEventListener('click', async () => {
         const { error } = await db.rpc('rockola_quitar', { p_id: p.id });
-        if (error) toast(pedirError(error), 'error'); else refrescar();
+        if (error) toast(pedirError(error), 'error'); else refrescarCola();
       });
       $('cola').append(pista(p, quitar));
     });
     if (!estado.cola.length) $('cola').append(el('p', { class: 'vacio' }, 'Cola vacía.'));
   }
-  // El barman puede saltar o quitar desde su celular: la base cambia y este reproductor lo sigue.
-  // Solo se hace caso a lecturas iniciadas después del último cambio propio (una lectura vieja no debe revivir una canción).
-  let ultimoCambio = 0;
-  function seguirALaBase() {
-    if (!corriendo || cambiando || !estado) return;
-    const s = estado.sonando;
-    if (s && (!actual || actual.id !== s.id)) {
-      sonar(s).catch((e) => { toast(pedirError(e), 'error'); actual = null; });
-    } else if (!s && actual) {
-      clearTimeout(temporizador); actual = null;
-      if (sdk && sdk.pause) sdk.pause();
-      temporizador = setTimeout(() => avanzar(), 4000);      // cola vacía tras el salto: vuelve a vigilar
-    }
-  }
-  async function refrescar() {
-    const inicio = Date.now();
+
+  async function refrescarCola() {
     const { data } = await db.rpc('rockola_estado');
-    if (data) { estado = data; pintar(); if (inicio >= ultimoCambio) seguirALaBase(); }
+    if (data) { estado = data; pintarCola(); }
   }
+  async function refrescarSpotify() {
+    try { sp = await llamar('estado'); } catch (e) { sp = { conectado: false, error: pedirError(e), reproductor: null, dispositivos: [] }; }
+    pintarEstado(); pintarDispositivos();
+  }
+  const refrescarTodo = () => Promise.all([refrescarCola(), refrescarSpotify()]);
 
   async function mostrarPanel() {
     $('login').hidden = true; $('panel').hidden = false;
-    const conectado = demo || !!leer('sp-token');
-    $('estado-sp').textContent = demo ? 'Modo demo: no suena nada de verdad.'
-      : !SP_ID ? 'Falta SPOTIFY_CLIENT_ID en config.js.' : conectado ? 'Spotify conectado.' : 'Spotify sin conectar.';
-    $('btn-spotify').hidden = demo || !SP_ID || conectado;
-    $('btn-arrancar').hidden = !(demo || (SP_ID && conectado));
-    await refrescar();
-    setInterval(() => { if (!document.hidden) refrescar().catch(() => {}); }, 4000);
+    const { data } = await db.rpc('rockola_panel_permiso');
+    perfil = data || '';
+    await terminarConexion();
+    await refrescarTodo();
+    setInterval(() => { if (!document.hidden) refrescarCola().catch(() => {}); }, 4000);
+    setInterval(() => { if (!document.hidden) refrescarSpotify().catch(() => {}); }, 15000);
   }
 
   $('btn-spotify').addEventListener('click', conectarSpotify);
-  $('btn-arrancar').addEventListener('click', arrancar);
-  $('btn-saltar').addEventListener('click', () => { if (corriendo) { clearTimeout(temporizador); cambiando = false; avanzar(true); } else toast('Arranca la rockola primero'); });
-  $('btn-pausa').addEventListener('click', async () => {
+  $('btn-desconectar').addEventListener('click', () => { if (confirm('¿Desconectar la cuenta de Spotify? La rockola dejará de sonar hasta volver a conectarla.')) hacer('desconectar', null, 'Spotify desconectado'); });
+  $('btn-pausar').addEventListener('click', () => hacer(sp && sp.reproductor && sp.reproductor.pausada ? 'reanudar' : 'pausar'));
+  $('btn-saltar').addEventListener('click', () => hacer('saltar', null, 'Saltada'));
+  $('btn-pedidos').addEventListener('click', async () => {
     const { error } = await db.rpc('rockola_activar', { p_activa: !(estado && estado.activa) });
-    if (error) toast(pedirError(error), 'error'); else refrescar();
+    if (error) toast(pedirError(error), 'error'); else refrescarCola();
   });
-  $('volumen').addEventListener('input', (e) => { volumen = e.target.value / 100; if (sdk && sdk.setVolume) sdk.setVolume(volumen); });
+  let esperaVolumen = null;
+  $('volumen').addEventListener('input', (e) => { clearTimeout(esperaVolumen); esperaVolumen = setTimeout(() => llamar('volumen', { valor: Number(e.target.value) }).catch((x) => toast(pedirError(x), 'error')), 350); });
   $('btn-salir').addEventListener('click', async () => { await db.auth.signOut(); location.reload(); });
   $('login').addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -177,11 +142,10 @@
     const correo = String(f.get('usuario')).trim().toLowerCase() + dominio, clave = String(f.get('clave'));
     let { error } = await db.auth.signInWithPassword({ email: correo, password: clave });
     if (error && /invalid login/i.test(error.message)) ({ error } = await db.auth.signInWithPassword({ email: correo, password: clave + SUFIJO_VIEJO }));
-    if (error) $('login-error').textContent = 'Usuario o clave incorrectos'; else mostrarPanel();
+    if (error) $('login-error').textContent = 'Usuario o contraseña incorrectos'; else mostrarPanel();
   });
 
   (async () => {
-    await terminarConexion();
     const { data } = await db.auth.getSession();
     if (data.session) mostrarPanel(); else $('login').hidden = false;
   })();

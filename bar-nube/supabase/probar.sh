@@ -39,6 +39,9 @@ $PSQL -f pruebas_puntos.sql
 $PSQL -f admin.sql
 $PSQL -f admin.sql                    # idempotente
 $PSQL -f pruebas_admin.sql
+$PSQL -f rockola_control.sql
+$PSQL -f rockola_control.sql         # idempotente
+$PSQL -f pruebas_control.sql
 echo "== concurrencia: 8 sesiones × 25 toques sobre el mismo producto"
 PROD=$($PSQL -At -c "select id from productos where nombre='Poker'")
 MESA=$($PSQL -At -c "select id from mesas where nombre='Mesa 3'")
