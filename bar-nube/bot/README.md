@@ -69,11 +69,21 @@ Si el repositorio es privado, `git clone` pide usuario y, como contraseña, un *
 
 (En el servidor se hace igual: entra por SSH, ve a la carpeta del bot y ejecuta `npm start`.)
 
-1. `npm start`. A los pocos segundos imprime **«CÓDIGO DE VINCULACIÓN: XXXX-XXXX»**.
-2. En WhatsApp del celular de la SIM: **Ajustes → Dispositivos vinculados → Vincular un dispositivo → Vincular con número de teléfono**, y escribe el código.
-3. El bot imprime «Conectado a WhatsApp ✅». Desde **otro celular**, escríbele `hola` a 310 866 0167. Debe responder con la bienvenida.
+Hay dos formas de vincular; **la del QR es la que recomiendo** (es la más fiable):
+
+**A. Con QR (por defecto)**
+1. `npm start`. A los pocos segundos dibuja un **QR en la terminal** (se renueva solo cada ~20 s). Si se ve cortado, achica la letra (en Termux, pellizca la pantalla) o ensancha la ventana.
+2. En WhatsApp del celular de la SIM: **Ajustes → Dispositivos vinculados → Vincular un dispositivo** y apunta la cámara al QR. Si manejas el bot desde un computador por SSH, escanea la pantalla del computador.
+
+**B. Con código de teléfono** (`npm run codigo`)
+Imprime un código de 8 caracteres; en WhatsApp: *Vincular un dispositivo → Vincular con número de teléfono* y lo escribes. Ojo: el código vence en pocos minutos y a veces WhatsApp responde «No se pudo vincular el dispositivo» aunque esté bien escrito; si pasa, usa el QR.
+
+Después de vincular, los dos caminos siguen igual:
+3. El bot imprime «Conectado a WhatsApp ✅» (justo después puede decir «Reiniciando conexión»: es normal). Desde **otro celular**, escríbele `hola` a 310 866 0167. Debe responder con la bienvenida.
 4. Prueba: `morat` → elige `1` → `cola`. (Comprueba en `rockola/player.html` o en el TV que la canción entró.)
 5. Corta con `Ctrl+C`: ya quedó vinculado (la sesión vive en la carpeta `auth/`, no la borres ni la subas).
+
+Si antes intentaste vincular y quedó a medias, empieza limpio: `rm -rf auth`.
 
 ## Dejarlo prendido 24/7 (en Termux)
 
@@ -104,7 +114,7 @@ cd Centinela && git sparse-checkout set bar-nube/bot && cd bar-nube/bot
 npm install
 cp .env.example .env && nano .env     # llave service_role en SUPABASE_SERVICE_KEY
 
-# 3. Vincular el número (una vez): npm start, escribir el código en WhatsApp, Ctrl+C al ver «Conectado»
+# 3. Vincular el número (una vez): npm start, escanear el QR con WhatsApp, Ctrl+C al ver «Conectado»
 npm start
 
 # 4. Dejarlo como servicio: arranca con la máquina y se reinicia solo si se cae

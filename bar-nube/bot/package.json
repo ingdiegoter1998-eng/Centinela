@@ -7,11 +7,14 @@
   "engines": { "node": ">=20.6" },
   "scripts": {
     "start": "node --env-file=.env src/index.js",
+    "qr": "node --env-file=.env src/index.js --qr",
+    "codigo": "node --env-file=.env src/index.js --codigo",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "@whiskeysockets/baileys": "^6.7.0",
-    "pino": "^9.0.0"
+    "pino": "^9.0.0",
+    "qrcode-terminal": "^0.12.0"
   }
 }

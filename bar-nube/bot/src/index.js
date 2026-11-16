@@ -1,9 +1,10 @@
-// Bot de WhatsApp de la rockola. Se vincula como «dispositivo vinculado» a la SIM del bar con un código de
-// 8 caracteres (no hay QR que escanear: el celular del bot es el mismo que tiene la SIM).
+// Bot de WhatsApp de la rockola. Se vincula como «dispositivo vinculado» a la SIM del bar: con un QR en la terminal
+// (por defecto) o con un código de 8 caracteres (`--codigo`).
 // Ojo: Baileys no es oficial; WhatsApp puede banear el número. Por eso: número solo para esto, pocas respuestas,
 // pausas cortas «de humano» y límite de mensajes por persona.
 import makeWASocketMod, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
 import pino from 'pino';
+import qrcode from 'qrcode-terminal';
 import { crearApi } from './api.js';
 import { crearBot } from './logica.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
@@ -14,6 +15,10 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !BOT_NUMBER) {
   console.error('Faltan SUPABASE_URL, SUPABASE_SERVICE_KEY o BOT_NUMBER en el archivo .env (mira .env.example).');
   process.exit(2);          // 2 = no reiniciar (start.sh se detiene)
 }
+
+// Cómo vincular el número la primera vez: «qr» (por defecto: se dibuja un QR en la terminal y se escanea desde
+// WhatsApp → Dispositivos vinculados → Vincular un dispositivo) o «codigo» (código de 8 caracteres por número de teléfono).
+const MODO = process.argv.includes('--codigo') ? 'codigo' : process.argv.includes('--qr') ? 'qr' : String(process.env.LINK_MODE || 'qr').toLowerCase();
 
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
 const api = crearApi({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY });
@@ -73,7 +78,7 @@ async function conectar() {
   sock = makeWASocket({ auth: state, version, logger: pino({ level: 'warn' }), printQRInTerminal: false, browser: ['Rockola', 'Chrome', '1.0'], markOnlineOnConnect: false });
   resolvedor.ponerSock(sock);
 
-  if (!sock.authState.creds.registered) {
+  if (!sock.authState.creds.registered && MODO === 'codigo') {
     setTimeout(async () => {
       try {
         const codigo = await sock.requestPairingCode(BOT_NUMBER);
@@ -83,7 +88,11 @@ async function conectar() {
   }
 
   sock.ev.on('creds.update', saveCreds);
-  sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
+  sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+    if (qr && MODO === 'qr') {
+      console.log('\n=== ESCANEA ESTE QR (se renueva solo cada ~20 s) ===\nEn WhatsApp del celular de la SIM: Ajustes → Dispositivos vinculados → Vincular un dispositivo, y apunta la cámara a la pantalla.\nSi el dibujo se ve cortado, achica la letra (en Termux: pellizca la pantalla) o ensancha la ventana.\n');
+      qrcode.generate(qr, { small: true });
+    }
     if (connection === 'open') log.info('Conectado a WhatsApp ✅');
     if (connection === 'close') {
       const codigo = lastDisconnect?.error?.output?.statusCode;
@@ -91,8 +100,10 @@ async function conectar() {
         log.error('WhatsApp cerró la sesión (o la vinculación se borró). Borra la carpeta auth/ y vuelve a vincular.');
         process.exit(2);
       }
-      log.warn({ codigo }, 'Conexión cerrada, reintentando en 5 s…');
-      setTimeout(conectar, 5000);
+      // Justo después de vincular, WhatsApp pide reiniciar la conexión: es normal y se hace de inmediato.
+      const espera = codigo === DisconnectReason.restartRequired ? 0 : 5000;
+      log.warn({ codigo }, espera ? 'Conexión cerrada, reintentando en 5 s…' : 'Reiniciando conexión (normal tras vincular)…');
+      setTimeout(conectar, espera);
     }
   });
   sock.ev.on('messages.upsert', ({ messages, type }) => {
