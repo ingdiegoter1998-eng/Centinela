@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0807">
+  <title>Rockola · Callejón del Gato</title>
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="stylesheet" href="rockola.css">
+</head>
+<body>
+  <main>
+    <header>
+      <img src="../logo.png" alt="">
+      <h1>Rockola</h1>
+      <small id="mesa-txt"></small>
+    </header>
+    <div id="pausa" class="pausa" hidden>La rockola está en pausa por ahora 🤫</div>
+    <form class="buscar" id="form-buscar" autocomplete="off">
+      <input id="q" type="search" placeholder="Busca tu canción o artista…" maxlength="100" enterkeyhint="search">
+      <button class="btn principal">Buscar</button>
+    </form>
+    <div id="resultados"></div>
+
+    <h2>Sonando ahora</h2>
+    <div id="ahora"></div>
+    <h2>Siguientes <span id="n-cola" class="suave"></span></h2>
+    <div id="cola"></div>
+    <p class="suave" id="limite" style="text-align:center"></p>
+  </main>
+  <script src="../config.js"></script>
+  <script src="../vendor/supabase.js"></script>
+  <script src="comun.js"></script>
+  <script src="rockola.js"></script>
+</body>
+</html>

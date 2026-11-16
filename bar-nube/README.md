@@ -57,6 +57,29 @@ tarjeta). **Inventario** (alertas, entradas, conteo), **Ventas** (por jornada, g
 Todo se ve al instante en los demás celulares (Supabase Realtime) y, por si el WiFi falla un momento, se
 relee solo cada pocos segundos. Si no hay conexión aparece un aviso rojo y se recupera solo.
 
+## Rockola (`rockola/`)
+
+Los clientes escanean un QR, buscan una canción y la piden; suena en vivo en el bar por orden de llegada.
+
+| Pantalla | URL (tras publicar) | Quién |
+|---|---|---|
+| Cliente | `/bar/rockola/?mesa=5` (un QR por mesa) | Cualquiera, sin cuenta |
+| Reproductor | `/bar/rockola/player.html` | Personal (mismo usuario y clave de la app), en el PC/tablet del bar con la pestaña abierta |
+
+Puesta en marcha (una vez):
+1. `./supabase/aplicar.sh rockola.sql` (después de `schema.sql`; si vuelves a correr `schema.sql`, corre este otra vez).
+2. **Spotify** (necesita una cuenta **Premium** en el PC del bar): crear una app en developer.spotify.com, agregar como Redirect URI
+   `https://<usuario>.github.io/Centinela/bar/rockola/player.html`, y poner su Client ID en `config.js` (`SPOTIFY_CLIENT_ID`, público).
+3. Búsqueda para los clientes: `supabase secrets set SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=...` y
+   `supabase functions deploy rockola-buscar --no-verify-jwt` (el secreto vive solo en Supabase).
+4. En el PC del bar: abrir el reproductor, entrar, *Conectar Spotify* y *Arrancar rockola* (el navegador exige ese clic para dejar sonar).
+
+Probar sin Spotify: agregar `?demo` a ambas URLs (canciones de mentira de 15 s).
+
+Reglas (las impone la base, no la pantalla): máx. 2 pedidos en cola por celular, cola de 30, una canción no se repite si
+está en cola o sonó hace menos de 60 min, y el personal puede saltar, quitar o pausar los pedidos. Los ajustes viven en `rockola_config`.
+La cola ordena por `puntos` y luego por llegada; hoy `puntos` es siempre 0, así que el futuro sistema de puntos solo tiene que llenarlo.
+
 ## Qué conviene saber
 
 - **Costos visibles por la API**: la pantalla del barman esconde costos y ganancias, pero técnicamente puede leer la
