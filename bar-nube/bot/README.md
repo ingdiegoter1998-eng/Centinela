@@ -1,6 +1,6 @@
 # Bot de WhatsApp de la rockola
 
-El cliente le escribe a la SIM del bar (**317 046 2345**), pide la canción por texto y la paga con puntos.
+El cliente le escribe a la SIM del bar (**310 866 0167**), pide la canción por texto y la paga con puntos.
 
 ```
 Cliente:  besos en guerra morat
@@ -36,7 +36,7 @@ El bot es un programa de Node que tiene que estar prendido todo el tiempo. Sirve
 ## Qué necesitas
 
 - Un lugar donde correrlo (arriba). Para Termux: el Android con **Termux** instalado desde **F-Droid** (la versión de Play Store está vieja y no sirve), enchufado y con WiFi.
-- La SIM 317 046 2345 con WhatsApp ya activado en algún celular; el bot se vincula como «dispositivo vinculado», así que ese celular no tiene que ser el que corre el bot.
+- La SIM 310 866 0167 con WhatsApp ya activado en algún celular; el bot se vincula como «dispositivo vinculado», así que ese celular no tiene que ser el que corre el bot.
 - Antes de arrancar, en Supabase deben estar aplicados `rockola.sql` y `rockola_puntos.sql`, y desplegada la función `rockola-buscar` con sus secretos de Spotify.
 - La llave **service_role** de Supabase (Project Settings → API). Es secreta: da acceso total a la base. Solo va en el `.env` de este celular.
 
@@ -71,7 +71,7 @@ Si el repositorio es privado, `git clone` pide usuario y, como contraseña, un *
 
 1. `npm start`. A los pocos segundos imprime **«CÓDIGO DE VINCULACIÓN: XXXX-XXXX»**.
 2. En WhatsApp del celular de la SIM: **Ajustes → Dispositivos vinculados → Vincular un dispositivo → Vincular con número de teléfono**, y escribe el código.
-3. El bot imprime «Conectado a WhatsApp ✅». Desde **otro celular**, escríbele `hola` a 317 046 2345. Debe responder con la bienvenida.
+3. El bot imprime «Conectado a WhatsApp ✅». Desde **otro celular**, escríbele `hola` a 310 866 0167. Debe responder con la bienvenida.
 4. Prueba: `morat` → elige `1` → `cola`. (Comprueba en `rockola/player.html` o en el TV que la canción entró.)
 5. Corta con `Ctrl+C`: ya quedó vinculado (la sesión vive en la carpeta `auth/`, no la borres ni la subas).
 
