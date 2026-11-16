@@ -1,0 +1,21 @@
+# Servicio de systemd para el bot (servidores Linux). Instalar:
+#   sudo cp deploy/rockola-bot.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now rockola-bot
+# Ajusta User y las dos rutas a donde quedó la carpeta bar-nube/bot (aquí: usuario «ubuntu», clon en su casa).
+[Unit]
+Description=Bot de WhatsApp de la rockola
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Centinela/bar-nube/bot
+ExecStart=/usr/bin/node --env-file=.env src/index.js
+Restart=always
+RestartSec=10
+# Código 2 = pide intervención (falta .env o WhatsApp cerró la vinculación): no insistir.
+RestartPreventExitStatus=2
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
