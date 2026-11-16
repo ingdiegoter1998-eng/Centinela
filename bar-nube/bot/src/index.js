@@ -10,7 +10,6 @@ import { crearBot, paraElBot } from './logica.js';
 import { crearEco } from './eco.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
 import { crearVigilante, esFalloDeDescifrado, seLeyoBien } from './vigilante.js';
-import { limpiarSesiones, marcarReparacion, ultimaReparacion, olvidarReparacion, decidirReparacion } from './sesion.js';
 import { tomarBloqueo } from './bloqueo.js';
 
 const makeWASocket = makeWASocketMod.default || makeWASocketMod;
@@ -45,35 +44,21 @@ const digitos = (jid) => String(jid || '').split('@')[0].split(':')[0].replace(/
 
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-// Si WhatsApp y el bot quedan con llaves de cifrado distintas, ningún mensaje se puede leer («Bad MAC»). Se vigila el
-// log de Baileys: con varios fallos seguidos y ninguna lectura buena en medio se limpia la sesión y se reinicia; si vuelve
-// a pasar enseguida, se avisa que hay que vincular de nuevo (ver sesion.js).
+// Vigilante del descifrado: solo AVISA. Tras vincular, y con mensajes viejos, es normal ver «Bad MAC» y «No matching sessions found»
+// durante minutos: Baileys le pide al celular que reenvíe y se arregla solo. NO se borra ni se reinicia nada automáticamente (una
+// versión anterior lo hacía y dañó una sesión sana). Si de verdad llevan muchos y largo rato, se dice qué hacer, una vez.
 const AUTH = 'auth';
 const vigilante = crearVigilante();
-let reparando = false;
-function sesionDanada() {
-  if (reparando) return;
-  reparando = true;
-  setImmediate(() => {
-    const que = decidirReparacion({ ultima: ultimaReparacion(AUTH) });
-    if (que === 'limpiar') {
-      const n = limpiarSesiones(AUTH);
-      marcarReparacion(AUTH);
-      log.error({ borrados: n }, 'Los mensajes no se pueden descifrar («Bad MAC»). Limpié las llaves de conversación y reinicio para que se renegocien.');
-      process.exit(1);          // start.sh lo vuelve a levantar solo a los 10 s; con `npm start` hay que arrancarlo otra vez
-    }
-    console.error(`\nSigue sin poder descifrar los mensajes aunque ya limpié la sesión: la vinculación quedó dañada.
-Hay que vincular de nuevo, en este orden:
-  1. En el celular de la SIM: WhatsApp → Dispositivos vinculados → toca el dispositivo del bot → Cerrar sesión (borra también los viejos).
-  2. Cierra Termux del todo (en la notificación toca EXIT) y ábrelo otra vez.
-  3. cd ~/Centinela/bar-nube/bot && rm -rf auth && npm start   y escanea el QR.
-  4. Déjalo prendido 2 minutos y recién ahí escríbele.\n`);
-    process.exit(2);
-  });
+function avisoDeDescifrado() {
+  console.error(`\nLlevo muchos mensajes seguidos que no puedo descifrar y ninguno bien leído. Casi siempre se arregla solo: dale unos minutos.
+Si pasan 15 minutos más sin que lea nada, en este orden (parando en cuanto funcione):
+  1. Reiniciar el bot: Ctrl+C y ./start.sh   (si hay otra copia en otro Termux o tmux, ciérrala: dos copias se pisan).
+  2. npm run reparar   (borra solo las llaves de conversación; apaga el bot antes) y ./start.sh
+  3. Último recurso, vincular de nuevo: WhatsApp > Dispositivos vinculados > cerrar sesión del bot, y rm -rf auth && ./start.sh\n`);
 }
 const logBaileys = pino({
   level: 'warn',
-  hooks: { logMethod(args, method) { if (esFalloDeDescifrado(args) && vigilante.fallo()) sesionDanada(); return method.apply(this, args); } },
+  hooks: { logMethod(args, method) { if (esFalloDeDescifrado(args) && vigilante.fallo()) avisoDeDescifrado(); return method.apply(this, args); } },
 });
 const api = crearApi({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY });
 const resolvedor = crearResolvedor({});
@@ -181,7 +166,7 @@ async function conectar() {
       console.log('\n=== ESCANEA ESTE QR (se renueva solo cada ~20 s) ===\nEn WhatsApp del celular de la SIM: Ajustes → Dispositivos vinculados → Vincular un dispositivo, y apunta la cámara a la pantalla.\nSi el dibujo se ve cortado, achica la letra (en Termux: pellizca la pantalla) o ensancha la ventana.\n');
       qrcode.generate(qr, { small: true });
     }
-    if (isNewLogin) console.log('\nVinculado. NO lo cortes todavía: déjalo prendido unos 2 minutos mientras WhatsApp termina de sincronizar con el bot.\n');
+    if (isNewLogin) console.log('\nVinculado. NO lo cortes ni lo reinicies: es normal ver errores de cifrado (Bad MAC, Timed Out) durante varios minutos; déjalo prendido.\n');
     if (connection === 'open') log.info('Conectado a WhatsApp');
     if (connection === 'close') {
       const codigo = lastDisconnect?.error?.output?.statusCode;
@@ -197,7 +182,7 @@ async function conectar() {
   });
   s.ev.on('messages.upsert', ({ messages, type }) => {
     if (s !== sock) return;
-    if (messages.some(seLeyoBien)) { vigilante.ok(); olvidarReparacion(AUTH); }   // se están leyendo bien: la sesión está sana
+    if (messages.some(seLeyoBien)) vigilante.ok();   // se están leyendo bien: la sesión está sana
     if (type !== 'notify') return;
     for (const m of messages) alMensaje(m).catch((e) => log.error({ err: e.message }, 'error atendiendo mensaje'));
   });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { limpiarSesiones, marcarReparacion, ultimaReparacion, olvidarReparacion, decidirReparacion } from '../src/sesion.js';
+import { limpiarSesiones } from '../src/sesion.js';
 import { crearVigilante, esFalloDeDescifrado, seLeyoBien } from '../src/vigilante.js';
 import { tomarBloqueo, procesoVivo } from '../src/bloqueo.js';
 
@@ -15,23 +15,6 @@ test('limpiarSesiones borra las llaves de conversación y conserva la identidad 
   assert.equal(limpiarSesiones(d), 3);
   assert.deepEqual(fs.readdirSync(d).sort(), ['app-state-sync-key-AAA.json', 'creds.json', 'pre-key-1.json']);
   assert.equal(limpiarSesiones(path.join(d, 'no-existe')), 0, 'carpeta inexistente no rompe');
-});
-
-test('la marca de reparación se guarda, se lee y se olvida', () => {
-  const d = tmp();
-  assert.equal(ultimaReparacion(d), 0);
-  marcarReparacion(d, 1234);
-  assert.equal(ultimaReparacion(d), 1234);
-  olvidarReparacion(d);
-  assert.equal(ultimaReparacion(d), 0);
-  olvidarReparacion(d);   // dos veces no rompe
-});
-
-test('decidirReparacion: primero limpiar; si ya se limpió hace poco, vincular de nuevo; pasado un rato, limpiar otra vez', () => {
-  const min = 60_000;
-  assert.equal(decidirReparacion({ ultima: 0, ahora: 1_000_000 }), 'limpiar');
-  assert.equal(decidirReparacion({ ultima: 1_000_000, ahora: 1_000_000 + 5 * min }), 'revincular');
-  assert.equal(decidirReparacion({ ultima: 1_000_000, ahora: 1_000_000 + 31 * min }), 'limpiar');
 });
 
 test('esFalloDeDescifrado: cuenta los chats uno a uno, no los estados ni los grupos', () => {
@@ -52,21 +35,27 @@ test('seLeyoBien: solo cuenta mensajes con contenido de chats uno a uno', () => 
   assert.equal(seLeyoBien({ key: { remoteJid: 'status@broadcast' }, message: { conversation: 'x' } }), false, 'un estado leído no prueba que los chats funcionen');
 });
 
-test('vigilante: avisa con 6 fallos seguidos, y cualquier lectura buena lo reinicia', () => {
+test('vigilante: avisa solo con MUCHOS fallos seguidos (30), una vez, y cualquier lectura buena lo reinicia', () => {
   let t = 0; const v = crearVigilante({ ahora: () => t });
-  for (let i = 0; i < 5; i++) { t += 5000; assert.equal(v.fallo(), false); }
-  t += 5000; assert.equal(v.fallo(), true, 'el sexto seguido');
+  for (let i = 0; i < 29; i++) { t += 5000; assert.equal(v.fallo(), false, `fallo ${i + 1}: lo de los primeros minutos tras vincular es normal`); }
+  t += 5000; assert.equal(v.fallo(), true, 'el 30 seguido');
+  assert.equal(v.seguidos, 0, 'tras avisar vuelve a contar: no repite el aviso en cada fallo');
+  for (let i = 0; i < 29; i++) { t += 5000; assert.equal(v.fallo(), false); }
   v.ok();
-  assert.equal(v.seguidos, 0);
-  for (let i = 0; i < 5; i++) { t += 5000; assert.equal(v.fallo(), false); }
-  v.ok();
-  for (let i = 0; i < 5; i++) { t += 5000; assert.equal(v.fallo(), false, 'con una lectura buena en medio nunca llega al sexto'); }
+  for (let i = 0; i < 29; i++) { t += 5000; assert.equal(v.fallo(), false, 'con una lectura buena en medio no llega a 30'); }
 });
 
-test('vigilante: fallos viejos (fuera de la ventana) no se suman', () => {
-  let t = 0; const v = crearVigilante({ ahora: () => t, ventanaMs: 120_000 });
-  for (let i = 0; i < 5; i++) { t += 10_000; v.fallo(); }
-  t += 10 * 60_000;
+test('vigilante: el caso real del log (73 fallos, uno cada 5 s) no avisa antes de ~2,5 minutos y nunca borra nada', () => {
+  let t = 0; const v = crearVigilante({ ahora: () => t });
+  let primerAviso = null;
+  for (let i = 1; i <= 73; i++) { t += 5200; if (v.fallo() && primerAviso === null) primerAviso = Math.round(t / 1000); }
+  assert.ok(primerAviso >= 150, `avisó a los ${primerAviso} s`);
+});
+
+test('vigilante: fallos viejos (fuera de la ventana de 15 min) no se suman', () => {
+  let t = 0; const v = crearVigilante({ ahora: () => t });
+  for (let i = 0; i < 20; i++) { t += 10_000; v.fallo(); }
+  t += 20 * 60_000;
   assert.equal(v.fallo(), false);
   assert.equal(v.seguidos, 1);
 });

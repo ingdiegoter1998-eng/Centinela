@@ -1,5 +1,5 @@
-// Vigila el descifrado: si muchos mensajes seguidos de chats uno a uno no se pueden leer y ninguno se lee bien, la
-// sesión de cifrado está dañada (ver sesion.js). Los fallos de estados y grupos son normales y no cuentan.
+// Vigila el descifrado para AVISAR (nunca actúa): si muchísimos mensajes seguidos de chats uno a uno no se pueden leer durante
+// un buen rato y ninguno se lee bien, probablemente la sesión de cifrado está dañada. Los fallos de estados y grupos son normales y no cuentan.
 
 const CHAT_UNO_A_UNO = /@(s\.whatsapp\.net|lid)$/;
 
@@ -16,15 +16,18 @@ export function seLeyoBien(m) {
   return !!m?.message && CHAT_UNO_A_UNO.test(String(m?.key?.remoteJid || ''));
 }
 
-// fallo() devuelve true cuando ya son demasiados seguidos (`umbral` dentro de `ventanaMs`, sin ningún mensaje bien leído en medio).
-export function crearVigilante({ ahora = () => Date.now(), umbral = 6, ventanaMs = 120_000 } = {}) {
+// fallo() devuelve true cuando ya son MUCHOS seguidos (`umbral` dentro de `ventanaMs`, sin ningún mensaje bien leído en medio) y
+// vuelve a empezar la cuenta: sirve para avisar, nunca para actuar. Tras vincular es normal ver decenas de fallos durante minutos.
+export function crearVigilante({ ahora = () => Date.now(), umbral = 30, ventanaMs = 15 * 60_000 } = {}) {
   let fallos = [];
   return {
     fallo() {
       const t = ahora();
       fallos = fallos.filter((x) => t - x <= ventanaMs);
       fallos.push(t);
-      return fallos.length >= umbral;
+      if (fallos.length < umbral) return false;
+      fallos = [];
+      return true;
     },
     ok() { fallos = []; },
     get seguidos() { return fallos.length; },
