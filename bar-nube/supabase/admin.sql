@@ -46,24 +46,30 @@ begin
 end $$;
 
 -- ── Comisión del trabajador: reglas por categoría ───────────────────────────────────────────
--- base 'ganancia' = (precio - costo) × cantidad;  base 'venta' = precio × cantidad.
+-- base 'ganancia' = pct % de (precio - costo) × cantidad;  base 'venta' = pct % de precio × cantidad;
+-- base 'unidad' = monto fijo en pesos por cada unidad vendida (sin importar la presentación ni el precio).
 create table if not exists comision_reglas (
   categoria_id bigint primary key references categorias(id) on delete cascade,
   pct          numeric(5, 2) not null check (pct >= 0 and pct <= 100),
-  base         text not null default 'ganancia' check (base in ('ganancia', 'venta')),
+  base         text not null default 'ganancia' check (base in ('ganancia', 'venta', 'unidad')),
+  monto        int  not null default 0 check (monto >= 0),
   nota         text not null default ''
 );
+-- Si la tabla ya existía de antes: agregar el monto fijo y permitir la base 'unidad'.
+alter table comision_reglas add column if not exists monto int not null default 0 check (monto >= 0);
+alter table comision_reglas drop constraint if exists comision_reglas_base_check;
+alter table comision_reglas add constraint comision_reglas_base_check check (base in ('ganancia', 'venta', 'unidad'));
 alter table comision_reglas enable row level security;
 drop policy if exists admin_todo on comision_reglas;
 create policy admin_todo on comision_reglas for all to authenticated using (es_admin()) with check (es_admin());
--- Arranque según lo hablado con el dueño: 50 % de la ganancia de la cerveza no artesanal y ~20 % de la
--- venta de la artesanal (su costo aún no está cargado). Se ajusta desde el panel.
+-- Según el dueño: 50 % de la ganancia de la cerveza no artesanal y $4.000 fijos por cada cerveza artesanal
+-- vendida (cualquier presentación). Se ajusta desde el panel.
 insert into comision_reglas (categoria_id, pct, base, nota)
 select id, 50, 'ganancia', 'Cerveza no artesanal' from categorias where nombre = 'Cervezas'
 on conflict do nothing;
-insert into comision_reglas (categoria_id, pct, base, nota)
-select id, 20, 'venta', 'Cerveza artesanal (aprox.)' from categorias where nombre = 'Cervezas artesanales'
-on conflict do nothing;
+insert into comision_reglas (categoria_id, pct, base, monto, nota)
+select id, 0, 'unidad', 4000, 'Cerveza artesanal: $4.000 por cada una vendida' from categorias where nombre = 'Cervezas artesanales'
+on conflict (categoria_id) do update set pct = 0, base = 'unidad', monto = 4000, nota = excluded.nota;
 
 -- ── Ayudas ──────────────────────────────────────────────────────────────────────────────────
 create or replace function _jornada(p_ts timestamptz) returns date
@@ -183,13 +189,14 @@ begin
     select l.*, p.categoria_id from facturas f join lineas l on l.factura_id = f.id join productos p on p.id = l.producto_id
      where f.estado = 'pagada' and f.cerrada_en >= _inicio(p_desde) and f.cerrada_en < _inicio(p_hasta + 1)
   ), r as (
-    select c.nombre as categoria, k.pct, k.base, k.nota,
+    select c.nombre as categoria, k.pct, k.base, k.monto, k.nota,
            sum(l.cantidad)::int as unidades,
            sum(l.cantidad * l.precio)::int as venta,
            sum(l.cantidad * (l.precio - l.costo))::int as ganancia,
-           round(sum(case k.base when 'venta' then l.cantidad * l.precio else l.cantidad * (l.precio - l.costo) end) * k.pct / 100)::int as comision
+           case k.base when 'unidad' then (sum(l.cantidad) * k.monto)::int
+                else round(sum(case k.base when 'venta' then l.cantidad * l.precio else l.cantidad * (l.precio - l.costo) end) * k.pct / 100)::int end as comision
       from l join comision_reglas k on k.categoria_id = l.categoria_id join categorias c on c.id = l.categoria_id
-     group by c.nombre, k.pct, k.base, k.nota
+     group by c.nombre, k.pct, k.base, k.monto, k.nota
   )
   select jsonb_build_object(
     'detalle', coalesce((select jsonb_agg(to_jsonb(r) order by r.categoria) from r), '[]'),

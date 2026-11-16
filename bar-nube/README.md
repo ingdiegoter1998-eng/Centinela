@@ -72,7 +72,7 @@ no entra. Todo lo que lee lo impone la base (RLS y funciones con `es_admin()`), 
 | Inventario | Valor a costo, por reponer, stock negativo (compras sin cargar), existencias y últimos movimientos |
 | Rockola | Cola, pausar y saltar, **clasificar artistas por género**, géneros y multiplicadores, **lista negra**, pedidos recientes y reporte (géneros, canciones y artistas más pedidos) |
 | Puntos | **Dar puntos por celular con motivo** (solo admin, queda anotado quién), saldos, ficha y libro de cada cliente |
-| Trabajador | Comisión por categoría con reglas editables (arranca en 50 % de la ganancia de la cerveza no artesanal y 20 % de la venta de la artesanal), quién cobró y cuentas anuladas |
+| Trabajador | Comisión por categoría con reglas editables (arranca en 50 % de la ganancia de la cerveza no artesanal y $4.000 fijos por cada cerveza artesanal vendida, sea cual sea su presentación), quién cobró y cuentas anuladas |
 
 Las jornadas van de 6:00 AM a 6:00 AM (Bogotá). Puesta en marcha: pegar `supabase/admin.sql` en el SQL Editor (después de
 `schema.sql`, `rockola.sql` y `rockola_puntos.sql`; es seguro repetirlo). Desde ese momento cada cobro y cada anulación
