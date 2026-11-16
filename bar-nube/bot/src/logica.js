@@ -10,6 +10,7 @@
 
 const OPCIONES = 3;
 const VIDA_OPCIONES_MS = 5 * 60 * 1000;
+export const VIDA_NUMERO_SUELTO_MS = 3 * 60 * 1000;   // un número sin comillas solo vale si las opciones se mostraron hace menos de esto
 const NUMEROS = ['1)', '2)', '3)'];
 export const LEMA = 'Pon tu música, tu caos';
 
@@ -42,6 +43,23 @@ export function paraElBot({ texto, fromMe = false, propio = false, soloComillas 
   if (fromMe && !(aceptarPropio && propio)) return null;
   if (!soloComillas) return t;
   return entreComillas(t);
+}
+
+// Un «1», «2» o «3» suelto (también «1.» o «1)»). Devuelve el dígito o null.
+export function numeroSuelto(texto) {
+  const m = String(texto || '').match(/^\s*([1-3])\s*[.)]?\s*$/);
+  return m ? m[1] : null;
+}
+
+// Como paraElBot, pero con una excepción a la regla de las comillas: si la persona acaba de recibir opciones de una búsqueda
+// (`busquedaAbierta()` → true) y responde solo «1», «2» o «3» sin comillas, también cuenta. `busquedaAbierta` solo se llama
+// en ese caso (es asíncrona porque saber quién escribe puede requerir resolver su número).
+export async function textoParaElBot(args, busquedaAbierta) {
+  const t = paraElBot(args);
+  if (t !== null || !args.soloComillas) return t;
+  const suelto = numeroSuelto(paraElBot({ ...args, soloComillas: false }));   // respeta lo de fromMe / chat propio
+  if (suelto === null) return null;
+  return (await busquedaAbierta()) ? suelto : null;
 }
 
 const sinAcentos = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
@@ -104,9 +122,9 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000.`;
     const resultados = (await api.buscar(consulta)).slice(0, OPCIONES);
     if (!resultados.length) return `No encontré nada con «${consulta}». Prueba con el nombre de la canción y el artista.`;
     const opciones = await Promise.all(resultados.map(async (r) => ({ ...r, costo: await api.precio(r.proveedor, r.artista_ids) })));
-    pendientes.set(celular, { opciones, vence: ahora() + VIDA_OPCIONES_MS });
+    pendientes.set(celular, { opciones, vence: ahora() + VIDA_OPCIONES_MS, desde: ahora() });
     const est = await api.miEstado(celular);
-    return `Encontré esto:\n${opciones.map((o, i) => `${NUMEROS[i]} ${o.titulo} — ${o.artista} · ${pts(o.costo)}`).join('\n')}\n\nResponde con el número${comillas ? ' entre comillas' : ''}${opciones.length > 1 ? ` (${Q('1')} a ${Q(String(opciones.length))})` : ''}. Tienes ${pts(est.saldo)}.`;
+    return `Encontré esto:\n${opciones.map((o, i) => `${NUMEROS[i]} ${o.titulo} — ${o.artista} · ${pts(o.costo)}`).join('\n')}\n\nResponde con el número${opciones.length > 1 ? ` (1 a ${opciones.length})` : ''}${comillas ? ', con o sin comillas' : ''}. Tienes ${pts(est.saldo)}.`;
   }
 
   async function elegir(celular, nombre, n) {
@@ -152,5 +170,11 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000.`;
     return respuesta;
   }
 
-  return { manejar, _pendientes: pendientes };
+  // ¿Esta persona tiene opciones de una búsqueda recién mostradas (para aceptarle un número suelto sin comillas)?
+  const tieneBusqueda = (celular) => {
+    const p = pendientes.get(celular);
+    return !!p && p.vence >= ahora() && ahora() - p.desde <= VIDA_NUMERO_SUELTO_MS;
+  };
+
+  return { manejar, tieneBusqueda, _pendientes: pendientes };
 }

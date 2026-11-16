@@ -8,8 +8,8 @@ Cliente:  "besos en guerra morat"
 Bot:      Encontré esto:
           1) Besos en guerra — Morat · 8 puntos
           2) …
-          Responde con el número entre comillas ("1" a "3"). Tienes 16 puntos.
-Cliente:  "1"
+          Responde con el número (1 a 3), con o sin comillas. Tienes 16 puntos.
+Cliente:  1
 Bot:      Besos en guerra quedó en la cola. Va en el puesto 3. Gastaste 8 puntos, te quedan 8.
 ```
 
@@ -93,6 +93,8 @@ curvas (`“ ”`, las que pone el teclado del celular) y las latinas (`« »`).
 Lo que no viene así (una charla normal, «¿a qué hora abren?», una foto, un audio) el bot **no lo lee ni lo responde**, ni siquiera con
 la bienvenida. Por eso el mismo WhatsApp puede ser a la vez tu número de siempre y la rockola: solo contesta cuando alguien pide entre comillas.
 
+- **Excepción: el número de la respuesta.** Cuando el bot acaba de mostrar las opciones, basta con escribir `1`, `2` o `3` **sin comillas** (también `1.` o `1)`).
+  Solo vale si esa persona buscó una canción hace menos de 3 minutos y todavía no ha elegido; un «1» suelto en cualquier otro momento se ignora.
 - **Tu chat contigo mismo** («Tú» o «Mensajéate») también funciona, siempre que escribas entre comillas: `"morat"`, `"1"`, `"cola"`.
   Es la forma de probar sin un segundo celular. Tus puntos quedan a nombre del número de la SIM. El bot no se contesta a sí mismo en bucle.
 - **Lo que tú escribes a otras personas nunca lo atiende**, ni siquiera con comillas.
