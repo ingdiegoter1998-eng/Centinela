@@ -49,3 +49,7 @@ test('MusicBrainz: toma las etiquetas más votadas del artista con el mismo nomb
   assert.deepEqual(await etiquetasMusicBrainz('X', respuesta({}, false)), { ok: false });
   assert.deepEqual(await etiquetasMusicBrainz('X', async () => { throw new Error('red'); }), { ok: false });
 });
+
+test('Darío Gómez en MusicBrainz: «popular» + «latin» pesa más que «singer-songwriter» (en empate gana el más caro)', () => {
+  assert.equal(MULT[elegirGenero(['singer-songwriter', 'popular', 'latin'], MULT)], 3);
+});
