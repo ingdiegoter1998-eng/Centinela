@@ -3,3 +3,4 @@ node_modules/
 auth/
 numeros.json
 *.log
+auth.lock
