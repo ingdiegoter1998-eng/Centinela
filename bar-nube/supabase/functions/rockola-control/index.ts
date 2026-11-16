@@ -53,11 +53,14 @@ const db = {
   pausa: (v: boolean) => rpc('rockola_ctl_pausa', { p_pausada: v }),
 };
 
+// Lo que el DJ recuerda entre ticks mientras esta instancia siga viva (p. ej. cuándo reanudó por última vez).
+const memoria: Record<string, number> = {};
+
 // Un solo tick a la vez (el cron y el botón Saltar pueden coincidir).
 async function correrTick() {
   if (!(await rpc('rockola_ctl_tomar'))) return { accion: 'ocupado' };
   try {
-    return await tick({ db, sp, log: (...a: unknown[]) => console.log(...a) });
+    return await tick({ db, sp, memoria, log: (...a: unknown[]) => console.log(...a) });
   } finally {
     await rpc('rockola_ctl_soltar').catch(() => {});
   }

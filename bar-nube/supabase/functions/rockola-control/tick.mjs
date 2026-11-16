@@ -7,6 +7,8 @@ import { clasificar } from './spotify.mjs';
 export const VENTANA_ENCOLAR_MS = 20_000;   // cuánto antes del final se deja encolada la siguiente (el cron late cada ~5 s)
 export const GRACIA_MS = 8_000;             // tras arrancar una canción, Spotify tarda en reflejarlo: no se la contradice
 export const MIN_SONANDO_MS = 5_000;        // antes de esto, «detenida en 0» es el arranque, no el final
+export const MARGEN_FINAL_MS = 15_000;      // «detenida en 0» a más de esto del final no es que terminó: nunca arrancó
+export const REANUDAR_CADA_MS = 15_000;     // si Spotify sigue en pausa, se le insiste a este ritmo (no cada tick)
 
 export function elegirDispositivo(lista, preferidoId) {
   const libres = (lista || []).filter((d) => !d.is_restricted);
@@ -22,7 +24,8 @@ const MENSAJES = {
 // Solo para errores de Spotify (los demás, p. ej. de la base, se dejan con su propio mensaje).
 export const textoError = (err) => (err && err.status !== undefined ? MENSAJES[clasificar(err)] || null : null);
 
-export async function tick({ db, sp, ahora = Date.now, log = () => {} }) {
+// `memoria` (opcional) es un objeto que el llamador conserva entre ticks: sirve para no insistir con «reanudar» cada 5 s.
+export async function tick({ db, sp, ahora = Date.now, log = () => {}, memoria = {} }) {
   const e = await db.estado();
   if (!e.reproductor?.conectado) return { accion: 'sin_cuenta' };
 
@@ -83,8 +86,21 @@ export async function tick({ db, sp, ahora = Date.now, log = () => {} }) {
   const transcurrido = ahora() - Date.parse(s.empezo_en);
   if (st.item_id === s.pista_id) {
     const dur = st.item_duracion || s.duracion_ms || 0;
-    const termino = !st.reproduciendo && (st.progreso_ms === 0 || (dur > 0 && st.progreso_ms >= dur - 1500)) && transcurrido > MIN_SONANDO_MS;
+    // Detenida en 0 y lejos del final: el celular nunca la arrancó (dormido, Bluetooth), no es que haya terminado.
+    const nuncaArranco = st.progreso_ms === 0 && dur > 0 && transcurrido < dur - MARGEN_FINAL_MS;
+    const termino = !st.reproduciendo && !nuncaArranco && (st.progreso_ms === 0 || (dur > 0 && st.progreso_ms >= dur - 1500)) && transcurrido > MIN_SONANDO_MS;
     if (termino) return pasarALaSiguiente('sonada');
+    // Spotify en pausa sin que nadie la pausara desde el panel (la pausa del panel ya salió arriba): el DJ la reanuda.
+    if (!st.reproduciendo && transcurrido > GRACIA_MS) {
+      if (ahora() - (memoria.reanudo_en || 0) < REANUDAR_CADA_MS) return { accion: 'sonando' };
+      memoria.reanudo_en = ahora();
+      try { await sp.reanudar(disp.id); return { accion: 'reanudo', id: s.id }; }
+      catch (err) {
+        log('no pude reanudar', err.message);
+        await db.latido({ dispositivo: disp.name, dispositivo_id: disp.id, reproduciendo: false, error: textoError(err) || String(err.message || err) });
+        return { accion: 'reanudar_fallo', id: s.id, tipo: clasificar(err) };
+      }
+    }
     if (st.reproduciendo && sig && !e.encolada && dur > 0 && dur - st.progreso_ms <= VENTANA_ENCOLAR_MS) {
       try { await sp.encolar(sig.pista_id, disp.id); await db.encolada(sig.id); return { accion: 'encolar', id: sig.id }; }
       catch (err) { log('no pude encolar', sig.titulo, err.message); return { accion: 'encolar_fallo', id: sig.id }; }
