@@ -1,0 +1,45 @@
+# Pruebas del bar en cada PR (y en main): el bot de WhatsApp, el controlador de Spotify y las reglas SQL
+# contra un Postgres desechable. Antes nada de esto corría solo y una prueba llevaba días en rojo sin que nadie lo viera.
+name: Pruebas del bar
+
+on:
+  pull_request:
+    paths: ['bar-nube/**', '.github/workflows/pruebas.yml']
+  push:
+    branches: [main]
+    paths: ['bar-nube/**', '.github/workflows/pruebas.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  bot:
+    name: Bot de WhatsApp
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bar-nube/bot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: node --test
+
+  controlador:
+    name: Controlador de Spotify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test bar-nube/supabase/functions/rockola-control/*.test.mjs
+
+  sql:
+    name: Reglas SQL (Postgres desechable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./bar-nube/supabase/probar.sh
