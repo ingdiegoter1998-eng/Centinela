@@ -74,6 +74,25 @@
   lib.onerror = () => { $('qr').hidden = true; };      // sin internet para la librería: queda el enlace escrito
   document.head.append(lib);
 
+  // Fondo opcional (GIF, WebM/MP4 en bucle o imagen): BAR_CONFIG.TV_FONDO = 'rockola/fondo.webm' (ruta relativa a esta carpeta o URL https),
+  // o ?fondo=... en la dirección para probar. Se pone detrás de las mascotas con una capa oscura (TV_FONDO_OSCURO, 0 a 1) para que se lea todo.
+  // BAR_CONFIG.TV_FONDO_MODO: 'cubre' (llena la pantalla, por defecto) o 'centro' (se ve entero, centrado).
+  (function () {
+    const cfg = window.Rockola.cfg || {}, fuente = window.Rockola.params.get('fondo') || cfg.TV_FONDO;
+    if (!fuente || !/^(https:\/\/|[\w./%-]+$)/.test(fuente)) return;
+    const url = /^https:/.test(fuente) ? fuente : new URL(fuente, location.href).href;
+    const esVideo = /\.(webm|mp4|m4v|ogv)(\?|$)/i.test(url);
+    const medio = document.createElement(esVideo ? 'video' : 'img');
+    medio.src = url; medio.className = 'tv-fondo-medio'; medio.alt = '';
+    if (esVideo) { medio.muted = true; medio.loop = true; medio.autoplay = true; medio.playsInline = true; medio.setAttribute('muted', ''); medio.play().catch(() => {}); }
+    medio.onerror = () => capa.remove();                     // si el archivo no carga, queda la escena normal
+    const capa = document.createElement('div');
+    capa.id = 'tv-fondo'; capa.className = 'modo-' + (cfg.TV_FONDO_MODO === 'centro' ? 'centro' : 'cubre');
+    const oscuro = Number(window.Rockola.params.get('oscuro') || cfg.TV_FONDO_OSCURO);
+    capa.style.setProperty('--oscuro', String(oscuro >= 0 && oscuro <= 1 ? oscuro : 0.55));
+    capa.append(medio);
+    document.getElementById('escena').append(capa); document.body.classList.add('con-fondo');
+  })();
   if (window.Mascotas) window.Mascotas.iniciar();
   refrescar();
   setInterval(refrescar, 3000);
