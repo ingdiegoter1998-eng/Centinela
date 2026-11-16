@@ -93,6 +93,9 @@ un artista sin género cuesta el base y queda en `rockola_artistas` para clasifi
   `rockola_cortesia` solo el administrador.
 - **Bot de WhatsApp** (llave `service_role`, que nunca sale del servidor del bot): `rockola_registrar`, `rockola_mi_estado`, `rockola_pedir_puntos`.
   El celular lo prueba WhatsApp, por eso solo el bot gasta puntos.
+- **En la app del bar:** la pestaña **Rockola** muestra la cola con *Quitar* (devuelve los puntos), *Saltar*, pausar pedidos y consultar los puntos de un celular
+  (el administrador además da cortesías). En cada **factura pagada** aparece «Puntos de la rockola»: se escribe el celular del cliente y se le dan
+  los puntos de esa factura. Si el barman salta o quita desde el celular, el reproductor del PC lo sigue solo (relee cada 4 s).
 - La pantalla web del cliente todavía pide sin puntos (límite de 2 por celular); falta decidir cómo identificar al cliente ahí.
 
 ## Qué conviene saber

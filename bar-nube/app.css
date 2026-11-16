@@ -188,3 +188,10 @@ dialog label.casilla input { width: auto; margin: 0; }
 .seccion-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 18px 0 8px; }
 .seccion-cab h2 { margin: 0; color: var(--suave); text-transform: uppercase; font-size: .8rem; letter-spacing: .06em; }
 .recibo .total td { font-size: 1.3rem; }
+
+/* Rockola: formularios en línea y bloque de puntos del recibo */
+.rk-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.rk-form input { flex: 1 1 140px; min-width: 0; padding: 12px; border-radius: 10px; border: 1px solid var(--borde); background: var(--tarjeta); }
+.rk-puntos { margin: 14px 0; padding: 12px; border: 1px dashed var(--borde); border-radius: 12px; }
+.rk-puntos h2 { margin: 0 0 6px; }
+@media (max-width: 440px) { .nav { gap: 2px; padding: 8px 6px; } .nav a { padding: 12px 2px; font-size: .88rem; } .nav-salir { padding: 0 8px; max-width: 26vw; } }

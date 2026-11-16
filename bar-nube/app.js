@@ -327,9 +327,19 @@
       const f = await leer(db.from('facturas').select('*, mesas(nombre), clientes(nombre), lineas(id, cantidad, precio, productos(nombre))').eq('id', id).maybeSingle());
       if (!f) throw new Error('Esa factura no existe.');
       f.lineas.sort((a, b) => a.id - b.id);
-      return { f };
+      // Puntos de la rockola (si esa parte de la base aún no está instalada, simplemente no se muestra).
+      let rk = null;
+      if (f.estado === 'pagada') {
+        try {
+          const [dado, cfg] = await Promise.all([
+            leer(db.from('rockola_puntos').select('celular, delta').eq('factura_id', f.id).eq('motivo', 'consumo').maybeSingle()),
+            leer(db.from('rockola_config').select('punto_pesos').maybeSingle())]);
+          rk = { dado, puntos: Math.floor(total(f.lineas) / (cfg?.punto_pesos || 1000)) };
+        } catch (e) { rk = null; }
+      }
+      return { f, rk };
     },
-    html({ f }) {
+    html({ f, rk }) {
       return `<article class="recibo">
         <h1>${f.numero ? `Factura N.º ${f.numero}` : `Cuenta ${f.estado}`}</h1>
         <p class="nota">${esc(f.mesas.nombre)} · ${esc(f.clientes?.nombre || 'Cliente anónimo')}<br>
@@ -337,10 +347,45 @@
           ${f.estado === 'anulada' ? '<br><b>ANULADA</b>' : ''}</p>
         <table>${f.lineas.map((l) => `<tr><td>${l.cantidad} × ${esc(l.productos.nombre)}</td><td class="der">${pesos(l.cantidad * l.precio)}</td></tr>`).join('')}
           <tr class="total"><td>Total</td><td class="der">${pesos(total(f.lineas))}</td></tr></table>
+        ${rk ? `<div class="rk-puntos sin-imprimir"><h2>Puntos de la rockola</h2>${rk.dado
+          ? `<p class="nota">Esta factura ya dio <b>${rk.dado.delta}</b> puntos al ${esc(rk.dado.celular)}.</p>`
+          : rk.puntos > 0 ? `<form data-rk-form="factura" data-factura="${f.id}" class="rk-form">
+              <input name="celular" inputmode="tel" placeholder="Celular del cliente (3001234567)" required>
+              <input name="nombre" placeholder="Nombre (opcional)" maxlength="60">
+              <button class="btn principal">Dar ${rk.puntos} ${plural(rk.puntos, 'punto', 'puntos')}</button></form>`
+          : '<p class="nota">Esta factura no alcanza para ganar puntos.</p>'}</div>` : ''}
         <div class="acciones sin-imprimir"><a class="btn principal" href="#/">Volver a mesas</a>
           ${f.cerrada_en ? `<a class="btn" href="#/${esAdmin() ? 'ventas' : 'facturas'}/${jornadaDe(f.cerrada_en)}">Facturas del día</a>` : ''}
           <button type="button" class="btn" onclick="window.print()">Imprimir</button></div>
       </article>`;
+    },
+  };
+
+  // Rockola: cola, saltar/quitar, pausa y consulta de puntos (el sonido lo maneja rockola/player.html) -------
+  let rkConsulta = null;                       // último saldo consultado, se mantiene entre relecturas
+  vistas.rockola = {
+    async datos() { return { e: await rpc('rockola_estado', { p_cliente: '' }) }; },
+    html({ e }) {
+      const quien = (p) => [p.mesa ? `Mesa ${esc(p.mesa)}` : '', esc(p.nombre || '')].filter(Boolean).join(' · ');
+      const fila = (p, i) => `<div class="fila"><span class="f-nombre">${i + 1}. ${esc(p.titulo)}<small>${esc(p.artista)}${quien(p) ? ` · ${quien(p)}` : ''}</small></span>
+        <button type="button" class="btn peligro chico" data-rk="quitar" data-id="${p.id}" data-confirmar="¿Quitar «${esc(p.titulo)}» de la cola? Si se pagó con puntos, se devuelven.">Quitar</button></div>`;
+      return `<div class="cab"><h1>Rockola</h1></div>
+        <p class="nota">${e.activa ? 'Recibiendo pedidos.' : '<b>En pausa:</b> no se aceptan pedidos nuevos.'} El sonido sale del PC con <code>rockola/player.html</code> abierto.</p>
+        <div class="acciones">
+          <button type="button" class="btn" data-rk="activar" data-activa="${e.activa ? 'false' : 'true'}">${e.activa ? '⏸ Pausar pedidos' : '▶ Reanudar pedidos'}</button>
+          ${e.sonando ? `<button type="button" class="btn peligro" data-rk="saltar" data-confirmar="¿Saltar «${esc(e.sonando.titulo)}»? Sus puntos no se devuelven.">⏭ Saltar</button>` : ''}
+        </div>
+        <h2 class="categoria">Sonando ahora</h2>
+        <div class="tabla">${e.sonando ? `<div class="fila"><span class="f-nombre">${esc(e.sonando.titulo)}<small>${esc(e.sonando.artista)}${quien(e.sonando) ? ` · ${quien(e.sonando)}` : ''}</small></span></div>` : '<p class="vacio">Nada suena.</p>'}</div>
+        <h2 class="categoria">Cola (${e.cola.length})</h2>
+        <div class="tabla">${e.cola.map(fila).join('') || '<p class="vacio">La cola está vacía.</p>'}</div>
+        <h2 class="categoria">Puntos de un cliente</h2>
+        <form data-rk-form="saldo" class="rk-form"><input name="celular" inputmode="tel" placeholder="Celular (3001234567)" required><button class="btn">Consultar</button></form>
+        ${rkConsulta ? `<p class="nota">${esc(rkConsulta.celular)}: <b>${rkConsulta.saldo}</b> ${plural(rkConsulta.saldo, 'punto', 'puntos')}${rkConsulta.nombre ? ` · ${esc(rkConsulta.nombre)}` : ''}</p>` : ''}
+        ${esAdmin() ? `<h2 class="categoria">Cortesía (solo administrador)</h2>
+        <form data-rk-form="cortesia" class="rk-form"><input name="celular" inputmode="tel" placeholder="Celular" required>
+          <input name="puntos" type="number" inputmode="numeric" placeholder="Puntos (negativo resta)" required>
+          <input name="nota" placeholder="Motivo (cumpleaños, ajuste…)" maxlength="200"><button class="btn principal">Dar</button></form>` : ''}`;
     },
   };
 
@@ -572,9 +617,52 @@
     }
   }
 
+  // ── Rockola: acciones del personal ───────────────────────────────────────────────────────
+  const celularCO = (v) => { const d = String(v || '').replace(/\D/g, ''); return /^3\d{9}$/.test(d) ? `57${d}` : d; };   // 3001234567 → 573001234567
+
+  async function accionRockola(boton) {
+    const { rk, id, activa, confirmar } = boton.dataset;
+    if (confirmar && !confirm(confirmar)) return;
+    boton.disabled = true;
+    try {
+      if (rk === 'quitar') await rpc('rockola_quitar', { p_id: Number(id) });
+      else if (rk === 'saltar') await rpc('rockola_saltar');
+      else if (rk === 'activar') await rpc('rockola_activar', { p_activa: activa === 'true' });
+    } catch (err) { aviso(err.message); }
+    refrescar({ forzar: true });
+  }
+
+  document.addEventListener('submit', async (e) => {
+    const form = e.target.closest('form[data-rk-form]');
+    if (!form) return;
+    e.preventDefault();
+    const f = new FormData(form);
+    const celular = celularCO(f.get('celular'));
+    const boton = form.querySelector('button');
+    boton.disabled = true;
+    try {
+      if (form.dataset.rkForm === 'factura') {
+        const r = await rpc('rockola_dar_puntos_factura', { p_factura: Number(form.dataset.factura), p_celular: celular, p_nombre: String(f.get('nombre') || '').trim() });
+        aviso(`Listo: ${r.puntos} puntos para ${celular}. Ahora tiene ${r.saldo}.`, 'success');
+      } else if (form.dataset.rkForm === 'saldo') {
+        const filas = await leer(db.from('rockola_puntos').select('delta').eq('celular', celular));
+        const persona = await leer(db.from('rockola_personas').select('nombre').eq('celular', celular).maybeSingle());
+        rkConsulta = { celular, saldo: filas.reduce((t, x) => t + x.delta, 0), nombre: persona?.nombre || '' };
+      } else if (form.dataset.rkForm === 'cortesia') {
+        const saldo = await rpc('rockola_cortesia', { p_celular: celular, p_puntos: parseInt(f.get('puntos'), 10), p_nota: String(f.get('nota') || '').trim() });
+        rkConsulta = { celular, saldo, nombre: '' };
+        aviso('Listo.', 'success');
+      }
+    } catch (err) { aviso(err.message); }
+    boton.disabled = false;
+    refrescar({ forzar: true });
+  });
+
   // ── Eventos ──────────────────────────────────────────────────────────────────────────────
   document.addEventListener('click', (e) => {
     const t = e.target;
+    const rk = t.closest('button[data-rk]');
+    if (rk) { accionRockola(rk); return; }
     const ir = t.closest('[data-ir]');
     if (ir) { document.getElementById(ir.dataset.ir)?.scrollIntoView({ behavior: 'smooth' }); return; }
     const filtro = t.closest('[data-filtro]');
