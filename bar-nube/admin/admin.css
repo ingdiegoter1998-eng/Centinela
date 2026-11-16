@@ -1,0 +1,54 @@
+/* Panel de control: pensado para el PC o la tablet del dueño, pero se ve bien en el celular. */
+main { max-width: 1280px; }
+.nav { overflow-x: auto; white-space: nowrap; }
+.nav .volver { opacity: .7; }
+.rejilla { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin: 10px 0; }
+.rejilla.dos { grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); align-items: start; }
+.rejilla > *, .panel { min-width: 0; }
+.kpi { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; }
+.kpi > span { color: var(--suave); font-size: .85rem; display: block; }
+.kpi > b { font-size: 1.6rem; color: var(--texto); display: block; margin: 2px 0; }
+.kpi > small.sube { color: var(--verde); }
+.kpi > small.baja { color: var(--rojo); }
+.panel { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; }
+.panel h2 { margin: 0 0 8px; }
+.panel .nota { margin: 0 0 8px; font-size: .85rem; }
+.barra-filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 14px; }
+.barra-filtros input, .barra-filtros select, .rk-form input, .rk-form select, .caja input, .caja select {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borde); background: var(--tarjeta); min-width: 0;
+}
+.pildoras { max-width: 100%; overflow-x: auto; display: inline-flex; gap: 0; border: 1px solid var(--borde); border-radius: 999px; overflow: hidden; }
+.pildoras a, .pildoras button { padding: 8px 14px; background: transparent; border: 0; color: var(--suave); text-decoration: none; cursor: pointer; }
+.pildoras .on { background: var(--ambar); color: #1a1100; font-weight: 700; }
+.grafico { width: 100%; height: auto; display: block; }
+.grafico text { fill: var(--suave); font-size: 11px; }
+.grafico .eje { stroke: var(--borde); stroke-width: 1; }
+.grafico .b1 { fill: var(--ambar); }
+.grafico .b2 { fill: var(--verde); }
+.grafico .b3 { fill: var(--azul); }
+.grafico rect:hover { opacity: .8; }
+.leyenda { display: flex; gap: 14px; flex-wrap: wrap; font-size: .85rem; color: var(--suave); margin: 6px 0 0; }
+.leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
+table.datos { width: 100%; border-collapse: collapse; font-size: .92rem; }
+table.datos th { text-align: left; color: var(--suave); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; padding: 6px 8px; border-bottom: 1px solid var(--borde); white-space: nowrap; }
+table.datos td { padding: 8px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
+table.datos tr:last-child td { border-bottom: 0; }
+table.datos .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.datos th.n { text-align: right; }
+.scroll { overflow-x: auto; }
+.mini { display: flex; align-items: center; gap: 8px; }
+.mini .tira { height: 8px; border-radius: 4px; background: var(--ambar); min-width: 2px; }
+.etiqueta { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem; background: var(--tarjeta-2); border: 1px solid var(--borde); color: var(--suave); }
+.etiqueta.mala { color: var(--rojo); border-color: #5a2b33; }
+.etiqueta.buena { color: var(--verde); border-color: #1f5a41; }
+.caja { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.caja label { display: grid; gap: 4px; color: var(--suave); font-size: .8rem; }
+.caja input[name=celular] { width: 180px; }
+.caja input[name=puntos] { width: 110px; }
+.caja input[name=motivo_extra], .caja input[name=nota] { width: 220px; }
+.atajos { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.btn.verde { background: var(--verde); border-color: var(--verde); color: #04140d; }
+.vacio { color: var(--suave); padding: 12px; }
+@media (max-width: 640px) { .rejilla.dos { grid-template-columns: 1fr; } .kpi > b { font-size: 1.3rem; } }
+.barra-filtros > * { max-width: 100%; }
+.pildoras button, .pildoras a { white-space: nowrap; }

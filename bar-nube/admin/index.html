@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0807">
+  <meta name="robots" content="noindex">
+  <title>Panel de control · Callejón del Gato</title>
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="stylesheet" href="../app.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <nav class="nav" id="nav" hidden>
+    <a href="../#/" class="volver">← App</a>
+    <a href="#/resumen" data-nav="resumen">Resumen</a>
+    <a href="#/reportes" data-nav="reportes">Reportes</a>
+    <a href="#/facturas" data-nav="facturas">Facturas</a>
+    <a href="#/inventario" data-nav="inventario">Inventario</a>
+    <a href="#/rockola" data-nav="rockola">Rockola</a>
+    <a href="#/puntos" data-nav="puntos">Puntos</a>
+    <a href="#/trabajador" data-nav="trabajador">Trabajador</a>
+    <button type="button" id="salir" class="nav-salir" title="Cerrar sesión"><span id="quien"></span> ⏻</button>
+  </nav>
+  <div id="avisos"></div>
+  <main id="app"><p class="vacio">Cargando…</p></main>
+
+  <script src="../config.js"></script>
+  <script src="../vendor/supabase.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
