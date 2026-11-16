@@ -10,7 +10,8 @@
 
 const OPCIONES = 3;
 const VIDA_OPCIONES_MS = 5 * 60 * 1000;
-const NUMEROS = ['1️⃣', '2️⃣', '3️⃣'];
+const NUMEROS = ['1)', '2)', '3)'];
+export const LEMA = 'Pon, tu música, tu caos';
 
 // «Pónme besos en guerra de morat» → «besos en guerra morat»
 export function limpiarBusqueda(texto) {
@@ -49,8 +50,8 @@ const pts = (n) => `${n} ${n === 1 ? 'punto' : 'puntos'}`;
 // Los errores de Postgres llegan como «Te faltan 8 puntos (cuesta 24, tienes 16)»; se dejan tal cual salvo ruido técnico.
 export function mensajeDeError(e) {
   const m = String((e && e.message) || e || '').replace(/^.*?(ERROR:|error:)\s*/s, '').trim();
-  if (!m || /fetch failed|ECONN|ETIMEDOUT|network|timeout/i.test(m)) return 'Uy, ahora no puedo hablar con la rockola. Intenta en un momentico 🙏';
-  if (/permission denied|jwt|apikey|row-level/i.test(m)) return 'Algo está mal configurado de mi lado. Avísale al barman 🙏';
+  if (!m || /fetch failed|ECONN|ETIMEDOUT|network|timeout/i.test(m)) return 'Uy, ahora no puedo hablar con la rockola. Intenta en un momentico.';
+  if (/permission denied|jwt|apikey|row-level/i.test(m)) return 'Algo está mal configurado de mi lado. Avísale al barman.';
   return m;
 }
 
@@ -70,37 +71,38 @@ export function crearBot({ api, enviar, ahora = () => Date.now(), limitePorMinut
     return false;
   }
 
-  const AYUDA = (saldo) => `🎶 *Rockola del Callejón del Gato*
+  const AYUDA = (saldo) => `*Rockola del Callejón del Gato*
+_${LEMA}_
 ${comillas ? 'Escríbeme *entre comillas* el nombre de la canción y el artista, por ejemplo: *"besos en guerra morat"*. Lo que no vaya entre comillas no lo leo.' : 'Escríbeme el nombre de la canción y el artista, por ejemplo: *besos en guerra morat*.'} Te muestro 3 opciones y eliges con el número.
 
 • *${Q('puntos')}*: tu saldo${saldo != null ? ` (tienes ${pts(saldo)})` : ''}
 • *${Q('cola')}*: lo que suena y lo que sigue
 • *${Q('cancelar')}*: borra la búsqueda
 
-Los puntos se ganan consumiendo: 1 punto por cada $1.000 😉`;
+Los puntos se ganan consumiendo: 1 punto por cada $1.000.`;
 
   async function bienvenida(celular, nombre) {
     const saldo = await api.registrar(celular, nombre);
-    return `¡Hola${nombre ? ` ${nombre.split(' ')[0]}` : ''}! 🎶 Soy la rockola del Callejón del Gato. Te di *${pts(saldo)}* de bienvenida.\n\n${AYUDA(null)}`;
+    return `¡Hola${nombre ? ` ${nombre.split(' ')[0]}` : ''}! Soy la rockola del Callejón del Gato. Te di *${pts(saldo)}* de bienvenida.\n\n${AYUDA(null)}`;
   }
 
   async function mostrarCola() {
     const e = await api.estado();
     const quien = (p) => [p.nombre, p.mesa ? `mesa ${p.mesa}` : ''].filter(Boolean).join(', ');
     const lineas = [];
-    lineas.push(e.sonando ? `▶️ Suena: *${e.sonando.titulo}* — ${e.sonando.artista}${quien(e.sonando) ? ` (${quien(e.sonando)})` : ''}` : '▶️ Ahora no suena nada');
+    lineas.push(e.sonando ? `Suena: *${e.sonando.titulo}* — ${e.sonando.artista}${quien(e.sonando) ? ` (${quien(e.sonando)})` : ''}` : 'Ahora no suena nada');
     e.cola.slice(0, 5).forEach((p, i) => lineas.push(`${i + 1}. ${p.titulo} — ${p.artista}${quien(p) ? ` (${quien(p)})` : ''}`));
     if (!e.cola.length) lineas.push('La cola está vacía, ¡pon la primera!');
     else if (e.cola.length > 5) lineas.push(`…y ${e.cola.length - 5} más`);
-    if (!e.activa) lineas.push('\n⏸ Los pedidos están en pausa por ahora.');
+    if (!e.activa) lineas.push('\nLos pedidos están en pausa por ahora.');
     return lineas.join('\n');
   }
 
   async function buscar(celular, texto) {
     const consulta = limpiarBusqueda(texto);
-    if (consulta.length < 2) return `Dime qué canción quieres, por ejemplo: *${Q('besos en guerra morat')}* 🎵`;
+    if (consulta.length < 2) return `Dime qué canción quieres, por ejemplo: *${Q('besos en guerra morat')}*.`;
     const resultados = (await api.buscar(consulta)).slice(0, OPCIONES);
-    if (!resultados.length) return `No encontré nada con «${consulta}» 😕 Prueba con el nombre de la canción y el artista.`;
+    if (!resultados.length) return `No encontré nada con «${consulta}». Prueba con el nombre de la canción y el artista.`;
     const opciones = await Promise.all(resultados.map(async (r) => ({ ...r, costo: await api.precio(r.proveedor, r.artista_ids) })));
     pendientes.set(celular, { opciones, vence: ahora() + VIDA_OPCIONES_MS });
     const est = await api.miEstado(celular);
@@ -109,15 +111,15 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000 😉`;
 
   async function elegir(celular, nombre, n) {
     const p = pendientes.get(celular);
-    if (!p || p.vence < ahora()) { pendientes.delete(celular); return `Esa búsqueda ya venció. Escríbeme otra vez la canción${comillas ? ' entre comillas' : ''} 🎵`; }
+    if (!p || p.vence < ahora()) { pendientes.delete(celular); return `Esa búsqueda ya venció. Escríbeme otra vez la canción${comillas ? ' entre comillas' : ''}.`; }
     const pista = p.opciones[n - 1];
     if (!pista) return `Elige un número del ${Q('1')} al ${Q(String(p.opciones.length))}.`;
     const r = await api.pedir(celular, nombre, pista);
     pendientes.delete(celular);
     const e = await api.estado();
     const puesto = e.cola.findIndex((x) => x.id === r.id) + 1;
-    const cuando = e.sonando || puesto > 1 ? (puesto ? `Va en el puesto *${puesto}* de la cola.` : '') : 'Es la siguiente en sonar. 🔥';
-    return `✅ *${pista.titulo}* quedó en la cola. ${cuando}\nGastaste ${pts(r.costo)}, te quedan ${pts(r.saldo)}.`;
+    const cuando = e.sonando || puesto > 1 ? (puesto ? `Va en el puesto *${puesto}* de la cola.` : '') : 'Es la siguiente en sonar.';
+    return `*${pista.titulo}* quedó en la cola. ${cuando}\nGastaste ${pts(r.costo)}, te quedan ${pts(r.saldo)}.`;
   }
 
   // Punto de entrada. `celular`: solo dígitos con indicativo. Devuelve el texto enviado (o null).
@@ -126,7 +128,7 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000 😉`;
     if (!t) return null;
     const limite = pasaLimite(celular);
     if (limite === false) return null;
-    if (limite === 'aviso') { const m = 'Vas muy rápido 😅 Dame un minutico.'; await enviar(celular, m); return m; }
+    if (limite === 'aviso') { const m = 'Vas muy rápido. Dame un minutico.'; await enviar(celular, m); return m; }
 
     let respuesta;
     try {
@@ -141,7 +143,7 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000 😉`;
       else if (/^(hola|buenas|buenos dias|buenas tardes|buenas noches|ayuda|menu|help|hey|ola)$/.test(norm)) respuesta = AYUDA(est.saldo);
       else if (/^(puntos|saldo|mis puntos|cuantos puntos tengo|cuantos puntos)$/.test(norm)) respuesta = `Tienes *${pts(est.saldo)}*. Tienes ${est.en_cola} ${est.en_cola === 1 ? 'canción' : 'canciones'} en cola (máximo ${est.max_pendientes}).`;
       else if (/^(cola|lista|que sigue|que suena|que hay|siguiente|siguientes)$/.test(norm)) respuesta = await mostrarCola();
-      else if (/^(cancelar|cancela|nada|olvidalo|no)$/.test(norm)) { pendientes.delete(celular); respuesta = 'Listo, cancelado 👌'; }
+      else if (/^(cancelar|cancela|nada|olvidalo|no)$/.test(norm)) { pendientes.delete(celular); respuesta = 'Listo, cancelado.'; }
       else respuesta = await buscar(celular, t);
     } catch (e) {
       respuesta = mensajeDeError(e);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot } from '../src/logica.js';
+import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot, LEMA } from '../src/logica.js';
 import { normalizarCelular } from '../src/numero.js';
 
 function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo = 8, comillas = false } = {}) {
@@ -35,8 +35,8 @@ test('limpiarBusqueda quita muletillas', () => {
 test('buscar muestra opciones con precio y elegir pide con puntos', async () => {
   const { bot, enviados, pedidos } = montar();
   await bot.manejar({ ...dec(), texto: 'besos en guerra morat' });
-  assert.match(enviados.at(-1), /1️⃣ Besos en guerra — Morat · 8 puntos/);
-  assert.match(enviados.at(-1), /2️⃣ El Rey — Vicente Fernández · 24 puntos/);
+  assert.match(enviados.at(-1), /1\) Besos en guerra — Morat · 8 puntos/);
+  assert.match(enviados.at(-1), /2\) El Rey — Vicente Fernández · 24 puntos/);
   assert.match(enviados.at(-1), /Tienes 16 puntos/);
   await bot.manejar({ ...dec(), texto: '1' });
   assert.deepEqual(pedidos, [['573001112233', 'a']]);
@@ -88,7 +88,7 @@ test('sin resultados avisa; errores técnicos no se muestran crudos', async () =
   const a = montar({ resultados: [] });
   await a.bot.manejar({ ...dec(), texto: 'asdfgh' });
   assert.match(a.enviados.at(-1), /No encontré nada con «asdfgh»/);
-  assert.equal(mensajeDeError(new Error('TypeError: fetch failed')), 'Uy, ahora no puedo hablar con la rockola. Intenta en un momentico 🙏');
+  assert.equal(mensajeDeError(new Error('TypeError: fetch failed')), 'Uy, ahora no puedo hablar con la rockola. Intenta en un momentico.');
   assert.match(mensajeDeError(new Error('permission denied for function rockola_pedir_puntos')), /mal configurado/);
   assert.equal(mensajeDeError(new Error('Ya tienes 2 canciones en cola, espera a que suene alguna')), 'Ya tienes 2 canciones en cola, espera a que suene alguna');
 });
@@ -199,4 +199,23 @@ test('paraElBot: SOLO_COMILLAS=0 atiende todo, pero igual ignora lo tuyo hacia o
   assert.equal(paraElBot({ texto: ' morat ' }), 'morat');
   assert.equal(paraElBot({ texto: 'morat', fromMe: true, propio: false, aceptarPropio: true }), null);
   assert.equal(paraElBot({ texto: 'morat', fromMe: true, propio: true, aceptarPropio: true }), 'morat');
+});
+
+const EMOJI = /[\p{Extended_Pictographic}\u20E3\uFE0F]/u;
+test('ninguna respuesta del bot lleva emojis ni stickers, con o sin comillas, y la ayuda trae el lema', async () => {
+  assert.equal(LEMA, 'Pon, tu música, tu caos');
+  for (const comillas of [false, true]) {
+    const a = montar({ comillas, registrado: false });
+    const b = montar({ comillas, resultados: [] });
+    const c = montar({ comillas, saldo: 1 });
+    const enviados = [];
+    for (const [m, textos] of [[a, ['hola', 'morat', '1', '2', 'puntos', 'cola', 'cancelar', 'x']], [b, ['asdfgh', '1']], [c, ['el rey vicente', '2', 'p']]]) {
+      for (const t of textos) { await m.bot.manejar({ ...dec(), texto: t }); m.avanzar(61_000); }
+      enviados.push(...m.enviados);
+    }
+    assert.ok(enviados.length > 10);
+    for (const r of enviados) assert.doesNotMatch(r, EMOJI, `emoji en: ${r.slice(0, 60)}`);
+    assert.ok(enviados.some((r) => r.includes(`_${LEMA}_`)), 'la bienvenida/ayuda lleva el lema');
+  }
+  for (const e of ['fetch failed', 'permission denied for function x']) assert.doesNotMatch(mensajeDeError(new Error(e)), EMOJI);
 });
