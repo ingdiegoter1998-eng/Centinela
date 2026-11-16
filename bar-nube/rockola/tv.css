@@ -1,0 +1,29 @@
+/* Pantalla para el TV del bar: letras grandes, sin interacción, se deja abierta todo el día. */
+body.tv { overflow: hidden; height: 100vh; cursor: none; }
+.tv-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 3vw; height: 100vh; padding: 3vw; }
+.tv-marca { display: flex; align-items: center; gap: 1.2vw; font-size: 2.4vw; letter-spacing: .3em; color: var(--suave); margin-bottom: 2vw; }
+.tv-marca img { width: 5vw; height: 5vw; border-radius: 50%; box-shadow: 0 0 40px #ff4d1a40; }
+.tv-ahora { display: flex; flex-direction: column; justify-content: center; }
+.tv-portada { width: 32vw; height: 32vw; max-height: 44vh; max-width: 44vh; border-radius: 1.5vw; object-fit: cover; background: var(--tarjeta-2); box-shadow: 0 0 80px #ff6a1f33; display: block; }
+.tv-titulo { font-size: 4vw; font-weight: 700; line-height: 1.1; margin: 1.5vw 0 .3vw; }
+.tv-artista { font-size: 2.4vw; color: var(--suave); }
+.tv-quien { font-size: 1.6vw; color: var(--ambar); margin-top: .8vw; }
+.tv-barra { height: .7vw; background: var(--tarjeta-2); border-radius: 1vw; margin-top: 2vw; overflow: hidden; max-width: 44vh; }
+.tv-barra i { display: block; height: 100%; width: 0; background: var(--ambar); transition: width 1s linear; }
+.tv-silencio { font-size: 3.4vw; color: var(--suave); }
+.tv-cola { display: flex; flex-direction: column; min-height: 0; }
+.tv-cola h2 { font-size: 2vw; margin-top: 0; }
+#cola { flex: 1; overflow: hidden; }
+.tv-fila { display: flex; align-items: center; gap: 1.4vw; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 1vw; padding: .9vw 1.2vw; margin-bottom: .9vw; }
+.tv-fila .n { font-size: 2.2vw; width: 3vw; color: var(--ambar); font-weight: 700; }
+.tv-fila img, .tv-fila .sin { width: 5vw; height: 5vw; border-radius: .6vw; background: var(--tarjeta-2); object-fit: cover; flex: none; }
+.tv-fila .info { min-width: 0; flex: 1; }
+.tv-fila b { display: block; font-size: 2vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-fila span { display: block; font-size: 1.4vw; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-fila .quien { font-size: 1.5vw; color: var(--ambar); flex: none; }
+.tv-vacio { font-size: 2vw; color: var(--suave); padding: 2vw 0; }
+.tv-pedir { display: flex; align-items: center; gap: 2vw; padding-top: 1vw; font-size: 2vw; }
+#qr { background: #fff; padding: .8vw; border-radius: .8vw; width: 11vw; height: 11vw; display: flex; }
+#qr img, #qr canvas { width: 100% !important; height: 100% !important; }
+.tv-pedir small { font-size: 1.1vw; word-break: break-all; }
+.tv-pausa { position: fixed; top: 1.5vw; right: 2vw; background: #3a1414; border: 1px solid var(--rojo); padding: .6vw 1.4vw; border-radius: 1vw; font-size: 1.6vw; }

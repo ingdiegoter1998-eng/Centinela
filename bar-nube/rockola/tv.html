@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rockola · Pantalla</title>
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="stylesheet" href="rockola.css">
+  <link rel="stylesheet" href="tv.css">
+</head>
+<body class="tv">
+  <div class="tv-grid">
+    <section class="tv-ahora">
+      <div class="tv-marca"><img src="../logo.png" alt=""><span>ROCKOLA</span></div>
+      <div id="ahora"></div>
+    </section>
+    <section class="tv-cola">
+      <h2>Siguientes <span id="n-cola"></span></h2>
+      <div id="cola"></div>
+      <div class="tv-pedir">
+        <div id="qr"></div>
+        <p>¡Pide tu canción!<br><small id="url"></small></p>
+      </div>
+    </section>
+  </div>
+  <div id="pausa" class="tv-pausa" hidden>Rockola en pausa</div>
+  <script src="../config.js"></script>
+  <script src="../vendor/supabase.js"></script>
+  <script src="comun.js"></script>
+  <script src="tv.js"></script>
+</body>
+</html>
