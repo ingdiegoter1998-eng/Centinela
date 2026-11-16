@@ -10,22 +10,18 @@
   function pintar() {
     if (!estado) return;
     $('pausa').hidden = estado.activa;
-    if (window.Mascotas) {
-      window.Mascotas.pausa(!estado.activa);
-      window.Mascotas.cola(estado.cola.length);
-      const clave = estado.sonando ? [estado.sonando.titulo, estado.sonando.artista, estado.sonando.empezo_en].join('|') : '';
-      if (clave && cancionActual !== null && clave !== cancionActual) { window.Mascotas.cancion(); cambio = true; } else cambio = false;
-      cancionActual = clave || (cancionActual === null ? '' : cancionActual);
-      // Pedidos nuevos en la cola: una mascota lleva el cartel (la primera carga no anuncia nada)
-      const llaves = estado.cola.map((p) => [p.titulo, p.artista, p.mesa, p.nombre].join('|'));
-      if (vistos) estado.cola.forEach((p, i) => { if (!vistos.has(llaves[i])) window.Mascotas.pedido(p.nombre || (p.mesa ? 'Mesa ' + p.mesa : ''), p.titulo); });
-      vistos = new Set(llaves);
-    }
-    const a = $('ahora'); limpiar(a);
+    const clave = estado.sonando ? [estado.sonando.titulo, estado.sonando.artista, estado.sonando.empezo_en].join('|') : '';
+    cambio = clave && cancionActual !== null && clave !== cancionActual;
+    cancionActual = clave || (cancionActual === null ? '' : cancionActual);
+    // Pedidos nuevos en la cola: aviso breve abajo (la primera carga no anuncia nada)
+    const llaves = estado.cola.map((p) => [p.titulo, p.artista, p.mesa, p.nombre].join('|'));
+    if (vistos) estado.cola.forEach((p, i) => { if (!vistos.has(llaves[i])) avisar(p.nombre || (p.mesa ? 'Mesa ' + p.mesa : 'Alguien'), p.titulo); });
+    vistos = new Set(llaves);
+    const a = $('ahora'); limpiar(a); a.classList.toggle('nueva', !!cambio);
     const s = estado.sonando;
     if (s) {
       a.append(...[
-        s.portada && /^https:\/\//.test(s.portada) ? el('img', { class: 'tv-portada' + (cambio ? ' nueva' : ''), src: s.portada, alt: '' }) : el('div', { class: 'tv-portada' }),
+        s.portada && /^https:\/\//.test(s.portada) ? el('img', { class: 'tv-portada', src: s.portada, alt: '' }) : el('div', { class: 'tv-portada' }),
         el('div', { class: 'tv-titulo' }, s.titulo),
         el('div', { class: 'tv-artista' }, s.artista || ''),
         quien(s) ? el('div', { class: 'tv-quien' }, 'Pidió: ' + quien(s)) : null,
@@ -74,26 +70,56 @@
   lib.onerror = () => { $('qr').hidden = true; };      // sin internet para la librería: queda el enlace escrito
   document.head.append(lib);
 
-  // Fondo opcional (GIF, WebM/MP4 en bucle o imagen): BAR_CONFIG.TV_FONDO = 'rockola/fondo.webm' (ruta relativa a esta carpeta o URL https),
-  // o ?fondo=... en la dirección para probar. Se pone detrás de las mascotas con una capa oscura (TV_FONDO_OSCURO, 0 a 1) para que se lea todo.
-  // BAR_CONFIG.TV_FONDO_MODO: 'cubre' (llena la pantalla, por defecto) o 'centro' (se ve entero, centrado).
+  // Aviso de pedido nuevo (un cartel a la vez; los demás esperan su turno)
+  const avisos = []; let avisando = false;
+  function avisar(quien, titulo) {
+    if (avisos.length < 4) avisos.push([quien, titulo]);
+    if (avisando) return;
+    avisando = true;
+    (function siguiente() {
+      const a = avisos.shift(), caja = $('aviso');
+      if (!a) { avisando = false; caja.hidden = true; return; }
+      limpiar(caja); caja.hidden = true; void caja.offsetWidth;        // reinicia la animación
+      caja.append(el('b', {}, a[0] + ' pidió'), el('span', {}, a[1]));
+      caja.hidden = false;
+      setTimeout(siguiente, 7200);
+    })();
+  }
+
+  // Fondos en video (carpeta fondos/), con rotación y tema de color por fondo. Configurable en config.js:
+  //   TV_FONDOS: [{ src: 'fondos/x.mp4', tema: 'noche' | 'dorado' }, ...]   TV_FONDO_ROTAR_S: segundos entre fondos (240 por defecto)
+  // Para probar uno solo: ?fondo=fondos/x.mp4&tema=dorado
   (function () {
-    const cfg = window.Rockola.cfg || {}, fuente = window.Rockola.params.get('fondo') || cfg.TV_FONDO;
-    if (!fuente || !/^(https:\/\/|[\w./%-]+$)/.test(fuente)) return;
-    const url = /^https:/.test(fuente) ? fuente : new URL(fuente, location.href).href;
-    const esVideo = /\.(webm|mp4|m4v|ogv)(\?|$)/i.test(url);
-    const medio = document.createElement(esVideo ? 'video' : 'img');
-    medio.src = url; medio.className = 'tv-fondo-medio'; medio.alt = '';
-    if (esVideo) { medio.muted = true; medio.loop = true; medio.autoplay = true; medio.playsInline = true; medio.setAttribute('muted', ''); medio.play().catch(() => {}); }
-    medio.onerror = () => capa.remove();                     // si el archivo no carga, queda la escena normal
-    const capa = document.createElement('div');
-    capa.id = 'tv-fondo'; capa.className = 'modo-' + (cfg.TV_FONDO_MODO === 'centro' ? 'centro' : 'cubre');
-    const oscuro = Number(window.Rockola.params.get('oscuro') || cfg.TV_FONDO_OSCURO);
-    capa.style.setProperty('--oscuro', String(oscuro >= 0 && oscuro <= 1 ? oscuro : 0.55));
-    capa.append(medio);
-    document.getElementById('escena').append(capa); document.body.classList.add('con-fondo');
+    const cfg = window.Rockola.cfg || {}, params = window.Rockola.params;
+    let lista = Array.isArray(cfg.TV_FONDOS) && cfg.TV_FONDOS.length ? cfg.TV_FONDOS : [
+      { src: 'fondos/noche-colina.mp4', poster: 'fondos/noche-colina.jpg', tema: 'noche' },
+      { src: 'fondos/caballero-flores.mp4', poster: 'fondos/caballero-flores.jpg', tema: 'dorado' },
+    ];
+    if (params.get('fondo')) lista = [{ src: params.get('fondo'), tema: params.get('tema') || 'noche' }];
+    lista = lista.filter((f) => f && typeof f.src === 'string' && /^(https:\/\/|[\w./%-]+$)/.test(f.src))
+      .map((f) => Object.assign({}, f, { url: /^https:/.test(f.src) ? f.src : new URL(f.src, location.href).href }));
+    if (!lista.length) return;
+    const caja = $('fondo');
+    const videos = [0, 1].map(() => { const v = document.createElement('video'); v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto'; v.disablePictureInPicture = true; v.setAttribute('muted', ''); caja.append(v); return v; });
+    const segundos = Number(params.get('rotar') || cfg.TV_FONDO_ROTAR_S) || 240;
+    let actual = -1, cual = 0;
+    function mostrar(i) {
+      const f = lista[i], nuevo = videos[cual], viejo = videos[1 - cual];
+      if (f.poster) caja.style.backgroundImage = 'url("' + new URL(f.poster, location.href).href + '")';
+      nuevo.onerror = () => { if (lista.length > 1) { lista.splice(i, 1); actual = -1; mostrar(0); } };
+      nuevo.src = f.url;
+      nuevo.play().catch(() => {});
+      const listo = () => {
+        nuevo.classList.add('on'); viejo.classList.remove('on');
+        setTimeout(() => { document.body.className = document.body.className.replace(/tema-\w+/g, '') + ' tema-' + (f.tema === 'dorado' ? 'dorado' : 'noche'); }, 900);
+        setTimeout(() => { if (!viejo.classList.contains('on')) { viejo.pause(); viejo.removeAttribute('src'); viejo.load(); } }, 2600);      // el que se fue deja de decodificar
+      };
+      if (nuevo.readyState >= 3) listo(); else nuevo.addEventListener('canplay', listo, { once: true });
+      actual = i; cual = 1 - cual;
+    }
+    mostrar(0);
+    if (lista.length > 1) setInterval(() => mostrar((actual + 1) % lista.length), segundos * 1000);
   })();
-  if (window.Mascotas) window.Mascotas.iniciar();
   refrescar();
   setInterval(refrescar, 3000);
   setInterval(progreso, 1000);
