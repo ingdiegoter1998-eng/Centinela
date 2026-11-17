@@ -7,6 +7,8 @@ Mismo bar, mismo modelo y mismas reglas que [`bar/`](../bar/README.md), pero sin
 | Pantallas (`index.html`, `app.js`) | **GitHub Pages**, en `/bar/` del sitio | Lo que abre el personal en el celular |
 | Datos, reglas y tiempo real | **Supabase** (plan gratis) | Postgres + funciones + sincronización en vivo |
 
+**Documentación completa (mapa, runbooks, decisiones de negocio, pendientes, guía para trabajar con una IA gratuita): [`docs/`](docs/README.md).**
+
 No hay servidor propio. El front habla directo con Supabase; las reglas (stock, cobro, numeración
 consecutiva, jornada de 6:00 a 6:00) viven en funciones de la base: [`supabase/schema.sql`](supabase/schema.sql).
 
