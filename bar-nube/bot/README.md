@@ -126,11 +126,15 @@ ninguna lectura buena, solo imprime un aviso con estos pasos. Si pasan 15 minuto
 
 ## Si el bot dejó de responder a todos
 
+Los errores `failed to decrypt message` de `status@broadcast` y de grupos, y el `Timed Out` (408) de `init queries` al conectar, **ya no salen en el log**: son
+normales y no afectan a los chats uno a uno. Un fallo de descifrado de un chat uno a uno sí sigue saliendo.
+
 Primero, qué dice el log de Termux cuando escribes algo entre comillas. Cada 10 minutos también sale una línea «sigo vivo» con el estado de la conexión y hace cuánto llegó el último mensaje de WhatsApp.
 
 | Qué ves | Qué pasa | Qué hacer |
 |---|---|---|
 | Termux vacío, «Process completed», o la app ya no está | Android mató el proceso | Cierra Termux del todo (notificación → EXIT), ábrelo y `./start.sh`. Revisa la batería de Termux («Sin restricciones», ver abajo). |
+| Entraste por SSH y salió `client_loop: send disconnect: Connection reset` (o cerraste la ventana de SSH) | El bot corría dentro de esa sesión y murió con ella | Arráncalo dentro de `tmux` (ver abajo): `tmux new -s bot` y ahí `./start.sh`; sal con `Ctrl+B` y `D`. Así sobrevive a SSH. |
 | «WhatsApp cerró la sesión» (el bot se detiene solo) | WhatsApp desvinculó el dispositivo | En WhatsApp → Dispositivos vinculados mira si el bot sigue. Si no está, hay que vincular de nuevo (último recurso de la sección anterior). |
 | «sigo vivo» con `conexion: cerrada` una y otra vez | Sin internet o WhatsApp rechaza la conexión | Revisa el WiFi del celular; si sigue, reinicia el bot. |
 | «sigo vivo», conexión abierta, y al escribir NO sale «mensaje recibido» | WhatsApp no le está entregando nada (o no lo puede descifrar: busca `Bad MAC`) | Reinicia el bot (EXIT y `./start.sh`), espera 5 minutos y prueba desde otro número. |

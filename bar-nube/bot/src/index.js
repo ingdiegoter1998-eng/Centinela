@@ -9,7 +9,7 @@ import { crearApi } from './api.js';
 import { crearBot, textoParaElBot } from './logica.js';
 import { crearEco } from './eco.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
-import { crearVigilante, esFalloDeDescifrado, seLeyoBien } from './vigilante.js';
+import { crearVigilante, esFalloDeDescifrado, esRuidoConocido, seLeyoBien } from './vigilante.js';
 import { tomarBloqueo } from './bloqueo.js';
 
 const makeWASocket = makeWASocketMod.default || makeWASocketMod;
@@ -58,7 +58,13 @@ Si pasan 15 minutos más sin que lea nada, en este orden (parando en cuanto func
 }
 const logBaileys = pino({
   level: 'warn',
-  hooks: { logMethod(args, method) { if (esFalloDeDescifrado(args) && vigilante.fallo()) avisoDeDescifrado(); return method.apply(this, args); } },
+  hooks: {
+    logMethod(args, method) {
+      if (esRuidoConocido(args)) return;                      // estados, grupos y el 408 de init queries: ruido sin consecuencias
+      if (esFalloDeDescifrado(args) && vigilante.fallo()) avisoDeDescifrado();
+      return method.apply(this, args);
+    },
+  },
 });
 const api = crearApi({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY });
 const resolvedor = crearResolvedor({});

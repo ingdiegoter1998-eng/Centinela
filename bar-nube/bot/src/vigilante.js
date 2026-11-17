@@ -11,6 +11,20 @@ export function esFalloDeDescifrado(args) {
   return msg === 'failed to decrypt message' && CHAT_UNO_A_UNO.test(String(a?.key?.remoteJid || ''));
 }
 
+// Ruido conocido del logger de Baileys: líneas que salen siempre y asustan sin avisar de nada. No se imprimen:
+//  · «failed to decrypt message» de estados (status@broadcast), grupos y canales: el bot solo atiende chats uno a uno.
+//  · el 408 «Timed Out» de 'init queries': al conectar, Baileys pide a WhatsApp datos de ajustes y a veces no contesta a tiempo; los
+//    mensajes no dependen de eso (en un arranque normal que respondió bien también salió).
+// Cualquier otro error (un chat uno a uno que no se descifra, otro código en init queries, desconexiones) sigue saliendo.
+const CHAT_QUE_NO_SE_ATIENDE = /^status@broadcast$|@g\.us$|@newsletter$/;
+export function esRuidoConocido(args) {
+  const [a, b] = args || [];
+  const msg = typeof a === 'string' ? a : b;
+  if (msg === 'failed to decrypt message') return CHAT_QUE_NO_SE_ATIENDE.test(String(a?.key?.remoteJid || ''));
+  if (msg === "unexpected error in 'init queries'") return (a?.err?.output || a?.output)?.statusCode === 408;
+  return false;
+}
+
 // ¿Este mensaje de messages.upsert se pudo leer bien? (los que no se pudieron llegan sin contenido)
 export function seLeyoBien(m) {
   return !!m?.message && CHAT_UNO_A_UNO.test(String(m?.key?.remoteJid || ''));
