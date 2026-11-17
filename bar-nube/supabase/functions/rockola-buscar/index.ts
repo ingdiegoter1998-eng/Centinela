@@ -25,6 +25,15 @@ const base = () => createClient(URL_SB, SERVICIO, { auth: { persistSession: fals
 
 let token: { valor: string; vence: number } | null = null;
 
+// Si Spotify responde 429, deja de llamarlo hasta que pase el Retry-After: seguir insistiendo alarga el bloqueo.
+let pausadoHasta = 0;
+const pausaSpotify = () => Math.max(0, Math.ceil((pausadoHasta - Date.now()) / 1000));
+function notar429(r: Response) {
+  if (r.status !== 429) return;
+  const s = Number(r.headers.get('retry-after') ?? 0);
+  pausadoHasta = Date.now() + Math.max(s, 60) * 1000;
+}
+
 async function obtenerToken(): Promise<string> {
   if (token && token.vence > Date.now() + 30_000) return token.valor;
   const id = Deno.env.get('SPOTIFY_CLIENT_ID'), secreto = Deno.env.get('SPOTIFY_CLIENT_SECRET');
@@ -46,7 +55,9 @@ async function nombresSpotify(ids: string[]): Promise<Map<string, string>> {
   const t = await obtenerToken();
   const salida = new Map<string, string>();
   await Promise.all(ids.map(async (id) => {
+    if (pausaSpotify()) return;
     const r = await fetch('https://api.spotify.com/v1/artists/' + id, { headers: { Authorization: 'Bearer ' + t } });
+    notar429(r);
     if (r.ok) { const a = await r.json(); if (a?.name) salida.set(id, a.name); }
   }));
   return salida;
@@ -69,7 +80,7 @@ async function clasificarArtistas(ids: string[], nombres: Map<string, string>, l
   const pendientes = ids.filter((id) => !yaVistos.has(id));
   if (!pendientes.length) return { revisados: 0, clasificados: 0 };
   const faltan = pendientes.filter((id) => !nombres.get(id) && !existe.get(id));
-  if (faltan.length) for (const [id, n] of await nombresSpotify(faltan)) nombres.set(id, n);
+  if (faltan.length && !pausaSpotify()) for (const [id, n] of await nombresSpotify(faltan)) nombres.set(id, n);
   const { data: gs } = await db.from('rockola_generos').select('genero, multiplicador');
   const mult: Record<string, number> = Object.fromEntries((gs ?? []).map((g: any) => [g.genero, Number(g.multiplicador)]));
   let clasificados = 0, revisados = 0, ultimo = 0;
@@ -124,9 +135,12 @@ Deno.serve(async (req) => {
   const q = (new URL(req.url).searchParams.get('q') ?? '').trim().slice(0, 100);
   if (q.length < 2) return json([]);
   try {
+    const espera = pausaSpotify();
+    if (espera) return json({ error: 'Spotify pidió una pausa (429)', reintentar_en_s: espera }, 503);
     const url = 'https://api.spotify.com/v1/search?type=track&limit=10&market=CO&q=' + encodeURIComponent(q);
     const r = await fetch(url, { headers: { Authorization: 'Bearer ' + (await obtenerToken()) } });
-    if (!r.ok) return json({ error: 'Spotify no respondió (' + r.status + ')' }, 502);
+    notar429(r);
+    if (!r.ok) return json({ error: 'Spotify no respondió (' + r.status + ')', ...(r.status === 429 ? { reintentar_en_s: pausaSpotify() } : {}) }, r.status === 429 ? 503 : 502);
     const d = await r.json();
     const pistas = (d.tracks?.items ?? []).map((t: any) => ({
       proveedor: 'spotify',
