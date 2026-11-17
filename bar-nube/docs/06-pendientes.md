@@ -6,7 +6,7 @@
 |---|---|---|
 | 1 | **Rotar las claves de los usuarios** | Siguen las claves viejas cortas, que se aceptan con un parche (`SUFIJO_VIEJO = '-bar'` en `app.js` y `rockola/player.js`). Pasos en 03, sección D. Después, borrar el parche en un PR |
 | 2 | **Activar «Leaked password protection»** | Supabase → Authentication → Providers/Policies. Solo existe en planes de pago: si no hay, ignorar |
-| 3 | **Cargar los ~790 artistas de cantina y tropical** | El 429 de Spotify se levanta aprox. a las **12:50 p. m. del 17-nov-2026 (Bogotá)**. Después: `resolver.py` y `generar_sql.py`, y pegar `artistas_catalogo_2.sql`. Pasos exactos en 04. Si alguien con un agente alcanza a correrlo, mejor; si no, es una tarea de 20 minutos |
+| 3 | **Pegar `artistas_catalogo_2.sql` y terminar la carga de artistas** | 516 artistas de cantina y tropical ya están resueltos en `supabase/artistas_catalogo_2.sql`: pegarlo en el SQL Editor (después de `generos.sql`). Faltan ~390 nombres: Spotify volvió a dar 429 (~24 h, hasta ~1 p. m. del 18-nov). Cuando pase, correr `resolver.py` (máx. 160 por corrida) y `generar_sql.py`; detalle en 04 |
 | 4 | **Inventario atrasado** | Hay compras sin cargar: por eso hay stock negativo. En la app → Inventario → «Entrada»/«Conteo» (o un `conteo_AAAA-MM-DD.sql`, ver 03). Las ventas están completas |
 | 5 | **Batería del celular del bafle y del bot** | Quitar la optimización de batería de Spotify (celular del bafle) y de Termux (celular del bot). Ver 02 y 04 |
 | 6 | **Cartel con el formato del bot** | Un cartel/QR en el bar: «Escríbele al 310 866 0167: "nombre de la canción artista"». Mucha gente no pondrá comillas |

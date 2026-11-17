@@ -62,7 +62,7 @@ El 429 es «demasiadas peticiones». No se arregla con reinicios: hay que **espe
 
 - Efecto: la búsqueda de canciones cae (`rockola-buscar` responde 503 con `reintentar_en_s`; el bot avisa «La búsqueda de canciones está caída por ahora»). Puntos, cola y cancelar siguen. El límite es por app de Spotify (el mismo Client ID de la búsqueda y del DJ), así que el DJ también puede notar problemas; el 16-nov el bar estaba cerrado y casi no hubo impacto, no se comprobó qué pasa con canciones en cola.
 - `rockola-buscar` ya deja de llamar a Spotify mientras dure el castigo (PR 45).
-- Sucedió el 16-nov-2026 ~8:20 p. m. (hora Bogotá): se resolvieron ~1.200 artistas de golpe y Spotify devolvió `Retry-After` de 60329 s (~16,8 h). El límite se levanta aprox. a las **12:50 p. m. del 17-nov-2026**.
+- Sucedió el 16-nov-2026 ~8:20 p. m. (hora Bogotá): se resolvieron ~1.200 artistas de golpe y Spotify devolvió `Retry-After` de 60329 s (~16,8 h). Ese se levantó ~12:50 p. m. del 17-nov-2026; ese mismo día un segundo bloqueo (~24 h) llegó ~1:10 p. m. y dura hasta ~1 p. m. del 18-nov.
 - Cómo ver cuánto falta: llama a la búsqueda y mira `reintentar_en_s`:
   ```sh
   curl -s "https://xesmbhfgiosrhctjamru.supabase.co/functions/v1/rockola-buscar?q=morat" \
@@ -93,19 +93,20 @@ select genero, multiplicador from rockola_generos order by multiplicador desc, g
 
 ### Catálogo de artistas cargado de antemano
 
-- Cargados: 424 artistas latinos populares (`artistas_catalogo.sql`, ya aplicado): reggaetón, urbano, pop latino, balada, rock en español, reggae, salsa (parte).
-- **Pendientes: ~790** de cantina, tropical, vallenato, bachata, cumbia, merengue, ranchera, norteño, corridos, etc. Los nombres ya están (`supabase/catalogo_artistas/latinos.json`, 1.211 nombres con su género; `lista.txt`, la lista legible por género). Falta resolver sus ids de Spotify, lo que se detuvo por el 429.
+- Cargados desde antes: 424 artistas latinos populares (`artistas_catalogo.sql`, ya aplicado): reggaetón, urbano, pop latino, balada, rock en español, reggae, salsa (parte).
+- **17-nov-2026, tarde:** se resolvieron 516 artistas más (cantina y tropical: vallenato, cumbia, merengue, ranchera, bachata, salsa, norteño, corridos, son cubano, bolero, grupera, tango...). Están en `supabase/artistas_catalogo_2.sql`, **pendiente de pegar en el SQL Editor** (después de `generos.sql`; es idempotente).
+- Faltan ~390 nombres de `latinos.json`. Muchos probablemente no coinciden exacto en Spotify (por ejemplo «Tito El Bambino» figura como `Tito "El Bambino"`) y quedarán sin resolver: está bien. Spotify volvió a dar **429 con `Retry-After` de 85842 s (~24 h)** el 17-nov a las ~18:10 UTC (1:10 p. m. Bogotá) tras ~850 consultas seguidas: no se levanta antes de ~1:00 p. m. del 18-nov. Lección: ~850 consultas en una corrida son demasiadas; `resolver.py` ahora hace máximo 160 nombres por corrida con 3 s de pausa. Corre otra corrida solo con la búsqueda sana y otro día.
 
-Cómo terminarlo (después del 12:50 p. m. del 17-nov, y siempre con la búsqueda sana):
+Cómo terminarlo (después de ~1 p. m. del 18-nov-2026, y siempre con la búsqueda sana):
 
 ```sh
 cd bar-nube/supabase/catalogo_artistas
 curl -s "https://xesmbhfgiosrhctjamru.supabase.co/functions/v1/rockola-artista-id" -X POST \
   -H "Content-Type: application/json" -d '{"nombres":["Morat"]}'     # prueba: debe devolver {"Morat":{"id":...}} y NO un error
-python3 resolver.py      # de a 8, 1,5 s de pausa, guarda avance en resueltos.json, para al primer error
+python3 resolver.py      # de a 8, 3 s de pausa, máx. 160 por corrida, guarda avance en resueltos.json, para al primer error
 python3 generar_sql.py   # crea ../artistas_catalogo_2.sql con los nuevos
 ```
-Luego pega `artistas_catalogo_2.sql` en el SQL Editor (requiere `generos.sql` ya aplicado). Si `resolver.py` se detiene con error, **espera** lo que diga `reintentar_en_s` y vuelve a correrlo: retoma donde quedó. Tarda unos 15 minutos si no hay castigo. El script solo acepta un artista si el nombre coincide exacto (sin tildes ni mayúsculas) y entre varios toma el más popular, así que algunos nombres quedarán sin resolver: está bien, se clasificarán solos o a mano cuando alguien los pida.
+Luego pega el `artistas_catalogo_2.sql` regenerado en el SQL Editor (requiere `generos.sql` ya aplicado). Si `resolver.py` se detiene con error, **espera** lo que diga `reintentar_en_s` y vuelve a correrlo: retoma donde quedó. Cada corrida tarda unos 3 a 4 minutos. El script solo acepta un artista si el nombre coincide exacto (sin tildes ni mayúsculas) y entre varios toma el más popular, así que algunos nombres quedarán sin resolver: está bien, se clasificarán solos o a mano cuando alguien los pida.
 
 Si un género de `lista.txt` no existe en `rockola_generos`, esa fila se salta sola (el SQL tiene un `where exists`). Para crear un género: panel → Rockola → Géneros, o `insert into rockola_generos (genero, multiplicador, nota) values ('nuevo', 1.5, '') on conflict do nothing;`.
 
