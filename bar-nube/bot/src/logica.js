@@ -14,6 +14,12 @@ export const VIDA_NUMERO_SUELTO_MS = 3 * 60 * 1000;   // un número sin comillas
 const NUMEROS = ['1)', '2)', '3)'];
 export const LEMA = 'Pon tu música, tu caos';
 export const SIN_BAFLE = 'El bafle está desconectado y por ahora no recibo pedidos (no te cobro nada). Avísale al barman.';
+// Cuando la búsqueda de canciones falla (Spotify limitó las consultas, rechazó las credenciales, sin red, tiempo agotado…) el cliente
+// no necesita saber por qué: solo que buscar no sirve ahora y que lo demás sí. Nunca se cobra nada.
+export const BUSQUEDA_CAIDA = (comillas = false) => {
+  const Q = (t) => (comillas ? `"${t}"` : t);
+  return `La búsqueda de canciones está caída por ahora (no te cobré nada). Puedes escribir *${Q('puntos')}* o *${Q('cola')}*, y vuelve a intentar buscar más tarde.`;
+};
 const bafleCaido = (e) => !!(e && e.reproductor && e.reproductor.conectado && !e.reproductor.ok);
 
 // «Pónme besos en guerra de morat» → «besos en guerra morat»
@@ -75,7 +81,8 @@ export function mensajeDeError(e) {
   return m;
 }
 
-export function crearBot({ api, enviar, ahora = () => Date.now(), limitePorMinuto = 12, comillas = false }) {
+// `alFallar(error, donde)` es opcional: para dejar en el log el error real (al cliente solo le llega un texto amable).
+export function crearBot({ api, enviar, ahora = () => Date.now(), limitePorMinuto = 12, comillas = false, alFallar = () => {} }) {
   const Q = (t) => (comillas ? `"${t}"` : t);   // en modo comillas, los ejemplos del bot van entre comillas
   const pendientes = new Map();   // celular → { opciones, vence }
   const recientes = new Map();    // celular → [marcas de tiempo]   (anti-spam)
@@ -123,7 +130,9 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000.`;
     const consulta = limpiarBusqueda(texto);
     if (bafleCaido(await api.estado())) return SIN_BAFLE;      // no se muestran opciones que no van a poder pedirse
     if (consulta.length < 2) return `Dime qué canción quieres, por ejemplo: *${Q('besos en guerra morat')}*.`;
-    const resultados = (await api.buscar(consulta)).slice(0, OPCIONES);
+    let resultados;
+    try { resultados = (await api.buscar(consulta)).slice(0, OPCIONES); }
+    catch (e) { alFallar(e, 'búsqueda'); return BUSQUEDA_CAIDA(comillas); }
     if (!resultados.length) return `No encontré nada con «${consulta}». Prueba con el nombre de la canción y el artista.`;
     const opciones = await Promise.all(resultados.map(async (r) => ({ ...r, costo: await api.precio(r.proveedor, r.artista_ids) })));
     pendientes.set(celular, { opciones, vence: ahora() + VIDA_OPCIONES_MS, desde: ahora() });
@@ -168,6 +177,7 @@ Los puntos se ganan consumiendo: 1 punto por cada $1.000.`;
       else if (/^(cancelar|cancela|nada|olvidalo|no)$/.test(norm)) { pendientes.delete(celular); respuesta = 'Listo, cancelado.'; }
       else respuesta = await buscar(celular, t);
     } catch (e) {
+      alFallar(e, 'mensaje');
       respuesta = mensajeDeError(e);
     }
     await enviar(celular, respuesta);

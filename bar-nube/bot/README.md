@@ -106,7 +106,7 @@ la bienvenida. Por eso el mismo WhatsApp puede ser a la vez tu número de siempr
 - **Lo que tú escribes a otras personas nunca lo atiende**, ni siquiera con comillas.
 - Para que atienda todo, sin comillas: `SOLO_COMILLAS=0` en el `.env` (y reinicia).
 - Para que no atienda tu chat contigo mismo: `ACEPTAR_PROPIO=0`. (`PRUEBA_PROPIO=1` es el nombre antiguo de lo mismo y sigue valiendo.)
-- Si el chat contigo mismo no responde, arranca con `LOG_LEVEL=debug`: cada mensaje que llega deja una línea («mensaje recibido») que dice si WhatsApp lo marcó como tuyo y como chat propio.
+- Si el chat contigo mismo no responde, mira el log: cada mensaje de un chat uno a uno que llega deja una línea («mensaje recibido: lo atiendo» o «lo ignoro», con los últimos 4 dígitos del chat y si WhatsApp lo marcó como tuyo y como chat propio). Si escribes y no sale ninguna línea, el mensaje no está llegando al bot (ver la sección siguiente).
 
 ## Los primeros minutos tras vincular (y si «no responde nada»)
 
@@ -123,6 +123,22 @@ ninguna lectura buena, solo imprime un aviso con estos pasos. Si pasan 15 minuto
 2. `npm run reparar` (con el bot apagado): borra solo las llaves de conversación (`session-*`, `sender-key-*`) y deja la vinculación. Luego `./start.sh`.
 3. **Último recurso, vincular de nuevo**: en el celular de la SIM, WhatsApp → Dispositivos vinculados → cierra sesión en cada dispositivo del bot
    (también los de intentos viejos). En Termux: `rm -rf auth && ./start.sh`, escanea el QR y no lo cortes en un buen rato.
+
+## Si el bot dejó de responder a todos
+
+Primero, qué dice el log de Termux cuando escribes algo entre comillas. Cada 10 minutos también sale una línea «sigo vivo» con el estado de la conexión y hace cuánto llegó el último mensaje de WhatsApp.
+
+| Qué ves | Qué pasa | Qué hacer |
+|---|---|---|
+| Termux vacío, «Process completed», o la app ya no está | Android mató el proceso | Cierra Termux del todo (notificación → EXIT), ábrelo y `./start.sh`. Revisa la batería de Termux («Sin restricciones», ver abajo). |
+| «WhatsApp cerró la sesión» (el bot se detiene solo) | WhatsApp desvinculó el dispositivo | En WhatsApp → Dispositivos vinculados mira si el bot sigue. Si no está, hay que vincular de nuevo (último recurso de la sección anterior). |
+| «sigo vivo» con `conexion: cerrada` una y otra vez | Sin internet o WhatsApp rechaza la conexión | Revisa el WiFi del celular; si sigue, reinicia el bot. |
+| «sigo vivo», conexión abierta, y al escribir NO sale «mensaje recibido» | WhatsApp no le está entregando nada (o no lo puede descifrar: busca `Bad MAC`) | Reinicia el bot (EXIT y `./start.sh`), espera 5 minutos y prueba desde otro número. |
+| «mensaje recibido: lo ignoro» | Llegó, pero sin comillas (o es tuyo hacia otra persona) | Escríbelo entre comillas: `"puntos"`. |
+| «mensaje recibido: lo atiendo» pero no contesta | Falló al responder: busca «algo falló atendiendo un mensaje» o «no se pudo enviar» | Ese error dice la causa (Supabase, Spotify, envío). |
+
+Cuando Spotify limita las consultas (error 429, puede durar horas), la búsqueda de canciones cae pero el resto no: el bot avisa «La búsqueda de
+canciones está caída por ahora» y sigue contestando `"puntos"`, `"cola"` y `"cancelar"`. No hay nada que reiniciar: se arregla solo cuando Spotify levanta el límite.
 
 ## Dejarlo prendido 24/7 (en Termux)
 
