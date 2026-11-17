@@ -26,7 +26,7 @@ Ese es el mismo orden que usa `probar.sh` (la prueba en Postgres desechable), sa
 
 ### Advertencias que ya costaron caro
 
-1. **`catalogo.sql` puede desfasarse de la base real.** Hace upsert de precios: si lo vuelves a correr, revierte cualquier precio que hayas cambiado desde la app. El 17-nov-2026 el archivo dice Poker y Águila Light a 4.500, pero en la base real están a $4.000 (el dueño los bajó el sábado 14-nov). Antes de correrlo, edita el archivo para que coincida con lo real, o no lo corras (la app ya trae el catálogo cargado). Cualquier cambio de precio o producto que se haga en la app se debería reflejar también en `catalogo.sql`.
+1. **`catalogo.sql` hace upsert de precios.** Si lo vuelves a correr, revierte cualquier precio que hayas cambiado desde la app. Desde el 17-nov-2026 el archivo coincide con la base (Poker y Águila Light $4.000, Club Colombia $6.000), pero cada vez que cambies un precio o producto en la app, refleja el cambio también en `catalogo.sql` y en `pruebas_roles.sql` (que comprueba esos precios); si no, el próximo re-aplicado lo deshace.
 2. **`pg_safeupdate`:** el Postgres de producción de Supabase rechaza todo `UPDATE` o `DELETE` sin `WHERE` («UPDATE requires a WHERE clause»), aunque la tabla tenga una sola fila (se escribe `where id`). El Postgres de las pruebas NO lo tiene, así que no lo detecta; por eso existe `supabase/sin_where.test.mjs`, que revisa los archivos. Una vez esto dejó el latido de la rockola sin registrarse.
 3. **Nunca pegues SQL de internet o de una IA sin leerlo.** Y nunca uses `drop table`, `truncate` ni `delete from facturas`.
 

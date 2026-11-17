@@ -29,10 +29,10 @@ delete from categorias c
 insert into productos (categoria_id, nombre, precio, costo, controla_stock, stock, stock_minimo)
 select c.id, v.nombre, v.precio, v.costo, v.stock is not null, coalesce(v.stock, 0), v.minimo
 from (values
-  ('Cervezas',    'Águila Light',           4500,  2400, 37, 12),   -- 2026-11-13: sube a 4.500 (igual que Poker)
-  ('Cervezas',    'Club Colombia',          4000,  3200, 18, 12),   -- 2026-10-31: baja a 4.000
+  ('Cervezas',    'Águila Light',           4000,  2400, 37, 12),   -- 2026-11-14: 4.000 (el 13-nov se probó 4.500; desde el sábado 14 se vende a 4.000)
+  ('Cervezas',    'Club Colombia',          6000,  3200, 18, 12),   -- precio vigente en la base: 6.000
   ('Cervezas',    'Corona',                 5000,  3000, 24,  6),
-  ('Cervezas',    'Poker',                  4500,  2400, 18, 12),   -- 2026-11-13: sube a 4.500
+  ('Cervezas',    'Poker',                  4000,  2400, 18, 12),   -- 2026-11-14: 4.000 (el 13-nov se probó 4.500; desde el sábado 14 se vende a 4.000)
   ('Cervezas',    'Redd''s',                5000,  2500, null, 0),   -- sin control de existencias por ahora
   ('Sin alcohol', 'Soda',                   4000,  1800,  5,  2),
   ('Comida',      'Maní',                   2800,  1275, 95, 10),   -- 100 comprados, ~95 en existencia
@@ -76,7 +76,7 @@ select c.id, 'Lucky Strike', 1500, 0, true, 0, 0 from categorias c
 delete from combo_componentes where producto_id in (select id from productos where nombre ilike 'lucky%');
 update productos set en_promos = false where nombre ilike 'lucky%' and en_promos;
 
--- Combo Poker + Mata Cuchos a 4.800 (Poker 4.500 + cigarrillo 300). Descuenta 1 Poker y 1 Mata Cuchos;
+-- Combo Poker + Mata Cuchos a 4.800 (precio fijo del combo, independiente del precio suelto del Poker). Descuenta 1 Poker y 1 Mata Cuchos;
 -- su costo se calcula al vender con los costos vigentes de ambos (hoy 2.400 + 250).
 insert into productos (categoria_id, nombre, precio, costo, controla_stock, stock, stock_minimo)
 select c.id, 'Combo Poker + Mata Cuchos', 4800, 2650, false, 0, 0 from categorias c where c.nombre = 'Combos'
