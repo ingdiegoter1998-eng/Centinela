@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot, LEMA, numeroSuelto, textoParaElBot, VIDA_NUMERO_SUELTO_MS } from '../src/logica.js';
+import { crearBot, limpiarBusqueda, mensajeDeError, entreComillas, paraElBot, LEMA, BUSQUEDA_CAIDA, numeroSuelto, textoParaElBot, VIDA_NUMERO_SUELTO_MS } from '../src/logica.js';
 import { normalizarCelular } from '../src/numero.js';
 
-function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo = 8, comillas = false, reproductor } = {}) {
+function montar({ registrado = true, saldo = 16, encola = 0, resultados, costo = 8, comillas = false, reproductor, buscar } = {}) {
   const enviados = []; const pedidos = []; const estado = { registrado, saldo, en_cola: encola, max_pendientes: 2 };
   let reloj = 1_000_000;
   const api = {
-    buscar: async () => resultados ?? [
+    buscar: buscar || (async () => resultados ?? [
       { proveedor: 'spotify', pista_id: 'a', titulo: 'Besos en guerra', artista: 'Morat', artista_ids: ['m'] },
-      { proveedor: 'spotify', pista_id: 'b', titulo: 'El Rey', artista: 'Vicente Fernández', artista_ids: ['v'] }],
+      { proveedor: 'spotify', pista_id: 'b', titulo: 'El Rey', artista: 'Vicente Fernández', artista_ids: ['v'] }]),
     precio: async (_p, ids) => (ids[0] === 'v' ? 24 : costo),
     miEstado: async () => ({ ...estado }),
     registrar: async () => { estado.registrado = true; return 16; },
@@ -302,4 +302,36 @@ test('con el bafle bien (o sin controlador instalado) todo sigue igual', async (
     await bot.manejar({ ...dec(), texto: 'besos en guerra morat' });
     assert.match(enviados.at(-1), /1\) Besos en guerra/);
   }
+});
+
+test('si la búsqueda cae (Spotify 429, credenciales, red, tiempo agotado) avisa claro y puntos/cola/cancelar siguen vivos', async () => {
+  for (const falla of ['Spotify no respondió (429)', 'Spotify rechazó las credenciales', 'fetch failed', 'The operation was aborted due to timeout', 'No pude buscar ahora']) {
+    for (const comillas of [false, true]) {
+      const { bot, enviados } = montar({ comillas, buscar: async () => { throw new Error(falla); } });
+      await bot.manejar({ ...dec(), texto: 'besos en guerra morat' });
+      assert.equal(enviados.at(-1), BUSQUEDA_CAIDA(comillas), falla);
+      assert.doesNotMatch(enviados.at(-1), /429|Spotify no respondi|fetch|abort|timeout/i, 'nada técnico al cliente');
+      assert.match(enviados.at(-1), /búsqueda de canciones está caída/);
+      assert.match(enviados.at(-1), comillas ? /\*"puntos"\*/ : /\*puntos\*/);
+      assert.doesNotMatch(enviados.at(-1), EMOJI);
+      await bot.manejar({ ...dec(), texto: 'puntos' });
+      assert.match(enviados.at(-1), /Tienes \*16 puntos\*/);
+      await bot.manejar({ ...dec(), texto: 'cola' });
+      assert.match(enviados.at(-1), /Suena: \*La Tortura\*/);
+      await bot.manejar({ ...dec(), texto: 'cancelar' });
+      assert.equal(enviados.at(-1), 'Listo, cancelado.');
+    }
+  }
+});
+
+test('búsqueda caída no deja opciones pendientes ni cobra; sin resultados NO es lo mismo que caída', async () => {
+  const caida = montar({ buscar: async () => { throw new Error('Spotify no respondió (429)'); } });
+  await caida.bot.manejar({ ...dec(), texto: 'morat' });
+  await caida.bot.manejar({ ...dec(), texto: '1' });
+  assert.match(caida.enviados.at(-1), /ya venció|Escríbeme otra vez/);
+  assert.deepEqual(caida.pedidos, []);
+  const vacia = montar({ resultados: [] });
+  await vacia.bot.manejar({ ...dec(), texto: 'asdfgh' });
+  assert.match(vacia.enviados.at(-1), /No encontré nada/);
+  assert.doesNotMatch(vacia.enviados.at(-1), /caída/);
 });

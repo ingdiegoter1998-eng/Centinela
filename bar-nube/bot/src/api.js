@@ -1,6 +1,8 @@
 // Conexión con Supabase con la llave service_role (secreta: vive solo en el .env del celular del bot).
 import { createClient } from '@supabase/supabase-js';
 
+const TIEMPO_BUSQUEDA_MS = 15_000;   // la búsqueda no puede dejar a una persona esperando para siempre
+
 export function crearApi({ url, serviceKey, fetchFn = fetch }) {
   const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const rpc = async (nombre, args) => {
@@ -12,6 +14,7 @@ export function crearApi({ url, serviceKey, fetchFn = fetch }) {
     async buscar(texto) {
       const r = await fetchFn(`${url}/functions/v1/rockola-buscar?q=${encodeURIComponent(texto)}`, {
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        signal: AbortSignal.timeout(TIEMPO_BUSQUEDA_MS),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) throw new Error(d.error || 'No pude buscar ahora');

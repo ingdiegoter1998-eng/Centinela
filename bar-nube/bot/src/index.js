@@ -9,7 +9,7 @@ import { crearApi } from './api.js';
 import { crearBot, textoParaElBot } from './logica.js';
 import { crearEco } from './eco.js';
 import { crearResolvedor, normalizarCelular } from './numero.js';
-import { crearVigilante, esFalloDeDescifrado, seLeyoBien } from './vigilante.js';
+import { crearVigilante, esFalloDeDescifrado, esRuidoConocido, seLeyoBien } from './vigilante.js';
 import { tomarBloqueo } from './bloqueo.js';
 
 const makeWASocket = makeWASocketMod.default || makeWASocketMod;
@@ -58,7 +58,13 @@ Si pasan 15 minutos más sin que lea nada, en este orden (parando en cuanto func
 }
 const logBaileys = pino({
   level: 'warn',
-  hooks: { logMethod(args, method) { if (esFalloDeDescifrado(args) && vigilante.fallo()) avisoDeDescifrado(); return method.apply(this, args); } },
+  hooks: {
+    logMethod(args, method) {
+      if (esRuidoConocido(args)) return;                      // estados, grupos y el 408 de init queries: ruido sin consecuencias
+      if (esFalloDeDescifrado(args) && vigilante.fallo()) avisoDeDescifrado();
+      return method.apply(this, args);
+    },
+  },
 });
 const api = crearApi({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY });
 const resolvedor = crearResolvedor({});
@@ -81,6 +87,10 @@ const esChatPropio = (jid) => {
   const d = digitos(jid);
   return d !== '' && [digitos(sock?.user?.id), digitos(sock?.user?.lid), digitos(BOT_NUMBER)].includes(d);
 };
+// Para el log: cuándo llegó lo último desde WhatsApp y cómo está la conexión (así se ve si el bot «está mudo» porque no le llega nada,
+// porque lo ignora o porque se cayó).
+let conexion = 'conectando';
+let ultimoMensaje = null;
 const jids = new Map();           // celular → jid al que se le responde (el mismo por el que escribió)
 const esperandoNumero = new Set(); // jids (LID) a los que ya se les pidió su número
 
@@ -88,6 +98,7 @@ const bot = crearBot({
   api,
   comillas: SOLO_COMILLAS,
   limitePorMinuto: Number(process.env.LIMITE_MENSAJES_POR_MINUTO || 12),
+  alFallar: (e, donde) => log.warn({ err: String(e?.message || e), donde }, 'algo falló atendiendo un mensaje (al cliente le llegó un aviso amable)'),
   enviar: async (celular, texto) => {
     const jid = jids.get(celular);
     if (!jid) return;
@@ -107,14 +118,14 @@ async function alMensaje(m) {
   if (!jid || jid === 'status@broadcast' || jid.endsWith('@g.us') || jid.endsWith('@newsletter')) return;   // solo chats uno a uno
   const crudo = textoDe(m).trim();
   const propio = esChatPropio(jid);
-  log.debug({ jid, fromMe: !!m.key.fromMe, propio }, 'mensaje recibido');
-  // ¿es para el bot? Sin comillas (si SOLO_COMILLAS) o escrito por mí a otra persona → se ignora en silencio.
+  if (m.key.fromMe && esEco(m, crudo)) return;                       // eco de una respuesta del bot
+  // ¿es para el bot? Sin comillas (si SOLO_COMILLAS) o escrito por mí a otra persona → se ignora (queda una línea en el log).
   // Excepción a las comillas: un «1», «2» o «3» suelto vale si esa persona acaba de recibir opciones de una búsqueda (últimos 3 min).
   const texto = await textoParaElBot(
     { texto: crudo, fromMe: !!m.key.fromMe, propio, soloComillas: SOLO_COMILLAS, aceptarPropio: ACEPTAR_PROPIO },
     async () => { const c = propio ? digitos(BOT_NUMBER) : (await resolvedor.de(m)).celular; return !!c && bot.tieneBusqueda(c); });
+  log.info({ de: `…${digitos(jid).slice(-4)}`, propio, fromMe: !!m.key.fromMe }, texto === null ? 'mensaje recibido: lo ignoro (no viene entre comillas, o es tuyo hacia otra persona)' : 'mensaje recibido: lo atiendo');
   if (texto === null) return;
-  if (m.key.fromMe && esEco(m, crudo)) return;                       // eco de una respuesta del bot
   const nombre = (m.pushName || '').slice(0, 60);
 
   if (ACEPTAR_PROPIO && propio) {                                     // chat contigo mismo: tu celular es el de la SIM
@@ -170,8 +181,9 @@ async function conectar() {
       qrcode.generate(qr, { small: true });
     }
     if (isNewLogin) console.log('\nVinculado. NO lo cortes ni lo reinicies: es normal ver errores de cifrado (Bad MAC, Timed Out) durante varios minutos; déjalo prendido.\n');
-    if (connection === 'open') log.info('Conectado a WhatsApp');
+    if (connection === 'open') { conexion = 'abierta'; log.info('Conectado a WhatsApp'); }
     if (connection === 'close') {
+      conexion = 'cerrada';
       const codigo = lastDisconnect?.error?.output?.statusCode;
       if (codigo === DisconnectReason.loggedOut) {
         log.error('WhatsApp cerró la sesión (o la vinculación se borró). Borra la carpeta auth/ y vuelve a vincular.');
@@ -185,6 +197,7 @@ async function conectar() {
   });
   s.ev.on('messages.upsert', ({ messages, type }) => {
     if (s !== sock) return;
+    ultimoMensaje = Date.now();
     if (messages.some(seLeyoBien)) vigilante.ok();   // se están leyendo bien: la sesión está sana
     if (type !== 'notify') return;
     for (const m of messages) alMensaje(m).catch((e) => log.error({ err: e.message }, 'error atendiendo mensaje'));
@@ -192,5 +205,10 @@ async function conectar() {
 }
 
 log.info({ SOLO_COMILLAS, ACEPTAR_PROPIO }, SOLO_COMILLAS ? 'Solo atiendo mensajes entre comillas.' : 'Atiendo todos los mensajes (SOLO_COMILLAS=0).');
+// Latido: una línea cada 10 min para ver en Termux que el proceso sigue vivo y qué le llega.
+setInterval(() => {
+  const hace = ultimoMensaje ? `${Math.round((Date.now() - ultimoMensaje) / 60_000)} min` : 'nada desde que arrancó';
+  log.info({ conexion, ultimoMensajeDeWhatsApp: hace }, 'sigo vivo');
+}, 10 * 60_000).unref();
 process.on('unhandledRejection', (e) => log.error({ err: String(e) }, 'promesa sin atender'));
 conectar();

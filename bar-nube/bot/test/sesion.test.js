@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { limpiarSesiones } from '../src/sesion.js';
-import { crearVigilante, esFalloDeDescifrado, seLeyoBien } from '../src/vigilante.js';
+import { crearVigilante, esFalloDeDescifrado, esRuidoConocido, seLeyoBien } from '../src/vigilante.js';
 import { tomarBloqueo, procesoVivo } from '../src/bloqueo.js';
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'rockola-'));
@@ -79,4 +79,20 @@ test('bloqueo: una sola copia a la vez, y un candado de un proceso muerto no est
 test('procesoVivo: yo estoy vivo; un pid imposible no', () => {
   assert.equal(procesoVivo(process.pid), true);
   assert.equal(procesoVivo(2 ** 22 + 12345), false);
+});
+
+test('esRuidoConocido: calla los fallos de estados/grupos y el 408 de init queries, pero deja pasar lo que sí importa', () => {
+  const falla = (jid) => [{ key: { remoteJid: jid }, err: { message: 'No session found to decrypt message' } }, 'failed to decrypt message'];
+  assert.equal(esRuidoConocido(falla('status@broadcast')), true);
+  assert.equal(esRuidoConocido(falla('120363413869605988@g.us')), true);
+  assert.equal(esRuidoConocido(falla('123@newsletter')), true);
+  assert.equal(esRuidoConocido(falla('573001112233@s.whatsapp.net')), false, 'un chat uno a uno que no se descifra SÍ se muestra');
+  assert.equal(esRuidoConocido(falla('73667379765411@lid')), false);
+  const boom = (codigo) => { const err = new Error('Timed Out'); err.output = { statusCode: codigo }; return [{ err }, "unexpected error in 'init queries'"]; };
+  assert.equal(esRuidoConocido(boom(408)), true, 'el timeout de init queries es normal y no afecta a los mensajes');
+  assert.equal(esRuidoConocido(boom(500)), false, 'otro error en init queries no se calla');
+  assert.equal(esRuidoConocido([{ err: new Error('x') }, 'otra cosa']), false);
+  assert.equal(esRuidoConocido(['solo texto']), false);
+  assert.equal(esRuidoConocido([]), false);
+  assert.equal(esRuidoConocido(undefined), false);
 });
